@@ -2,7 +2,7 @@
 
 Current implementation reference · 15 August 2026
 
-This document is the authoritative Framer recreation specification for the current local prototype. Read `PROJECT_HANDOFF.md` first for repository state, approved decisions, run instructions, and unfinished work. Recreate the approved page with native Framer elements; do not import screenshots as the page.
+This document is the authoritative Framer recreation specification for the current local prototype. Read `NEXT_CHAT_HANDOFF.md` and `PROJECT_HANDOFF.md` first for the accepted cross-chat baseline, repository state, approved decisions, run instructions, and unfinished work. The layout amendments are complete; do not repeat or undo them. Recreate the approved page with native Framer elements; do not import screenshots as the page.
 
 ## Journey and final section order
 
@@ -11,20 +11,16 @@ The landing page has one conversion goal: **Start Application**. The interest fo
 Landing page:
 
 1. `Global/Header/Pill`
-2. `LP/Hero`
-3. `Media/MainDiplomaVideo`
-4. `LP/CourseDetails`
-5. `LP/PrimaryApplication` containing `Pricing/DynamicCard` and `Form/InterestCapture`
-6. `LP/ImpactStrip`
-7. `LP/Outcomes`
-8. `LP/ClientLogoGrid`
-9. `LP/MidCTA`
-10. `LP/Syllabus`
-11. `LP/TestimonialCarousel`
-12. `LP/FinalApplication`
-13. `Global/Footer`
-14. `Global/StickyApplicationCTA` on mobile after the hero
-15. `Form/ApplicationModal` overlay shared by mid-page and sticky CTAs
+2. `LP/Hero/Copy`
+3. `LP/PrimaryConversion`, containing `Media/MainDiplomaVideo`, `Pricing/DynamicCard`, and one `Form/InterestCapture`
+4. `LP/ImpactStrip`
+5. `LP/Outcomes`
+6. `LP/OrganizationLogoRail`
+7. `LP/SyllabusDisclosure`
+8. `LP/TestimonialCarousel`
+9. `Global/Footer`
+10. `Global/StickyApplicationCTA` on mobile after the full hero/conversion cluster and before the footer
+11. `Form/ApplicationModal` overlay used only by the sticky CTA
 
 Thank-you page:
 
@@ -43,17 +39,16 @@ Keep the FAQ on the thank-you page. Do not add landing eligibility/audience cont
 | Local component | Framer component/layer | Native structure |
 |---|---|---|
 | `SiteHeader` | `Global/Header/Pill` | Horizontal Stack; logo/brand left, CTA right. |
-| Landing hero section | `LP/Hero` | Responsive Stack with `Hero/Copy` and `Hero/OrbitGraphic`. |
-| `VideoPlaceholder` | `Media/VideoFrame` | Aspect-ratio Frame with native Video, poster, and play control. |
-| `CourseDetailsBar` | `LP/CourseDetails` | Nested responsive Stacks or Grid with five bordered cells. |
-| `LeadCapture` | `Form/InterestCapture` | Responsive Stack containing dynamic pricing and native Framer Form. |
+| Landing hero section | `LP/Hero` | Vertical Stack with compact `Hero/Copy` above `LP/PrimaryConversion`. No orbit graphic or hero CTA row. |
+| `DiplomaVideo` | `Media/MainDiplomaVideo` | Native 16:9 Video with Framer-hosted source/poster, visible controls, inline playback, and no autoplay. |
+| `VideoPlaceholder` | `Media/VideoFrame` | Reusable placeholder frame for still-pending thank-you media only. |
+| `LeadCapture` | `Form/InterestCapture` | One responsive primary instance plus the intentional overlay instance; do not duplicate the form for breakpoints. |
 | Price panel | `Pricing/DynamicCard` | `Offline` and `Online` variants. |
 | `StatsStrip` | `LP/ImpactStrip` | Blue section Stack plus three metric cells. |
-| `OutcomesSection` | `LP/Outcomes` | Four instances of `Outcome/Card`. |
-| `ClientLogoGrid` | `LP/ClientLogoGrid` | CMS Collection List or grid of `Logo/Cell`. |
-| `MidPageCTA` | `LP/MidCTA` | Dark CTA Stack; vertical mobile variant. |
+| `OutcomesSection` | `LP/Outcomes` | Four compact native accordion/disclosure instances in a dense grid. |
+| `OrganizationLogoRail` | `LP/OrganizationLogoGrid` | Four ordered 2×2 swipe pages on mobile; two pages visible on tablet; static 8×2 grid on desktop. Equal contained `Logo/Cell` instances, no duplicated loop set. |
 | `LeadModal` | `Form/ApplicationModal` | Framer Overlay; full-screen sheet on mobile. |
-| `SyllabusSection` | `LP/Syllabus` | Nine CMS/list instances of `Syllabus/Row`. |
+| `SyllabusSection` | `LP/SyllabusDisclosure` | One collapsed native Accordion containing nine compact `Syllabus/Row` instances. |
 | `TestimonialCarousel` | `LP/TestimonialCarousel` | Horizontal scroll/drag section with `Testimonial/ImageCard`. |
 | `StickyMobileCTA` | `Global/StickyApplicationCTA` | Fixed bottom Stack, mobile-only, intersection-controlled. |
 | `CheckoutSection` | `TY/CheckoutOptions` | Two `Checkout/Card` variants. |
@@ -89,87 +84,83 @@ Use these names as stable tracking contracts. Do not bind tracking to generated 
 |---|---:|
 | `Radius/Small` | `14px` |
 | `Radius/Medium` | `24px` |
-| `Radius/Large` | `36px` desktop; `26px` mobile |
+| `Radius/Large` | `36px` |
 | `Radius/Pill` | `999px` |
 | `Shadow/Small` | `0 10px 40px rgba(0,17,28,.08)` |
 | `Shadow/Blue` | `0 20px 60px rgba(10,114,243,.24)` |
 | `Content/Max` | `1280px` |
-| `Section/Vertical` | `clamp(80px, 9vw, 144px)`; `86px` mobile |
-| `Canvas/Desktop` | `20px` minimum side gutter |
+| `Space/1` … `Space/10` | `4, 8, 12, 16, 20, 24, 32, 40, 48, 64px` |
+| `Section/Vertical` | `40px` mobile; `48px` tablet; `64px` desktop |
+| `Canvas/Desktop` | `32px` side gutter, capped by `Content/Max` |
 | `Canvas/Tablet` | `24px` side gutter |
 | `Canvas/Mobile` | `16px` side gutter |
 | `Touch/Minimum` | `44px` |
+| `Form/Control` | `50px` |
 
-Primary form/card proportions are approximately `0.82fr / 1.18fr` above 1100px, `0.72fr / 1.28fr` from 821–1100px, and stacked at 820px and below.
+The primary conversion cluster stacks video → pricing → form below 960px. From 960px it uses `46% / 54%`: video above pricing on the left, the one primary form on the right, with aligned top edges. Do not duplicate the form for breakpoints.
 
 ## Fonts and typography
 
 - Family: Inter, then system sans-serif fallbacks. The local prototype does not make a remote font request.
-- Body: 16px/1.55 desktop; 15px/1.55 mobile.
-- Landing H1: `clamp(72px, 8vw, 126px)` desktop; `clamp(58px, 18vw, 80px)` mobile.
+- Body: 16px/1.55 at all landing breakpoints.
+- Landing H1: `clamp(40px, 10.5vw, 44px)` mobile at 1.02 line height; `clamp(54px, 7vw, 72px)` from 700px; capped at `88px` from 1200px.
 - Thank-you H1: `clamp(58px, 6.8vw, 115px)` desktop; `clamp(54px, 16vw, 75px)` mobile.
-- Section H2: `clamp(43px, 6.2vw, 102px)` desktop; `clamp(43px, 13.5vw, 64px)` mobile.
-- Hero accent: `clamp(25px, 3.2vw, 51px)` desktop; 29px mobile.
-- Eyebrow: 12px desktop; 10px mobile; uppercase with 5% tracking.
-- Headings: about `.98` line height and `-4.5%` tracking; landing hero uses `.83` line height and tighter tracking.
+- Section H2: `clamp(26px, 7vw, 30px)` mobile at 1.15; `clamp(34px, 4.3vw, 44px)` from 700px; capped at `52px` from 1200px.
+- Hero accent: 20px/1.18 mobile; `clamp(25px, 3.2vw, 32px)` from 700px; up to 38px on desktop.
+- Eyebrow: 12px/1.4, uppercase with controlled tracking.
+- Form labels: 13px/1.35; supporting text: 12–14px with at least 1.4 line height.
+- Headings use measured negative tracking, never clipped line boxes; hierarchy comes from size, weight, color, and spacing rather than maximum weight everywhere.
 
 Use fluid sizing and copy-frame widths rather than hard-coded `<br>` elements.
 
 ## Mobile-first layout rules
 
-### Base 360–560px
+### Base 320–699px
 
-- Header uses 16px page gutters, a 60px pill, and a 44px CTA.
-- Hero is a vertical Stack: copy first, orbit graphic second.
-- Hero CTA is full width; curriculum link remains visible.
-- Orbit graphic has a 330px minimum height.
-- Landscape video becomes 10:7.
-- Details use two columns; the fifth cell spans both.
-- Price panel sits above the form. Four facts become one column on mobile.
-- Fields become one column, 54px minimum height, and 16px input text.
+- Header uses 16px page gutters, a 56px pill, and a 44px CTA.
+- Hero uses a vertical Stack: comfortable copy → uncropped 16:9 video → pricing → the one primary form.
+- The decorative orbit graphic, hero CTA row, curriculum link, duplicate details bar, mid-page CTA, and second full form do not exist.
+- The main video fills the content width, keeps its complete 16:9 frame, and uses native controls.
+- Pricing uses a readable two-column fact grid. Location spans both columns. The empty `Schedule / To be confirmed` fact is intentionally absent.
+- The primary form is one column with 50px controls. Email/mobile and job/company remain separate rows on mobile.
 - Modal becomes a 100dvh sheet and shows the form only.
-- Impact, outcomes, instructors, and checkout details are one column.
-- Logo grid is two columns.
-- Curriculum outcome copy wraps under each session title.
-- Testimonial cards occupy about 84% of the track width to show a next-card cue.
-- Checkout cards stack.
-- Sticky CTA appears after the hero leaves view and must not cover focused inputs or accordion controls.
-- No important content is hidden to shorten the page.
+- Impact is a readable 2×2 grid. Outcomes use one-column accordion rows with descriptions collapsed initially.
+- Organization logos use four manual 2×2 swipe pages; no autoplay, looping duplication, or partially clipped cards.
+- Curriculum is one collapsed Accordion. Its nine rows remain accessible; the graduation project gets an accent border, tint, and badge when expanded.
+- Testimonial cards occupy 100% of the track width; one card is visible and swiped at a time. Images remain contained with name and caption visible.
+- Sticky CTA appears only after the full hero/conversion cluster leaves view and hides when the footer enters view.
+- Corrected 390×844 reference: 4,745px / 5.622 viewport heights collapsed; 5,928px / 7.024 with curriculum fully expanded. These are measurement records, not height caps.
 
-### Tablet 561–820px
+### Tablet 700–959px
 
 - 24px page gutters.
-- Hero and price/form remain stacked; orbit graphic minimum height is 430px.
-- Price facts use two columns.
-- Outcomes and instructors use two columns.
-- Checkout cards remain stacked.
-- Mid CTA becomes vertical.
+- Headline and subtitle remain above an intentional stacked conversion layout at 768px.
+- Video, pricing, and the one form use full available width. Form field pairs become two columns because each input remains comfortably usable.
+- Outcomes use two columns; logo rail shows two 2×2 pages/four columns at once; testimonials show two cards.
+- Thank-you checkout cards remain stacked.
 
-### Laptop 821–1100px
+### Laptop 960–1199px
 
-- Hero is an asymmetric two-column grid.
-- Price/form is a two-column `0.72fr / 1.28fr` layout.
-- Details use three columns across two rows.
-- Outcomes and instructors use two columns.
-- Logos use four columns.
+- Hero copy remains above the conversion row.
+- Video/pricing and form use a top-aligned `46% / 54%` row; no duplicate responsive form is created.
+- Outcomes and instructors use two columns; organization logos remain two rows.
 
-### Desktop 1101–1440px+
+### Desktop 1200–1920px+
 
 - Center the 1280px max-width shell.
-- Hero uses two columns and a fluid 48–104px gap.
-- Details use five equal cells.
-- Price/form is `0.82fr / 1.18fr`.
-- Outcomes and instructors use four columns.
-- Logos use six columns.
-- Checkout uses two equal cards.
+- Hero copy remains above the `46% / 54%` video/pricing + form row.
+- Outcomes use four compact disclosure cells; organization logos use a static 8×2 grid; testimonials show three cards.
+- Checkout uses two equal cards on the thank-you page.
 
 ## Interaction and animation specifications
 
 - Primary button hover: 180ms ease, -2px vertical lift, darker blue, stronger blue shadow.
 - Internal anchor scroll: smooth unless reduced motion is requested.
 - Application overlay: focus trap, Escape close, close button, backdrop, and focus restoration. Full-screen on mobile.
-- Sticky CTA: `IntersectionObserver` driven by hero visibility, not an arbitrary scroll distance.
+- Sticky CTA: `IntersectionObserver` driven by hero and footer visibility, not an arbitrary scroll distance.
+- Outcomes and curriculum: native keyboard-operable disclosure behavior. They do not emit CTA or conversion events.
 - Testimonial carousel: horizontal drag/scroll plus previous/next buttons; no autoplay.
+- Organization-logo grid: manual native horizontal scrolling with page snap below 1200px; static 8×2 grid from 1200px. No autoplay, duplicates, links, tracking, or original-color hover.
 - Session snippets: one portrait video at a time, up/down controls, looping index; no autoplay.
 - FAQ: native keyboard-operable summary; first item may start open.
 - `prefers-reduced-motion: reduce`: remove smooth scrolling and make transitions/animations effectively instant.
@@ -181,18 +172,18 @@ Use fluid sizing and copy-frame widths rather than hard-coded `<br>` elements.
 
 1. Create an English page using a white root vertical Stack and the tokens above.
 2. Build the pill header with the approved SVG logo when supplied. Link its CTA to `#apply`.
-3. Build `LP/Hero` with responsive Stacks. Recreate the orbit visual with native Frames, borders, gradients, and labels; no canvas or WebGL.
-4. Add the main video with responsive poster, captions, and transcript support when supplied.
-5. Build the details bar from nested Stacks or Grid; use cell borders instead of absolute divider lines.
-6. Build `Pricing/DynamicCard` with `Offline` and `Online` variants.
+3. Build `LP/Hero` as compact copy above `LP/PrimaryConversion`; do not recreate the removed orbit visual or hero buttons.
+4. Upload VID-01 and its poster to Framer, then add the native 16:9 video with visible controls, inline playback, `preload="metadata"` or Framer's nearest conservative setting, and no autoplay, caption, transcript, link, or tracking.
+5. Build `LP/PrimaryConversion` from native Stacks/Grid: mobile and 768px tablet use video → pricing → form; 960px+ uses video+pricing left and form right. Do not duplicate the form for responsive variants.
+6. Build `Pricing/DynamicCard` with `Offline` and `Online` variants. Keep price/date/format/location synchronized here; do not restore the removed Schedule placeholder or the removed details bar.
 7. Build the native form with exactly these required field names: `fullName`, `email`, `mobile`, `diploma`, `job`, `company`, `website`.
 8. Bind the diploma select to the pricing-card variant and keep its price, date, format, and venue synchronized.
 9. Provide explicit inline errors and focus the first invalid field.
 10. Connect the approved Framer form/webhook to the future Google Sheet. Redirect only after the provider confirms durable capture.
 11. Preserve attribution through the success redirect to `/thank-you?diploma={value}`.
-12. Build metrics, outcomes, logos, curriculum, testimonials, and instructors as reusable components or CMS collections.
-13. Use one shared application overlay instance for mid-page and sticky CTAs.
-14. Keep the final application form and footer in the approved order.
+12. Build metrics, compact outcome disclosures, the approved sixteen-logo rail, collapsed curriculum disclosure, and nine-testimonial carousel as reusable components or CMS collections.
+13. Use one shared application overlay instance for the sticky CTA. Do not restore removed mid-page promotional CTAs.
+14. Keep the footer immediately after testimonials; do not add a second application form.
 
 ### Thank-you page
 
@@ -231,9 +222,9 @@ Keep these easy to locate as variables, component properties, or CMS records:
 | Asset | Current state | Production requirement |
 |---|---|---|
 | Meska logo | CSS approximation | Approved SVG. |
-| Landing video | Placeholder | Video, poster, captions, transcript. |
-| Client logos | 12 neutral slots | Approved logos and alt text/permissions. |
-| Testimonials | 6 neutral slots | Approved images and alt text. |
+| Landing video | VID-01 implemented locally at 1920×1080 with a 1200×675 poster | Upload video and poster to Framer; use the Framer-hosted URLs. No caption/transcript/tracking requested. |
+| Organization logos | 16 deduplicated local originals plus monochrome presentation copies | Upload all 16 presentation copies to Framer and rebuild the approved paged grid. Relationship: organizations represented by professionals who learned AI with Meska. |
+| Testimonials | 9 approved originals plus optimized WebP presentation copies | Upload all 9 optimized files to Framer; preserve order, natural aspect ratios, names, captions, and alt text. |
 | Participant video | Placeholder | Video, poster, captions, transcript. |
 | Session snippets | 3 portrait placeholders | Compressed clips and poster frames. |
 | Instructor photos | 4 initials placeholders | Approved portraits and alt text. |
@@ -243,14 +234,37 @@ Keep these easy to locate as variables, component properties, or CMS records:
 
 Use SVG for logos and AVIF/WebP for raster images. Provide responsive sizes and dimensions, lazy-load below-the-fold media, and avoid cumulative layout shift.
 
+`MEDIA_ASSET_MANIFEST.md` is the authoritative complete inventory for VID-01, IMG-01 through IMG-09, and the selected LOGO records. It contains every original source URL or supplied filename, local original and presentation path, file type, dimensions, size, exact order, alt text, crop behavior, authorization, tracking requirement, and Framer-upload status.
+
+### Approved landing-media copy and behavior
+
+- Logo eyebrow: **Our Impact**.
+- Logo heading: **Professionals from Egypt’s Leading Corporations Learn AI with Meska**.
+- Logo supporting copy: **Professionals across these organizations have joined Meska’s AI learning experiences.**
+- Do not call the organizations partners, clients, sponsors, certifications, or corporate-training customers.
+- Logo presentation color: `Color/MeskaBlue` (`#0A72F3`) with consistent opacity on white/paper cells.
+- Testimonial order: Ali Elsheikh, Eslam Momtaz, Eslam Osman, Amr Mosallam, Ibrahim Mubarak, Reem Fahim, Ali Shaker, Dr. Khaled Said Salem, Kholoud Samy.
+- Testimonial caption: **AI Copilot Diploma graduate**.
+- Testimonials and logos have no click destinations or tracking.
+- The landing video has no playback tracking hooks.
+
+### Framer media upload procedure
+
+1. Upload the local VID-01 MP4 and WebP poster directly to Framer.
+2. Upload the nine optimized testimonial WebP files to Framer in IMG-01 through IMG-09 order.
+3. Upload the sixteen monochrome logo presentation assets. Preserve the original logo files separately for future reprocessing.
+4. Replace every local `/media/...` value with the corresponding Framer-hosted URL in the content/CMS records.
+5. Set explicit width/height or aspect ratio on every Frame before assigning media.
+6. Rebuild four ordered 2×2 logo pages on mobile, expose two pages/four columns at tablet widths, and switch to a static 8×2 grid on desktop. Use equal cells and contained images.
+7. Keep only one semantic instance of every logo; do not create seamless-loop duplicates or automatic motion.
+8. Rebuild the three/two/one-card testimonial behavior with drag/swipe and no autoplay. Use natural responsive image height or an equivalent non-cropping contained frame.
+9. Verify that the final published network requests contain no essential third-party media URLs.
+
 ## CTA destinations
 
 | Element | Current prototype | Final Framer destination |
 |---|---|---|
 | Header Start Application | `#apply` | Primary application form. |
-| Hero Start Application | `#apply` | Primary application form. |
-| Curriculum link | `#curriculum` | Curriculum section. |
-| Mid-page Start Application | Application modal | Shared application overlay. |
 | Sticky Start Application | Application modal | Shared application overlay. |
 | Form submit | `/thank-you?diploma={selection}` | Redirect only after confirmed capture. |
 | Thank-you Choose Diploma | `#checkout` | Checkout section. |
@@ -336,20 +350,16 @@ Do not send full name, email, mobile, job, company, company website, free text, 
 |---|---|
 | Landing meaningful view | `diploma_landing_view` |
 | Header application CTA | `header_start_application` |
-| Hero application CTA | `hero_start_application` |
 | Primary form | `primary_interest_form` |
 | Primary submit | `primary_interest_form_submit` |
-| Mid-page CTA | `midpage_start_application` |
 | Sticky CTA | `sticky_mobile_start_application` |
 | Modal form | `modal_interest_form` |
 | Modal submit | `modal_interest_form_submit` |
-| Final form | `final_interest_form` |
-| Final submit | `final_interest_form_submit` |
 | Thank-you header | `header_choose_diploma` |
 | Thank-you meaningful view | `lead_thank_you_view` |
 | Offline checkout | `offline_shopify_checkout` |
 | Online checkout | `online_shopify_checkout` |
-| Landing main video | `main_diploma_video` |
+| Landing main video | No tracking ID or playback events approved |
 | Participant video | `thank_you_testimonial_video` |
 | Session snippets | `session_snippet_1` through `session_snippet_3` |
 
@@ -361,9 +371,9 @@ Approved consent setting: marketing events remain enabled and are not blocked by
 |---|---|---|---|---|---|---|---|---|---|
 | Base site view | `PageView` | Meta base code loads | Site `<head>` | Meta defaults only | Base | Current page | Always enabled per project setting | Install base code once; never send manually | Pixel Helper shows one base event |
 | Meaningful diploma view | `ViewContent` | Landing client render after attribution capture | `LP/Page` / `diploma_landing_view` | `tracking_id`, `content_name`, `content_category` | Secondary optimization | Stay on page | Same | Session once-key | Reload in same session; expect one |
-| Header/hero application intent | `CTAOpenForm` custom | Intentional CTA click | Named header/hero layers | `tracking_id`, `cta_location` | Behavioral | `#apply` | Same | Debounce accidental double-click only | Verify exact ID and zero `Lead` |
-| Mid/sticky application intent | `CTAOpenForm` custom | Intentional overlay-open click | Named mid/sticky layers | `tracking_id`, `cta_location` | Behavioral | Form overlay | Same | Overlay state plus short click lock | One event; zero `Lead` |
-| Pricing exposure | `PricingView` custom | At least 35% of pricing/form enters view | Primary/final pricing layer | `tracking_id`, `form_location`, `variant` | Behavioral | Stay on page | Same | Once per placement/session | Scroll past twice; expect one per placement |
+| Header application intent | `CTAOpenForm` custom | Intentional header CTA click | `header_start_application` | `tracking_id`, `cta_location` | Behavioral | `#apply` | Same | Debounce accidental double-click only | Verify exact ID and zero `Lead` |
+| Sticky application intent | `CTAOpenForm` custom | Intentional sticky CTA click | `sticky_mobile_start_application` | `tracking_id`, `cta_location` | Behavioral | Form overlay | Same | Overlay state plus short click lock | One event; zero `Lead` |
+| Pricing exposure | `PricingView` custom | At least 35% of the primary pricing/form cluster enters view | Primary pricing layer | `tracking_id`, `form_location`, `variant` | Behavioral | Stay on page | Same | Once per session | Scroll past twice; expect one |
 | Form engagement | `FormStart` custom | First focus inside a form instance | Named form | `tracking_id`, `form_location`, `variant` | Behavioral | Stay on form | Same | Per-instance started flag | Focus several fields; expect one |
 | Validation failure | `FormError` custom | Invalid submit | Named submit | `tracking_id`, `form_location`, `error_type`, `invalid_field_count` | Diagnostic | First invalid field | Same | Validation fingerprint/cooldown | Empty submit; no conversion |
 | Lead captured | `Lead` standard | Thank-you loads with a valid pending token created after confirmed capture | `TY/LeadTracker` | `tracking_id`, `variant`, `wave`, `form_location`, approved UTMs, `event_id` | **Primary conversion** | `/thank-you` | Same | Unique event ID; session once-key; consume token | Valid capture then redirect; reload stays one |
@@ -373,9 +383,11 @@ Approved consent setting: marketing events remain enabled and are not blocked by
 | Checkout URL missing | Local diagnostic only | Checkout click while URL empty | Named checkout button | `tracking_id`, `variant` | Not a conversion | Stay on page | N/A | Pending component state | Zero `InitiateCheckout` |
 | Confirmed payment | `Purchase` standard | Verified Shopify order confirmation/webhook only | Shopify order pipeline | `value`, `currency`, safe order/content IDs, `event_id` | Down-funnel primary | Shopify confirmation | Shopify policy | Stable order-based event ID; browser/server dedupe | Place test order; one Purchase |
 | Future enrollment milestone | `CompleteRegistration` standard | Only if Meska later defines a distinct genuine post-payment registration | Future system | Approved non-PII parameters, `event_id` | Future | Future success state | Production policy | Stable registration ID | Do not enable until defined |
-| Real video playback | `VideoPlay` custom | First actual `play` event, not placeholder/thumbnail click | Named video | `tracking_id`, `video_location` | Behavioral | Stay on page | Same | Once per video/session | Play/pause/replay; expect one |
+| Future video playback | Not approved | Do not track the landing video. Add a future playback event only after Meska approves a separate tracking specification. | Future named video | Pending | Behavioral | Stay on page | Pending | Pending | No landing-video event should appear |
 
 Never fire `Lead`, `CompleteRegistration`, or `Purchase` from an ordinary CTA click. Do not fire `Lead` and `CompleteRegistration` for the same milestone unless Meska explicitly defines separate approved stages.
+
+Removed tracking sources: `hero_start_application`, `midpage_start_application`, `final_interest_form`, and `final_interest_form_submit`. Their visual controls were intentionally removed in the compact-layout amendment. Do not rebind these IDs to another element, and do not restore their events through hidden responsive layers.
 
 ## UTM handling
 
@@ -430,16 +442,40 @@ Never fire `Lead`, `CompleteRegistration`, or `Purchase` from an ordinary CTA cl
 
 Add CAPI only after the form capture and Shopify systems can send verified server events. Begin with `Lead` after durable form capture and `Purchase` after verified payment. Keep secrets server-side, validate webhooks, share the browser event ID with the corresponding server event, and use the same event name for deduplication. Never use CAPI to send unrestricted personal information or bypass platform requirements.
 
+## Measured corrected-layout reference
+
+These browser measurements were captured after the corrective visual-quality pass, with outcomes and curriculum collapsed. Match the visual relationships and responsive behavior; do not force Framer to an arbitrary viewport-height target.
+
+| Viewport | Viewport height | Page height | Ratio |
+|---:|---:|---:|---:|
+| 320px | 568px | 4,767px | 8.393 |
+| 360px | 800px | 4,737px | 5.921 |
+| 390px | 844px | 4,745px | 5.622 |
+| 430px | 932px | 4,857px | 5.211 |
+| 768px | 1,024px | 4,390px | 4.287 |
+| 1024px | 768px | 4,018px | 5.232 |
+| 1440px | 900px | 4,075px | 4.528 |
+| 1920px | 1,080px | 4,127px | 3.821 |
+
+At 390px, expanding all nine curriculum rows produces 5,928px / 7.024 viewport heights. The first fold contains the full header, hero copy, and 16:9 video; pricing starts immediately below. The 768px layout stacks the conversion cluster intentionally, while 1024px and above use the top-aligned two-column row. Screenshots are stored under `outputs/layout-validation/`.
+
 ## Final Framer QA checklist
 
 - [ ] Compare the native build with the local live routes and saved review screenshots.
-- [ ] Validate 360, 390, 768, 1024, and 1440px widths.
+- [ ] Validate 320, 360, 390, 430, 768, 1024, 1440, and 1920px widths.
 - [ ] Confirm no horizontal overflow.
-- [ ] Test anchors, dropdown/price sync, all required fields, validation focus, overlay close/Escape/focus return, sticky CTA, both carousels, FAQ, and checkout behavior.
+- [ ] Record the 390px collapsed and expanded page heights without imposing a fixed viewport-height cap.
+- [ ] Confirm the first mobile fold includes the full header, hero copy, and uncropped 16:9 video, with pricing immediately following.
+- [ ] Confirm 768px uses the dedicated stacked tablet layout; confirm video/pricing and the same form share a top-aligned row at 1024px and desktop.
+- [ ] Confirm the removed hero CTAs, orbit graphic, details bar, mid-page CTAs, and duplicate final form have not returned.
+- [ ] Test anchors, dropdown/price sync, all required fields, validation focus, outcome/curriculum disclosures, overlay close/Escape/focus return, sticky CTA, both carousels, FAQ, and checkout behavior.
 - [ ] Confirm every event’s trigger and duplicate-prevention rule.
 - [ ] Confirm accessibility labels, heading order, focus rings, touch targets, alt text, captions, and reduced motion.
 - [ ] Compress and lazy-load final media; supply explicit dimensions/posters.
+- [ ] Upload VID-01, its poster, all nine testimonial WebPs, and all sixteen logo presentation files to Framer.
+- [ ] Confirm no essential image, video, poster, or logo remains externally hotlinked.
+- [ ] Confirm the landing video emits no Meta or custom playback events.
+- [ ] Confirm exactly 16 semantic logo instances, correct ordering, contained artwork, manual paging below 1200px, and a static 8×2 desktop grid.
 - [ ] Confirm landing canonical/OG metadata and thank-you `noindex`.
 - [ ] Record every intentional difference from the approved local implementation.
 - [ ] Do not publish until the user explicitly approves publishing.
-

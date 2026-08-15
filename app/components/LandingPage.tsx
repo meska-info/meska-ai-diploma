@@ -4,11 +4,10 @@ import { useEffect, useState } from "react";
 import { siteContent } from "../content";
 import { captureAttribution, trackEvent } from "../lib/tracking";
 import {
-  ClientLogoGrid,
-  CourseDetailsBar,
+  DiplomaVideo,
   LeadCapture,
   LeadModal,
-  MidPageCTA,
+  OrganizationLogoRail,
   OutcomesSection,
   SiteFooter,
   SiteHeader,
@@ -16,7 +15,6 @@ import {
   StickyMobileCTA,
   SyllabusSection,
   TestimonialCarousel,
-  VideoPlaceholder,
 } from "./sections";
 
 export function LandingPage() {
@@ -38,22 +36,33 @@ export function LandingPage() {
 
   useEffect(() => {
     const hero = document.querySelector(".hero");
-    if (!hero) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowSticky(!entry.isIntersecting),
+    const footer = document.querySelector(".site-footer");
+    if (!hero || !footer) return;
+
+    let heroVisible = true;
+    let footerVisible = false;
+    const syncSticky = () => setShowSticky(!heroVisible && !footerVisible);
+    const heroObserver = new IntersectionObserver(
+      ([entry]) => {
+        heroVisible = entry.isIntersecting;
+        syncSticky();
+      },
       { threshold: 0.05 },
     );
-    observer.observe(hero);
-    return () => observer.disconnect();
+    const footerObserver = new IntersectionObserver(
+      ([entry]) => {
+        footerVisible = entry.isIntersecting;
+        syncSticky();
+      },
+      { threshold: 0.01 },
+    );
+    heroObserver.observe(hero);
+    footerObserver.observe(footer);
+    return () => {
+      heroObserver.disconnect();
+      footerObserver.disconnect();
+    };
   }, []);
-
-  function scrollToApplication(trackingId: string, location: string) {
-    trackEvent("CTAOpenForm", {
-      tracking_id: trackingId,
-      cta_location: location,
-    });
-    document.querySelector("#apply")?.scrollIntoView({ behavior: "smooth" });
-  }
 
   return (
     <main id="top">
@@ -67,65 +76,29 @@ export function LandingPage() {
           <h1>{siteContent.hero.title}</h1>
           <p className="hero-accent">{siteContent.hero.accent}</p>
           <p className="hero-subtitle">{siteContent.hero.subtitle}</p>
-          <div className="hero-actions">
-            <button
-              className="button"
-              type="button"
-              onClick={() =>
-                scrollToApplication(siteContent.trackingNames.heroCta, "hero")
-              }
-              data-track-id={siteContent.trackingNames.heroCta}
-            >
-              {siteContent.hero.primaryCta} <span aria-hidden="true">↗</span>
-            </button>
-            <a className="text-link" href="#curriculum">
-              Explore the curriculum <span aria-hidden="true">↓</span>
-            </a>
-          </div>
         </div>
-        <div className="hero-art" aria-hidden="true">
-          <div className="orbit orbit-one" />
-          <div className="orbit orbit-two" />
-          <div className="hero-core">AI</div>
-          <span className="orbit-label orbit-label-one">Automate</span>
-          <span className="orbit-label orbit-label-two">Decide</span>
-          <span className="orbit-label orbit-label-three">Build</span>
+
+        <div className="primary-conversion" id="apply">
+          <LeadCapture
+            location="primary"
+            media={
+              <div className="primary-media" aria-labelledby="main-video-heading">
+                <div className="media-heading">
+                  <p id="main-video-heading">See the diploma in action</p>
+                  <span>{siteContent.media.mainVideo.durationLabel}</span>
+                </div>
+                <DiplomaVideo />
+              </div>
+            }
+          />
         </div>
-      </section>
-
-      <section className="main-media shell" aria-labelledby="main-video-heading">
-        <div className="media-heading">
-          <p id="main-video-heading">See the AI Co-Pilot Diploma in action</p>
-          <span>01:30 · Video pending</span>
-        </div>
-        <VideoPlaceholder
-          label="Main diploma video"
-          trackingId="main_diploma_video"
-        />
-      </section>
-
-      <CourseDetailsBar />
-
-      <section className="section shell" id="apply">
-        <LeadCapture location="primary" />
       </section>
 
       <StatsStrip />
       <OutcomesSection />
-      <ClientLogoGrid />
-      <MidPageCTA onOpen={() => setModalOpen(true)} />
+      <OrganizationLogoRail />
       <SyllabusSection />
       <TestimonialCarousel />
-
-      <section className="section final-application shell" id="final-application">
-        <div className="final-application-heading">
-          <p className="eyebrow">
-            <span aria-hidden="true" /> Applications now open
-          </p>
-          <h2>Choose your format. Start with one clear step.</h2>
-        </div>
-        <LeadCapture location="final" />
-      </section>
 
       <SiteFooter />
       {showSticky ? <StickyMobileCTA onOpen={() => setModalOpen(true)} /> : null}

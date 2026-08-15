@@ -1,10 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import {
   FormEvent,
   ReactNode,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -17,14 +17,14 @@ import {
 
 export function BrandMark() {
   return (
-    <a className="brand-mark" href="/" aria-label="Meska AI home">
+    <Link className="brand-mark" href="/" aria-label="Meska AI home">
       <span className="brand-symbol" aria-hidden="true">
         <i />
         <i />
         <i />
       </span>
       <span>Meska AI</span>
-    </a>
+    </Link>
   );
 }
 
@@ -126,31 +126,23 @@ export function VideoPlaceholder({
   );
 }
 
-export function CourseDetailsBar() {
-  const details = [
-    { label: "Offline start", value: siteContent.diplomas.offline.startDate },
-    { label: "Online start", value: siteContent.diplomas.online.startDate },
-    { label: "Duration", value: "11 sessions + graduation project" },
-    { label: "Format", value: "Offline or live online" },
-    { label: "Location", value: "Giza or virtual" },
-  ];
+export function DiplomaVideo() {
+  const video = siteContent.media.mainVideo;
 
   return (
-    <section className="details-shell shell" aria-label="Course details">
-      <div className="details-bar">
-        {details.map((detail, index) => (
-          <div className="detail-item" key={detail.label}>
-            <span className="detail-number" aria-hidden="true">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <span>
-              <small>{detail.label}</small>
-              <strong>{detail.value}</strong>
-            </span>
-          </div>
-        ))}
-      </div>
-    </section>
+    <video
+      className="diploma-video"
+      controls
+      height={video.height}
+      playsInline
+      poster={video.poster}
+      preload="metadata"
+      width={video.width}
+      aria-label={video.title}
+    >
+      <source src={video.src} type="video/mp4" />
+      Your browser does not support embedded video.
+    </video>
   );
 }
 
@@ -167,9 +159,11 @@ const fieldLabels: Record<string, string> = {
 export function LeadCapture({
   location,
   compact = false,
+  media,
 }: {
-  location: "primary" | "modal" | "final";
+  location: "primary" | "modal";
   compact?: boolean;
+  media?: ReactNode;
 }) {
   const [selectedId, setSelectedId] = useState<DiplomaId>("offline");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -180,9 +174,7 @@ export function LeadCapture({
   const trackingId =
     location === "primary"
       ? siteContent.trackingNames.primaryForm
-      : location === "modal"
-        ? siteContent.trackingNames.modalForm
-        : siteContent.trackingNames.finalForm;
+      : siteContent.trackingNames.modalForm;
 
   useEffect(() => {
     captureAttribution();
@@ -275,11 +267,12 @@ export function LeadCapture({
 
   return (
     <div
-      className={`lead-capture ${compact ? "lead-capture-compact" : ""}`}
+      className={`lead-capture ${media ? "lead-capture-with-media" : ""} ${compact ? "lead-capture-compact" : ""}`}
       ref={sectionRef}
       data-component="LeadCapture"
       data-form-location={location}
     >
+      {media}
       <div className="price-panel">
         <div>
           <p className="eyebrow">
@@ -293,10 +286,6 @@ export function LeadCapture({
           <div>
             <dt>Starts</dt>
             <dd>{selected.startDate}</dd>
-          </div>
-          <div>
-            <dt>Schedule</dt>
-            <dd>{selected.time}</dd>
           </div>
           <div>
             <dt>Format</dt>
@@ -462,7 +451,6 @@ export function StatsStrip() {
         <p className="eyebrow eyebrow-light">
           <span aria-hidden="true" /> Our impact
         </p>
-        <p>Professionals from leading corporations learn AI with Meska.</p>
       </div>
       <div className="stats-grid">
         {siteContent.stats.map((stat) => (
@@ -482,69 +470,66 @@ export function OutcomesSection() {
       <SectionHeading
         eyebrow="What changes after the diploma"
         title="Move from experimenting with AI to applying it at work."
-        description="Four practical outcomes, grounded in the current AI Co-Pilot Diploma curriculum."
       />
       <div className="outcome-grid">
         {siteContent.outcomes.map((outcome) => (
-          <article className="outcome-card" key={outcome.number}>
-            <span>{outcome.number}</span>
-            <h3>{outcome.title}</h3>
+          <details className="outcome-card" key={outcome.number}>
+            <summary>
+              <span>{outcome.number}</span>
+              <h3>{outcome.title}</h3>
+              <i aria-hidden="true">+</i>
+            </summary>
             <p>{outcome.description}</p>
-          </article>
+          </details>
         ))}
       </div>
     </section>
   );
 }
 
-export function ClientLogoGrid() {
-  const placeholders = Array.from({ length: 12 }, (_, index) => index + 1);
+export function OrganizationLogoRail() {
+  const logos = siteContent.media.organizationLogos;
+  const heading = siteContent.media.organizationSection;
+  const logoPages = Array.from(
+    { length: Math.ceil(logos.length / 4) },
+    (_, index) => logos.slice(index * 4, index * 4 + 4),
+  );
+
   return (
-    <section className="logo-section shell" aria-labelledby="client-logo-title">
+    <section className="logo-section shell" aria-labelledby="organization-logo-title">
       <SectionHeading
-        eyebrow="Organizations represented"
-        title="A dynamic client logo wall, ready for approved assets."
-        description="Placeholder slots preserve the final layout without inventing client or partner claims."
+        eyebrow={heading.eyebrow}
+        title={heading.title}
+        description={heading.description}
       />
-      <div className="logo-grid" id="client-logo-title">
-        {placeholders.map((item) => (
-          <div className="logo-placeholder" key={item}>
-            <span aria-hidden="true">M/{String(item).padStart(2, "0")}</span>
-            <small>Approved logo pending</small>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export function MidPageCTA({ onOpen }: { onOpen: () => void }) {
-  return (
-    <section className="mid-cta shell">
-      <div>
-        <p className="eyebrow eyebrow-light">
-          <span aria-hidden="true" /> Ready when you are
-        </p>
-        <h2>One form. One clear next step.</h2>
-        <p>
-          Share your interest. The Meska AI team will contact you with the next
-          steps—no payment is collected here.
-        </p>
-      </div>
-      <button
-        className="button button-light"
-        type="button"
-        onClick={() => {
-          trackEvent("CTAOpenForm", {
-            tracking_id: siteContent.trackingNames.midCta,
-            cta_location: "midpage",
-          });
-          onOpen();
-        }}
-        data-track-id={siteContent.trackingNames.midCta}
+      <div
+        className="logo-rail"
+        id="organization-logo-title"
+        role="region"
+        aria-label="Organizations represented by Meska AI learners"
+        tabIndex={0}
       >
-        Start Application <span aria-hidden="true">↗</span>
-      </button>
+        <div className="logo-rail-track">
+          {logoPages.map((page, pageIndex) => (
+            <div className="logo-page" key={`logo-page-${pageIndex + 1}`}>
+              {page.map((logo) => (
+                <div className="organization-logo" key={logo.id}>
+                  {/* Pre-optimized local assets are kept as plain images for direct Framer recreation. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt={logo.name}
+                    decoding="async"
+                    height={logo.height}
+                    loading="lazy"
+                    src={logo.src}
+                    width={logo.width}
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
@@ -556,20 +541,28 @@ export function SyllabusSection() {
         <SectionHeading
           eyebrow="Curriculum"
           title="Nine sessions engineered for real-world application."
-          description="Every session builds toward practical use at work and the final graduation project."
         />
-        <div className="syllabus-list">
-          {siteContent.syllabus.map((session) => (
-            <article className="session-row" key={session.number}>
-              <span className="session-number">{session.number}</span>
-              <h3>{session.title}</h3>
-              <p>{session.outcome}</p>
-              <span className="session-arrow" aria-hidden="true">
-                ↘
-              </span>
-            </article>
-          ))}
-        </div>
+        <details className="curriculum-disclosure">
+          <summary>
+            <span>View all nine sessions</span>
+            <i aria-hidden="true">+</i>
+          </summary>
+          <div className="syllabus-list">
+            {siteContent.syllabus.map((session) => (
+              <article
+                className={`session-row ${session.number === "09" ? "session-row-graduation" : ""}`}
+                key={session.number}
+              >
+                <span className="session-number">{session.number}</span>
+                <h3>{session.title}</h3>
+                <p>{session.outcome}</p>
+                {session.number === "09" ? (
+                  <span className="session-badge">Graduation project</span>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </details>
       </div>
     </section>
   );
@@ -577,13 +570,49 @@ export function SyllabusSection() {
 
 export function TestimonialCarousel() {
   const trackRef = useRef<HTMLDivElement>(null);
-  const cards = Array.from({ length: 6 }, (_, index) => index + 1);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+  const testimonials = siteContent.media.testimonials;
 
-  function move(direction: 1 | -1) {
-    trackRef.current?.scrollBy({
-      left: direction * Math.min(420, window.innerWidth * 0.82),
+  function scrollToCard(index: number) {
+    const track = trackRef.current;
+    const card = track?.children.item(index) as HTMLElement | null;
+    const firstCard = track?.children.item(0) as HTMLElement | null;
+    if (!track || !card || !firstCard) return;
+
+    track.scrollTo({
+      left: card.offsetLeft - firstCard.offsetLeft,
       behavior: "smooth",
     });
+    setActiveIndex(index);
+  }
+
+  function move(direction: 1 | -1) {
+    scrollToCard(
+      Math.max(0, Math.min(testimonials.length - 1, activeIndex + direction)),
+    );
+  }
+
+  function updateActiveIndex() {
+    const track = trackRef.current;
+    const firstCard = track?.children.item(0) as HTMLElement | null;
+    if (!track || !firstCard) return;
+
+    const nextIndex = Array.from(track.children).reduce(
+      (nearest, child, index) => {
+        const element = child as HTMLElement;
+        const distance = Math.abs(
+          element.offsetLeft - firstCard.offsetLeft - track.scrollLeft,
+        );
+        return distance < nearest.distance ? { index, distance } : nearest;
+      },
+      { index: 0, distance: Number.POSITIVE_INFINITY },
+    ).index;
+
+    setActiveIndex(nextIndex);
+    setAtStart(track.scrollLeft <= 2);
+    setAtEnd(track.scrollLeft >= track.scrollWidth - track.clientWidth - 2);
   }
 
   return (
@@ -592,23 +621,53 @@ export function TestimonialCarousel() {
         <SectionHeading
           eyebrow="Previous diploma"
           title="The proof should feel human, not generic."
-          description="Approved testimonial images will replace these placeholders before launch."
         />
         <div className="carousel-controls" aria-label="Testimonial controls">
-          <button type="button" onClick={() => move(-1)} aria-label="Previous testimonials">
+          <span aria-live="polite">
+            {String(activeIndex + 1).padStart(2, "0")} / {String(testimonials.length).padStart(2, "0")}
+          </span>
+          <button
+            type="button"
+            onClick={() => move(-1)}
+            aria-label="Previous testimonial"
+            disabled={atStart}
+          >
             ←
           </button>
-          <button type="button" onClick={() => move(1)} aria-label="Next testimonials">
+          <button
+            type="button"
+            onClick={() => move(1)}
+            aria-label="Next testimonial"
+            disabled={atEnd}
+          >
             →
           </button>
         </div>
       </div>
-      <div className="testimonial-track" ref={trackRef}>
-        {cards.map((card) => (
-          <article className="testimonial-placeholder" key={card}>
-            <div className="placeholder-noise" aria-hidden="true" />
-            <span>Testimonial image {String(card).padStart(2, "0")}</span>
-            <small>Approved image pending</small>
+      <div
+        className="testimonial-track"
+        ref={trackRef}
+        onScroll={updateActiveIndex}
+        aria-label="AI Copilot Diploma graduate testimonials"
+      >
+        {testimonials.map((testimonial) => (
+          <article className="testimonial-card" key={testimonial.id}>
+            <div className="testimonial-media">
+              {/* Pre-optimized local assets are kept as plain images for direct Framer recreation. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt={testimonial.alt}
+                decoding="async"
+                height={testimonial.height}
+                loading="lazy"
+                src={testimonial.src}
+                width={testimonial.width}
+              />
+            </div>
+            <div className="testimonial-caption">
+              <h3>{testimonial.name}</h3>
+              <p>{testimonial.caption}</p>
+            </div>
           </article>
         ))}
       </div>

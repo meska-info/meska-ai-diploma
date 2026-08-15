@@ -35,6 +35,29 @@ test("server-renders the diploma landing page", async () => {
   assert.match(html, /name="fullName"/i);
   assert.match(html, /name="diploma"/i);
   assert.match(html, /Nine sessions engineered for real-world application\./i);
+  assert.match(
+    html,
+    /\/media\/videos\/original\/meska-ai-diploma-main-video\.mp4/i,
+  );
+  assert.match(
+    html,
+    /Professionals from Egypt’s Leading Corporations Learn AI with Meska/i,
+  );
+  assert.match(
+    html,
+    /\/media\/images\/optimized\/testimonial-ali-elsheikh\.webp/i,
+  );
+  assert.match(html, /\/media\/logos\/monochrome\/sodic\.png/i);
+  assert.match(html, /<details class="curriculum-disclosure">/i);
+  assert.match(html, /Graduation project/i);
+  assert.doesNotMatch(html, /<dt>Schedule<\/dt>/i);
+  assert.equal((html.match(/class="organization-logo"/g) ?? []).length, 16);
+  assert.equal((html.match(/class="logo-page"/g) ?? []).length, 4);
+  assert.doesNotMatch(html, /Main diploma video.*Media placeholder/is);
+  assert.doesNotMatch(html, /Explore the curriculum/i);
+  assert.doesNotMatch(html, /One form\. One clear next step\./i);
+  assert.doesNotMatch(html, /final_interest_form/i);
+  assert.doesNotMatch(html, /hero-art|Course details/i);
   assert.doesNotMatch(html, /fbq\(|PIXEL_ID|YOUR_PIXEL/i);
 });
 

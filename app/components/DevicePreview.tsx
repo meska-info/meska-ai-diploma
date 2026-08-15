@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type DevicePreviewProps = {
   device: "mobile" | "tablet" | "desktop";
   label: string;
@@ -36,9 +38,9 @@ export function DevicePreview({ device, label, width }: DevicePreviewProps) {
         </nav>
 
         <nav className="device-preview-pages" aria-label="Preview page">
-          <a href="/" target={frameName}>
+          <Link href="/" target={frameName}>
             Landing
-          </a>
+          </Link>
           <a href="/thank-you" target={frameName}>
             Thank-you
           </a>
