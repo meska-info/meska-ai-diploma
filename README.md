@@ -8,17 +8,17 @@ Active architecture:
 Codex → GitHub → Vercel → https://diploma.meska.ai
 ```
 
-GitHub is the source of truth and `main` is the production branch once the external repository is connected. See `DEPLOYMENT.md` for verified rollout status; do not infer completion from intended architecture.
+GitHub is the source of truth and `main` is the production branch. See `DEPLOYMENT.md` for verified rollout status; do not infer completion from intended architecture.
 
 ## Status
 
 ```text
 Local development: verified
-Local Git repository: yes (main; external remote pending)
-GitHub: pending external repository creation/connection
-Vercel: pending Git import and first deployment
-Production deployment/domain/SSL: pending
-Production Meta Pixel: implemented locally; live verification pending
+Local Git repository: yes (`main` tracks `origin/main`)
+GitHub: https://github.com/meska-info/meska-ai-diploma
+Vercel: `meska-ai-diploma`, connected directly to GitHub
+Production deployment/domain/SSL: verified at https://diploma.meska.ai
+Production Meta Pixel: loader and production event flow technically verified; Meta Events Manager Test Events pending
 Production Offline/Online lead destinations: pending
 Legacy Framer workflow: archived reference only
 ```
@@ -97,7 +97,6 @@ The browser Pixel forwards standard `ViewContent`, `Lead`, and `InitiateCheckout
 ## Pending production work
 
 1. Obtain and connect separate verified Offline and Online lead destinations.
-2. Create/connect the GitHub repository after explicit external-resource approval.
-3. Import GitHub into Vercel, verify Preview/Production branch behavior, and approve first production deployment.
-4. Assign only `diploma.meska.ai`, apply the exact inspected DNS record with approval, and verify SSL.
-5. Complete production responsive, accessibility, form, media, checkout, and Pixel/event QA.
+2. Complete the production documentation pull request and verify its Vercel Preview before merging to `main`.
+3. Complete Meta Events Manager Test Events validation for Pixel `4138749493027663` with the authenticated account owner.
+4. Keep verifying responsive, accessibility, form, media, checkout, and Pixel/event behavior after every future production change.

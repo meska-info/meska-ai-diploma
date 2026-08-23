@@ -13,20 +13,21 @@ Production-transition snapshot · 23 August 2026
 - One dynamic thank-you checkout card with both approved Shopify links.
 - Impact, outcomes, transparent greyscale marquee, curriculum disclosure, nine testimonials, ten thank-you videos, nine-item skills matrix, four instructors, and sixteen FAQs.
 - Full landing-page PNGs at 390, 768, and 1440px in `artifacts/full-page-pngs/`.
-- Production Meta Pixel `4138749493027663` is integrated once through the centralized tracking bridge; local build verification is complete and live verification is pending deployment.
+- Production Meta Pixel `4138749493027663` is integrated once through the centralized tracking bridge; local and live technical verification are complete, while Meta Events Manager Test Events remains pending account-owner validation.
 - Active production documentation lives in `DEPLOYMENT.md`, `TRACKING.md`, `README.md`, and `AGENTS.md`.
+- GitHub source repository is connected at `https://github.com/meska-info/meska-ai-diploma`; local and remote `main` currently resolve to production baseline commit `e2c0ebe`.
+- Vercel project `meska-ai-diploma` is connected directly to GitHub with `main` as its production branch.
+- Production is live at `https://diploma.meska.ai` with GoDaddy DNS, Vercel-managed HTTPS, and the verified initial deployment `dpl_5ikQucV9zNi6rhzVKyNmr1ChehG5`.
 
 ## What does not exist yet
 
-- No GitHub remote/repository connection.
-- No Vercel project, production deployment, or project-configured custom domain.
 - No production Offline or Online lead destination.
 - No CAPI implementation or confirmed Shopify Purchase event implementation.
 - No live Framer changes or publication from this local project.
 
 ## Most important constraints
 
-- Preserve Git history and use GitHub `main` as production once the external repository is connected.
+- Preserve Git history and use GitHub `main` as production.
 - Do not rebuild, redesign, restore removed hero content, or reintroduce the landing Included area.
 - Keep the current header Start Application anchor and persistent sticky advisor CTA; only the old hero CTA pair is removed.
 - Preserve mobile-first behavior across 320, 375, 390, 768, 1024, 1280, and 1440px.
@@ -46,4 +47,4 @@ Production-transition snapshot · 23 August 2026
 
 ## Next phase
 
-Complete the authorized GitHub → Vercel → `diploma.meska.ai` rollout. External authentication should involve the user only when a real login/OAuth/account-selection/permission step is unavoidable. Production lead routing and Purchase/CAPI remain separate future work unless explicitly authorized.
+Finish the production documentation pull request and confirm its Vercel Preview/merge workflow. Complete Meta Events Manager Test Events validation with the account owner. Production lead routing and Purchase/CAPI remain separate future work unless explicitly authorized.

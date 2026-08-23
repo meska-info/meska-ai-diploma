@@ -13,11 +13,13 @@ GitHub is the source of truth. The production branch is `main`.
 Updated: 23 August 2026
 
 - Local production build: verified with native Next.js.
-- GitHub repository: pending account authorization and repository creation/connection.
-- Vercel project and Git integration: pending.
-- Production domain: pending.
-- DNS and SSL: pending.
-- Production Meta Pixel: implemented locally; live delivery and Events Manager verification are pending deployment.
+- GitHub repository: verified at `https://github.com/meska-info/meska-ai-diploma`; `main` is production and baseline commit `e2c0ebe` is present locally and remotely.
+- Vercel project: `meska-ai-diploma` (`prj_pngAONEjTfCOV8PqAk1hMl089eb1`), connected directly to the GitHub repository with `main` as `productionBranch` and Git deployments enabled.
+- Initial production deployment: `dpl_5ikQucV9zNi6rhzVKyNmr1ChehG5`, status `READY`.
+- Production domain: `https://diploma.meska.ai`, attached and ownership-verified.
+- DNS: GoDaddy authoritative nameservers; scoped `_vercel` TXT verification and `diploma` CNAME only. Root and `www` records were not changed.
+- SSL/HTTPS: verified; HTTP redirects to HTTPS and HTTPS returns `200` with Vercel HSTS.
+- Production Meta Pixel: Pixel ID and one loader instance verified live; CTA, form, qualified `Lead`, thank-you, and checkout event sequences verified through the production diagnostic log. Meta Events Manager Test Events remains pending account-owner validation.
 
 Never describe a pending item as complete without inspecting the external state.
 
@@ -55,13 +57,20 @@ The retained vinext/Vite/Cloudflare Worker files and `build:worker` script are c
 
 The only production hostname in scope is `diploma.meska.ai`. Do not change the hosting, DNS, or domain assignment of `meska.ai` or `www.meska.ai`.
 
-After the Vercel project exists:
+For future domain work:
 
-1. Add `diploma.meska.ai` to that project only after explicit approval.
+1. Change or replace the current `diploma.meska.ai` assignment only after explicit approval.
 2. Run Vercel domain inspection and use the exact project-specific record it returns.
 3. Determine the authoritative DNS provider before proposing a change.
 4. Make no DNS mutation without explicit approval.
 5. Verify resolution, Vercel domain status, certificate issuance, HTTPS, and redirects.
+
+Current production DNS records are intentionally limited to:
+
+```text
+TXT   _vercel   vc-domain-verify=diploma.meska.ai,a0d8b17a5817394c03ab
+CNAME diploma   c939ed6df8b99cba.vercel-dns-017.com
+```
 
 ## Production verification
 
