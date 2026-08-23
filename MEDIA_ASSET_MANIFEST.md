@@ -1,6 +1,6 @@
 # Meska AI Diploma Media Asset Manifest
 
-Updated: 2026-08-15
+Updated: 2026-08-16
 
 Implementation status: local Codex implementation complete; Framer upload pending.
 
@@ -23,7 +23,7 @@ Implementation status: local Codex implementation complete; Framer upload pendin
 - Crop: none. Each complete screenshot uses natural responsive height with `object-fit: contain`; no fixed-height media well.
 - Interaction: no click destination, expansion, autoplay, or tracking.
 
-### VIDEO-BEHAVIOR
+### MAIN-VIDEO-BEHAVIOR
 
 - Section: existing main-video position directly below the Hero.
 - Desktop/tablet/mobile: contained 16:9 presentation at the section's full available width.
@@ -32,16 +32,25 @@ Implementation status: local Codex implementation complete; Framer upload pendin
 - Caption/transcript: none requested.
 - Click destination and tracking: none.
 
+### PORTRAIT-VIDEO-BEHAVIOR
+
+- Sections: graduation story and nine-card Inside the Diploma carousel on the thank-you page.
+- All selected source files are native 1080×1920 portrait videos; local presentation derivatives are 720×1280 H.264/AAC MP4s with fast-start metadata and stripped nonessential metadata.
+- Poster frames are 720×1280 WebP derivatives from the supplied videos.
+- Playback is user-initiated with visible native controls, `playsInline`, `preload="metadata"`, and no autoplay.
+- Starting any portrait video pauses every other video on the page. Moving a session clip out of the active carousel position pauses it.
+- The graduation video emits first-play `VideoPlay` with `thank_you_graduation_video`. Session videos emit first-play `VideoPlay` with their ordered `inside_diploma_video_XX` IDs.
+- Crop: none; use the natural 9:16 frame and preserve faces and embedded captions.
+
 ### LOGO-BEHAVIOR
 
 - Section: logo-grid position after Outcomes and before Curriculum.
 - Meaning: organizations represented by professionals who learned AI with Meska. These are not labeled partners, clients, sponsors, certifications, or corporate-training customers.
-- Desktop at 1200px+: static 8×2 grid.
-- Tablet at 700–1199px: two 2×2 pages/four columns visible with manual horizontal paging.
-- Mobile below 700px: four ordered 2×2 swipe pages with scroll snap.
-- Presentation: equal cells, contained artwork, consistent theme-blue monochrome treatment, controlled optical sizing.
-- Interaction: manual scroll/swipe only; no autoplay, click destination, or tracking.
-- Accessibility: one semantic instance per logo; no duplicated loop content and no moving-content pause requirement.
+- Mobile/tablet/desktop: one continuous, seamless horizontal marquee at a restrained 62-second linear duration.
+- Presentation: transparent, borderless slots around 180×96px at base and 214×108px from 700px; contained artwork in 64/72px wells, consistent CSS greyscale treatment, preserved aspect ratios and controlled optical sizing. No individual cards, backgrounds or visible track.
+- Interaction: no click destination or tracking. Motion pauses on hover and keyboard focus.
+- Accessibility: one semantic sequence with organization-name alt text plus one visual-only duplicated sequence marked `aria-hidden` and using empty image alt text.
+- Reduced motion: stop animation, remove the duplicated sequence from layout, and leave one manually scrollable sequence.
 
 ## Main diploma video
 
@@ -59,7 +68,7 @@ Implementation status: local Codex implementation complete; Framer upload pendin
 | File size | 46,515,455 bytes (approximately 44.4 MiB) |
 | Poster | `public/media/images/posters/meska-ai-diploma-main-video-poster.webp`; 1200 × 675; 48,906 bytes |
 | Approved section/position | Main video section immediately below Hero |
-| Responsive behavior | VIDEO-BEHAVIOR |
+| Responsive behavior | MAIN-VIDEO-BEHAVIOR |
 | Alt/accessibility label | Meska AI Co-Pilot Diploma overview |
 | Caption | None |
 | Crop/focal point | No crop; retain the natural 16:9 frame. Poster keeps the presenter and Arabic title visible. |
@@ -68,6 +77,52 @@ Implementation status: local Codex implementation complete; Framer upload pendin
 | Framer upload | Pending |
 
 The original 1080p file is used for local delivery with conservative metadata preloading. A trial 720p system transcode was rejected because it increased the file to approximately 95 MiB; it is not part of the project.
+
+## Official Meska logo
+
+| Field | Value |
+| --- | --- |
+| Asset ID | BRAND-01 |
+| Drive folder | [Official Meska 2026 logo folder](https://drive.google.com/drive/folders/1gyyhN1Lh_jzHjUBPj64xYDRnUXE5EVyM) |
+| Selected Drive file | `Meska2026 LOGO (1).png`; file ID `1pikI94As0PCxe_dIRrXg-02YcIV6T92E` |
+| Rejected alternatives | `Meska2026 LOGO all white.png` and `Meska2026 LOGO white.png`; insufficient contrast on the accepted white/off-white header |
+| Local path | `public/media/brand/original/meska-2026-logo.png` |
+| Specifications | PNG; RGBA; 3283×576; 42,924 B |
+| Placement | Header and footer on both routes |
+| Treatment | Preserve intrinsic aspect ratio; no recolor, trace, distortion or substitute; accessible alt `Meska AI`; home link |
+| Framer upload | Pending |
+
+## Thank-you portrait videos
+
+All supplied source videos were inspected as native `1080×1920` portrait MP4s. The local repository contains delivery derivatives rather than a duplicate 1.35GB original-source set. Original Drive links and filenames remain the retrieval source for Framer if a different encode is required.
+
+| Order / ID | Drive source and original filename | Original size / duration | Local optimized video | Local poster | Tracking / placement | Framer upload |
+| --- | --- | --- | --- | --- | --- | --- |
+| Graduation / `thank_you_graduation_video` | [Drive](https://drive.google.com/file/d/14i_kNr4A6zqo0QJm06pvtVGSiRWyhG83/view?usp=sharing) · `SQ - 03 - winners Final.mp4` | 179,476,717 B · 141.909s | `public/media/videos/optimized/graduation-wave.mp4` · 20,853,440 B | `public/media/images/posters/graduation-wave.webp` · 27,434 B | Graduation story; first-play `VideoPlay` | Pending |
+| 1 / `inside_diploma_video_01` | [Drive](https://drive.google.com/file/d/1ep9zRueGnOQPwfRRFml_MGK1kkOte0hm/view?usp=sharing) · `Day 1 - reel 06.mp4` | 104,890,189 B · 77.269s | `public/media/videos/optimized/inside-diploma-session-01.mp4` · 8,082,288 B | `public/media/images/posters/inside-diploma/session-01.webp` · 40,044 B | Carousel position 1; first-play `VideoPlay` | Pending |
+| 2 / `inside_diploma_video_02` | [Drive](https://drive.google.com/file/d/1ca7Qu7VZZns0CqAlTCNe30sMc8ZS01Rc/view?usp=sharing) · `نسخة من DAY 9 - REEL 05.mp4` | 129,684,042 B · 95.659s | `public/media/videos/optimized/inside-diploma-session-02.mp4` · 12,429,103 B | `public/media/images/posters/inside-diploma/session-02.webp` · 34,120 B | Carousel position 2; first-play `VideoPlay` | Pending |
+| 3 / `inside_diploma_video_03` | [Drive](https://drive.google.com/file/d/1TuRht3W-ELdrqQz2byQFCpnVDCS_29YB/view?usp=sharing) · `Day 1 - reel 02.mp4` | 76,799,417 B · 56.661s | `public/media/videos/optimized/inside-diploma-session-03.mp4` · 8,640,496 B | `public/media/images/posters/inside-diploma/session-03.webp` · 44,994 B | Carousel position 3; first-play `VideoPlay` | Pending |
+| 4 / `inside_diploma_video_04` | [Drive](https://drive.google.com/file/d/1yXJ3K5aBNC6CYsG4ubn7wMJ-ZfOeElZX/view?usp=sharing) · `DAY 2- REEL 02.mp4` | 135,499,662 B · 100.224s | `public/media/videos/optimized/inside-diploma-session-04.mp4` · 10,565,399 B | `public/media/images/posters/inside-diploma/session-04.webp` · 37,592 B | Carousel position 4; first-play `VideoPlay` | Pending |
+| 5 / `inside_diploma_video_05` | [Drive](https://drive.google.com/file/d/1rDlyJ6gUIn2RrfOhs7PfRQkSg6BeQVTk/view?usp=sharing) · `day 6- reel 02.mp4` | 139,810,515 B · 103.659s | `public/media/videos/optimized/inside-diploma-session-05.mp4` · 11,367,493 B | `public/media/images/posters/inside-diploma/session-05.webp` · 47,314 B | Carousel position 5; first-play `VideoPlay` | Pending |
+| 6 / `inside_diploma_video_06` | [Drive](https://drive.google.com/file/d/1T0c0Z359zgP0HIhCqmO80Dlgm1aFZdzG/view?usp=sharing) · `day 7- reel 01.mp4` | 136,660,536 B · 101.525s | `public/media/videos/optimized/inside-diploma-session-06.mp4` · 11,557,964 B | `public/media/images/posters/inside-diploma/session-06.webp` · 51,278 B | Carousel position 6; first-play `VideoPlay` | Pending |
+| 7 / `inside_diploma_video_07` | [Drive](https://drive.google.com/file/d/1daCymHLjKP-ZEP6-i-AaUdLbYAbzvwGO/view?usp=drive_link) · `R5.mp4` | 190,505,632 B · 147.755s | `public/media/videos/optimized/inside-diploma-session-07.mp4` · 14,940,217 B | `public/media/images/posters/inside-diploma/session-07.webp` · 42,250 B | Carousel position 7; first-play `VideoPlay` | Pending |
+| 8 / `inside_diploma_video_08` | [Drive](https://drive.google.com/file/d/1_TKOnIQ-h20_AcUrIjdj5By5Zl_IAtQ1/view?usp=sharing) · `DAY 3- REEL 04-1.mp4` | 117,214,889 B · 86.123s | `public/media/videos/optimized/inside-diploma-session-08.mp4` · 8,714,150 B | `public/media/images/posters/inside-diploma/session-08.webp` · 22,852 B | Carousel position 8; first-play `VideoPlay` | Pending |
+| 9 / `inside_diploma_video_09` | [Drive](https://drive.google.com/file/d/1MsqdLqX918aHMa5M5QXvgeQF_b36Lk1w/view?usp=sharing) · `R2.mp4` | 145,348,763 B · 112.640s | `public/media/videos/optimized/inside-diploma-session-09.mp4` · 9,060,285 B | `public/media/images/posters/inside-diploma/session-09.webp` · 43,322 B | Carousel position 9; first-play `VideoPlay` | Pending |
+
+All optimized videos and posters use PORTRAIT-VIDEO-BEHAVIOR. Poster frames were inspected for legibility, faces and embedded captions; no heavy crop is applied.
+
+## Instructor portraits
+
+The first three portraits come from the current official [Offline Diploma page](https://meska.ai/offline-diploma). Omar’s portrait and role/biography were verified on the official [Meska About page](https://meska.ai/about). Rendered pages use only the local WebP derivatives.
+
+| Order | Instructor | Official image source | Local presentation | Dimensions / size | Alt text | LinkedIn | Framer upload |
+| ---: | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Nabil Khalifa | `https://framerusercontent.com/images/DbKw6C0vWczyCtCTJlj4xZ5nUSY.jpg?width=1080&height=1350` | `public/media/instructors/optimized/nabil-khalifa.webp` | 1080×1350 · 133,120 B | Nabil Khalifa speaking at a Meska AI event | `https://eg.linkedin.com/in/nabil-khalifa-96702090` | Pending |
+| 2 | Dr. Amr Fahmy | `https://framerusercontent.com/images/34iEbemMv1sbKVf9KScOOJZ3M.jpg?width=1080&height=1350` | `public/media/instructors/optimized/amr-fahmy.webp` | 1080×1350 · 68,466 B | Dr. Amr Fahmy, L&D Director at Meska AI | `https://eg.linkedin.com/in/amrfahmyofficial` | Pending |
+| 3 | Youssef Al Refaey | `https://framerusercontent.com/images/WXNVhyEuzkEBnp3JIt91IagwO5E.jpg?width=1080&height=1350` | `public/media/instructors/optimized/youssef-al-refaey.webp` | 1080×1350 · 60,810 B | Youssef Al Refaey, Growth Director at Meska AI | `https://eg.linkedin.com/in/youssef-al-refaey-361a6214a` | Pending |
+| 4 | Omar El Monayar | `https://framerusercontent.com/images/rVqanVhsIIfMKXkYsqw8B6xKgc.jpg?width=800&height=800` | `public/media/instructors/optimized/omar-el-monayar.webp` | 800×800 · 72,906 B | Omar El Monayar, Co-Founder of Meska AI | `https://www.linkedin.com/in/omarelmonayar/` | Pending |
+
+Portrait display is a consistent 4:5 frame with `object-fit: cover` and top-centered focal position. Do not substitute random portraits or restore Ahmed Mostafa.
 
 ## Testimonial screenshots
 
@@ -118,12 +173,16 @@ All selected logos use LOGO-BEHAVIOR. Original files remain unchanged. Presentat
 
 ## Framer upload checklist
 
+- [ ] Upload BRAND-01 and preserve its intrinsic aspect ratio.
 - [ ] Upload VID-01 and its poster to Framer.
-- [ ] Replace the local video and poster paths with Framer-hosted URLs.
+- [ ] Upload the graduation video/poster and nine ordered session video/poster pairs.
+- [ ] Upload all four instructor portrait derivatives.
+- [ ] Replace every local media path with its matching Framer-hosted URL.
 - [ ] Upload all nine optimized testimonial WebP files to Framer.
 - [ ] Upload all sixteen monochrome logo presentation files to Framer.
 - [ ] Preserve the original source files outside the presentation layer for future replacement or reprocessing.
 - [ ] Confirm every Framer image/video URL belongs to Framer's asset hosting.
 - [ ] Recheck image dimensions, aspect ratios, and video controls in Framer.
-- [ ] Recheck mobile/tablet paged grids and the static 8×2 desktop grid.
+- [ ] Recheck the continuous marquee, semantic/visual duplicate split, hover/focus pause and reduced-motion fallback.
+- [ ] Recheck that only one of the ten thank-you videos can play at a time and that inactive session clips pause.
 - [ ] Confirm no essential production media remains externally hotlinked.

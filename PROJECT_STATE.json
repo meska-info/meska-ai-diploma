@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-23",
+  "project": {
+    "name": "Meska AI Co-Pilot Diploma local approval prototype",
+    "root": "/Users/ahmedzaki/Documents/Codex/2026-08-14/create-a-high-conversion-journey-of-2",
+    "sourceOfTruth": "current uncommitted working tree",
+    "stack": [
+      "Next.js App Router",
+      "React 19",
+      "TypeScript 5",
+      "vinext",
+      "Vite 8",
+      "Cloudflare Worker entry",
+      "plain CSS"
+    ],
+    "packageManager": "pnpm",
+    "minimumNodeVersion": "22.13.0"
+  },
+  "status": {
+    "localDevelopment": true,
+    "localGitRepository": true,
+    "branch": "main",
+    "head": "77cf2e01faa8716ccd83ad066702bbc3c1b6c5ef",
+    "headSubject": "Checkpoint final layout amendments and cross-chat handoff",
+    "githubRemote": false,
+    "vercelProject": false,
+    "deployed": false,
+    "customDomainConfiguredByProject": false,
+    "metaPixelImplemented": false,
+    "leadDestinationsVerified": false,
+    "framerPublishedByThisProject": false
+  },
+  "repository": {
+    "remote": null,
+    "acceptedBaseline": "The current uncommitted working tree contains the accepted August amendments. The HEAD checkpoint is a historical pre-amendment checkpoint and must not be restored over it.",
+    "knownCommits": [
+      {
+        "hash": "6e175fc",
+        "subject": "Checkpoint Meska diploma prototype handoff"
+      },
+      {
+        "hash": "77cf2e01faa8716ccd83ad066702bbc3c1b6c5ef",
+        "subject": "Checkpoint final layout amendments and cross-chat handoff"
+      }
+    ]
+  },
+  "routes": [
+    {
+      "path": "/",
+      "purpose": "Landing page and primary interest form"
+    },
+    {
+      "path": "/thank-you",
+      "purpose": "Qualified thank-you, consideration, and checkout page"
+    },
+    {
+      "path": "/preview/mobile",
+      "purpose": "390px live review frame"
+    },
+    {
+      "path": "/preview/tablet",
+      "purpose": "768px live review frame"
+    },
+    {
+      "path": "/preview/desktop",
+      "purpose": "1440px live review frame"
+    }
+  ],
+  "sourceFiles": {
+    "content": "app/content.ts",
+    "landingComposition": "app/components/LandingPage.tsx",
+    "thankYouComposition": "app/components/ThankYouPage.tsx",
+    "sharedComponents": "app/components/sections.tsx",
+    "tracking": "app/lib/tracking.ts",
+    "styles": "app/globals.css",
+    "tests": "tests/rendered-html.test.mjs",
+    "mediaRoot": "public/media"
+  },
+  "components": [
+    "SiteHeader",
+    "DiplomaVideo",
+    "LeadCapture",
+    "FormatToggle",
+    "StatsStrip",
+    "OutcomesSection",
+    "OrganizationLogoRail",
+    "SyllabusSection",
+    "TestimonialCarousel",
+    "StickyMobileCTA",
+    "ThankYouLeadTracker",
+    "GraduationStory",
+    "CheckoutSection",
+    "SnippetsCarousel",
+    "SkillsBusinessValueSection",
+    "InstructorSection",
+    "FAQSection",
+    "SiteFooter"
+  ],
+  "programFormats": {
+    "default": "offline",
+    "offline": {
+      "price": "EGP 25,000",
+      "wave": "14",
+      "startDate": "22 August 2026",
+      "delivery": "8 offline + 3 online live sessions",
+      "location": "Creativa Innovation Hub · Giza",
+      "formCta": "Request Offline Diploma Details",
+      "leadDestination": null,
+      "leadDestinationStatus": "pending",
+      "checkoutDestination": "centralized in app/content.ts with its complete approved query string"
+    },
+    "online": {
+      "price": "EGP 20,000",
+      "wave": "10",
+      "startDate": "23 August 2026",
+      "delivery": "8 live + 3 online recap sessions",
+      "location": "Virtual · Live sessions",
+      "formCta": "Request Online Diploma Details",
+      "leadDestination": null,
+      "leadDestinationStatus": "pending",
+      "checkoutDestination": "centralized in app/content.ts with its complete approved query string"
+    },
+    "installmentCopy": "5 interest-free payments via Sympl."
+  },
+  "form": {
+    "id": "primary_interest_form",
+    "visibleRequiredFields": [
+      "fullName",
+      "email",
+      "mobile",
+      "job",
+      "company",
+      "website"
+    ],
+    "hiddenFields": [
+      "diploma"
+    ],
+    "formatValues": [
+      "offline",
+      "online"
+    ],
+    "externalSubmissionImplemented": false,
+    "prototypeSuccessFlow": "A valid submit emits local PII-free diagnostics, stores meska-pending-lead in sessionStorage, and redirects to the matching thank-you query. The thank-you tracker consumes the qualified token and fires one local Lead event.",
+    "duplicateSubmissionGuard": true,
+    "attributionKeys": [
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_term",
+      "utm_content",
+      "fbclid"
+    ]
+  },
+  "tracking": {
+    "transport": "local window.__MESKA_EVENTS__ and console bridge only",
+    "piiFiltering": true,
+    "productionMetaPixelInstalled": false,
+    "futureMetaPixelId": "4138749493027663",
+    "futureMetaPixelAuthorizedByThisHandoff": false,
+    "events": [
+      "CTAOpenForm",
+      "FormStart",
+      "FormError",
+      "FormSubmit",
+      "Lead",
+      "LeadThankYouView",
+      "FormatSelect",
+      "CapabilitySelect",
+      "InitiateCheckout",
+      "VideoPlay"
+    ],
+    "purchaseImplemented": false,
+    "conversionRules": {
+      "Lead": "valid form submission followed by qualified thank-you token consumption",
+      "InitiateCheckout": "matching format Shopify checkout click",
+      "Purchase": "confirmed Shopify payment; not implemented locally"
+    }
+  },
+  "responsive": {
+    "mobileFirst": true,
+    "cssBreakpointsPx": [
+      700,
+      960,
+      1200
+    ],
+    "requiredQaWidthsPx": [
+      320,
+      375,
+      390,
+      768,
+      1024,
+      1280,
+      1440
+    ],
+    "reviewRoutesPx": {
+      "mobile": 390,
+      "tablet": 768,
+      "desktop": 1440
+    },
+    "reducedMotionSupported": true,
+    "pageLevelHorizontalOverflowAllowed": false
+  },
+  "assets": {
+    "root": "public/media",
+    "fileCount": 77,
+    "groups": {
+      "officialBrandLogos": 1,
+      "mainVideos": 1,
+      "mainVideoPosters": 1,
+      "optimizedPortraitVideos": 10,
+      "portraitVideoPosters": 10,
+      "instructorPortraits": 4,
+      "testimonialOriginals": 9,
+      "testimonialOptimized": 9,
+      "organizationLogoOriginals": 16,
+      "organizationLogoMonochrome": 16
+    },
+    "renderingRules": [
+      "Use local media rather than hotlinking essential assets.",
+      "Preserve aspect ratio and avoid aggressive testimonial or video cropping.",
+      "Keep the organization marquee transparent and greyscale."
+    ]
+  },
+  "deployment": {
+    "github": "pending",
+    "vercel": "pending",
+    "production": "pending",
+    "customDomain": "pending",
+    "currentBuildTarget": "vinext/Vite Cloudflare Worker-style output",
+    "sitesResourceDeclaration": ".openai/hosting.json with d1 and r2 set to null",
+    "authorizedByThisHandoff": false
+  },
+  "framer": {
+    "status": "reference-only",
+    "handoff": "FRAMER_HANDOFF.md",
+    "liveProjectModified": false,
+    "publishAuthorizedByThisHandoff": false
+  },
+  "lockedDecisions": [
+    "Do not rebuild or redesign the accepted pages from scratch.",
+    "Keep the old hero CTA pair, orbit image, course-detail bar, and landing Included area removed.",
+    "Keep the current header Start Application anchor and persistent Speak with a Meska Advisor sticky CTA.",
+    "Keep one synchronized landing format state and six visible required form controls plus hidden diploma.",
+    "Keep the compact thank-you confirmation, one dynamic checkout card, ten-video experience, nine-item skills matrix, four instructors, and sixteen FAQs.",
+    "Keep both approved checkout URLs and complete query strings centralized in app/content.ts.",
+    "Do not invent program facts, lead endpoints, production analytics, or infrastructure.",
+    "Do not publish, deploy, push, or edit the live Framer project without explicit instruction."
+  ],
+  "knownIssues": [
+    "Both production format-specific lead destinations are missing, so the local form intentionally performs no external submission.",
+    "Meta Pixel and CAPI are not implemented; the documented Pixel ID is a future requirement only.",
+    "There is no Git remote, Vercel project, production deployment, or project-configured custom domain.",
+    "app/globals.css intentionally contains earlier style blocks followed by accepted later override blocks; future cleanup is risky without full regression testing.",
+    "The current build output is vinext/Vite Worker-style and has not been proven as a Vercel production configuration."
+  ],
+  "remainingTasks": [
+    "Obtain and verify distinct Offline and Online lead destinations before implementing production routing.",
+    "Create/connect GitHub only on explicit request.",
+    "Choose and verify a production deployment adapter, including Vercel only on explicit request.",
+    "Implement consent-aware Meta Pixel 4138749493027663 and approved CAPI deduplication only on explicit request.",
+    "Implement Purchase only from confirmed Shopify payment evidence.",
+    "Resume native Framer recreation or publication only on explicit request."
+  ],
+  "verification": {
+    "lastFullyConfirmedDate": "2026-08-16",
+    "lastFullyConfirmedResults": "lint, type-check, production build, and three rendered HTML tests passed",
+    "currentAuditDate": "2026-08-23",
+    "currentAuditResults": "Repository, source, configuration, asset inventory, Git checkpoint, remote absence, lead-destination absence, Pixel absence, and handoff documentation audited. Lint, TypeScript, production build, and all three rendered HTML tests passed. The freshly built landing and thank-you routes were inspected across the required responsive range; exact browser evidence is recorded in PROJECT_HANDOFF.md.",
+    "fullPageLandingPngs": [
+      "artifacts/full-page-pngs/landing-mobile-390.png",
+      "artifacts/full-page-pngs/landing-tablet-768.png",
+      "artifacts/full-page-pngs/landing-desktop-1440.png"
+    ]
+  }
+}

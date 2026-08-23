@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { ThankYouPage } from "../components/ThankYouPage";
 
 export const metadata: Metadata = {
-  title: "Your AI Co-Pilot Diploma Options",
+  title: "Application Received",
   description:
-    "Compare the Meska AI online and offline diploma options and continue to the appropriate checkout.",
+    "Your details are with the Meska AI team. Explore the diploma experience and choose the learning format that fits you.",
   robots: {
     index: false,
     follow: false,

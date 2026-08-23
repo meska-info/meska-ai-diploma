@@ -13,7 +13,19 @@ export type Diploma = {
   priceValue: number;
   currency: "EGP";
   checkoutUrl: string;
+  leadDestination: string | null;
+  leadDestinationStatus: "pending";
+  formSubmitLabel: string;
+  installmentNote: string;
   included: string[];
+};
+
+export type SkillValueItem = {
+  id: string;
+  capability: string;
+  application: string;
+  benefit: string;
+  curriculumSessions: string[];
 };
 
 export const siteContent = {
@@ -22,20 +34,20 @@ export const siteContent = {
     diplomaName: "AI Co-Pilot Diploma",
   },
   hero: {
-    eyebrow: "AI Co-Pilot Diploma · New waves now open",
-    title: "Learn AI for business.",
-    accent: "Automate work. Lead smarter. Make better decisions.",
+    eyebrow: "Meska AI Copilot Diploma",
+    title: "Learn AI. Apply it to real business.",
     subtitle:
-      "A hands-on diploma that helps professionals and managers use AI to automate daily work, improve decisions, and manage teams smarter.",
+      "Solve real business challenges alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts.",
     primaryCta: "Start Application",
   },
+  landingVideoHeading: "Why We Built the Diploma",
   form: {
-    title: "Start your application",
-    submitLabel: "Start Application",
+    title: "Interested? Let’s Talk!",
     disclosure:
-      "This is not a payment form. Share your interest and the Meska AI team will contact you with the next steps.",
+      "A program advisor will answer your questions, walk you through payment options, and explain the next steps.",
+    reassurance: "No payment is required to submit your application.",
     prototypeNote:
-      "Prototype mode: submissions are not stored yet. The Google Sheet connection will be added in Framer.",
+      "Prototype mode: submissions are not stored. The verified Offline and Online lead destinations are still pending.",
   },
   diplomas: {
     offline: {
@@ -50,7 +62,12 @@ export const siteContent = {
       price: "EGP 25,000",
       priceValue: 25000,
       currency: "EGP",
-      checkoutUrl: "",
+      checkoutUrl:
+        "https://aionline.meska.ai/checkouts/cn/hWNFhIiwrMjiccpLk4S6LHMp/en-eg?_r=AQABXK4iXZTRdGRlwSOl9-iRgmnxVhsceC_1stXdBBLG7M8",
+      leadDestination: null,
+      leadDestinationStatus: "pending",
+      formSubmitLabel: "Request Offline Diploma Details",
+      installmentNote: "5 interest-free payments via Sympl.",
       included: [
         "8 offline + 3 online intensive sessions",
         "Hands-on practice with AI tools",
@@ -74,7 +91,12 @@ export const siteContent = {
       price: "EGP 20,000",
       priceValue: 20000,
       currency: "EGP",
-      checkoutUrl: "",
+      checkoutUrl:
+        "https://aionline.meska.ai/checkouts/cn/hWNFBXhbOuMmtlvxCWKSs35n/en-eg?_r=AQABZ-KT_ZesRudxZE6egaaE1qln6lpcrLJajz-FxH7Dbfw&cart_link_id=Qtc6lE74&channel=buy_button",
+      leadDestination: null,
+      leadDestinationStatus: "pending",
+      formSubmitLabel: "Request Online Diploma Details",
+      installmentNote: "5 interest-free payments via Sympl.",
       included: [
         "8 live + 3 recap intensive sessions",
         "Hands-on practice with AI tools",
@@ -174,33 +196,146 @@ export const siteContent = {
         "Design and present a real-world AI solution for a problem in your work to an industry panel.",
     },
   ],
+  skillsToValue: [
+    {
+      id: "ai-foundations",
+      capability: "AI foundations and tool selection",
+      application:
+        "Understand what AI can and cannot do, map how it may disrupt your industry, and choose tools by capability rather than hype.",
+      benefit:
+        "Make clearer technology choices and focus time and budget on tools that fit the business problem.",
+      curriculumSessions: ["01", "03"],
+    },
+    {
+      id: "applied-prompting",
+      capability: "Applied prompting",
+      application:
+        "Build reusable prompt systems around your role, context, recurring tasks, and quality requirements.",
+      benefit:
+        "Produce stronger work faster and more consistently across everyday responsibilities.",
+      curriculumSessions: ["02"],
+    },
+    {
+      id: "research-analysis",
+      capability: "Research and information analysis",
+      application:
+        "Use AI for research, reasoning, search, document analysis, comparison, and decision support.",
+      benefit:
+        "Reach better-informed decisions in less time and turn complex information into usable insight.",
+      curriculumSessions: ["03"],
+    },
+    {
+      id: "structured-outputs",
+      capability: "Assistants and structured outputs",
+      application:
+        "Configure assistants and use vision, voice, dashboards, tools, and structured documents to support real work.",
+      benefit:
+        "Turn scattered information into practical outputs that teams can understand, use, and act on.",
+      curriculumSessions: ["04"],
+    },
+    {
+      id: "workflow-automation",
+      capability: "Workflow design and automation",
+      application:
+        "Move from one-off AI use to structured workflows and scheduled tasks that handle repeatable steps.",
+      benefit:
+        "Save time, reduce manual effort, and make recurring work more reliable.",
+      curriculumSessions: ["05"],
+    },
+    {
+      id: "agent-design",
+      capability: "AI-agent design",
+      application:
+        "Design task systems using triggers, tools, guardrails, and trust, then turn a scheduled task into a working agent.",
+      benefit:
+        "Create more capable AI-enabled processes while keeping responsibilities and safeguards clear.",
+      curriculumSessions: ["06"],
+    },
+    {
+      id: "business-prototyping",
+      capability: "Business-solution prototyping",
+      application:
+        "Frame AI opportunities around revenue, cost, risk, and experience, then begin building a practical solution.",
+      benefit:
+        "Test the value of an idea before committing major time or budget and communicate its business case clearly.",
+      curriculumSessions: ["07"],
+    },
+    {
+      id: "media-creation",
+      capability: "AI content and media creation",
+      application:
+        "Build scalable systems for on-brand text, images, video, avatars, and conversion-ready media.",
+      benefit:
+        "Increase content capacity while protecting consistency, speed, and brand quality.",
+      curriculumSessions: ["08"],
+    },
+    {
+      id: "graduation-execution",
+      capability: "Graduation-project execution",
+      application:
+        "Design and present a real AI solution for a problem in your work to an industry panel.",
+      benefit:
+        "Leave with a tested concept, practical implementation experience, and a clearer way to champion AI at work.",
+      curriculumSessions: ["09"],
+    },
+  ] satisfies SkillValueItem[],
   instructors: [
     {
+      id: "nabil-khalifa",
       name: "Nabil Khalifa",
       title: "CEO at Meska AI",
       secondaryTitle: "Co-Founder, Hive Analytics & Sigma Fit",
       bio: "Serial entrepreneur who has co-founded and grown multiple companies between Egypt and the U.S., raised tens of millions in funding, and built cross-border teams with deep ties in the global VC ecosystem.",
+      image: "/media/instructors/optimized/nabil-khalifa.webp",
+      imageWidth: 1080,
+      imageHeight: 1350,
+      imageAlt: "Nabil Khalifa speaking at a Meska AI event",
+      linkedin: "https://eg.linkedin.com/in/nabil-khalifa-96702090",
     },
     {
+      id: "amr-fahmy",
       name: "Dr. Amr Fahmy",
       title: "L&D Director at Meska AI",
       secondaryTitle: "Expert AI Business Strategist",
       bio: "13+ years transforming organizations through strategic L&D and AI-powered solutions. Trained over 10,000 professionals across every major industry.",
+      image: "/media/instructors/optimized/amr-fahmy.webp",
+      imageWidth: 1080,
+      imageHeight: 1350,
+      imageAlt: "Dr. Amr Fahmy, L&D Director at Meska AI",
+      linkedin: "https://eg.linkedin.com/in/amrfahmyofficial",
     },
     {
+      id: "youssef-al-refaey",
       name: "Youssef Al Refaey",
       title: "Growth Director at Meska AI",
       secondaryTitle: "AI & Digital Technology Trainer",
       bio: "8+ years in the software industry training thousands of professionals across corporations, government, healthcare, and universities in prompt engineering and AI automation.",
+      image: "/media/instructors/optimized/youssef-al-refaey.webp",
+      imageWidth: 1080,
+      imageHeight: 1350,
+      imageAlt: "Youssef Al Refaey, Growth Director at Meska AI",
+      linkedin: "https://eg.linkedin.com/in/youssef-al-refaey-361a6214a",
     },
     {
-      name: "Ahmed Mostafa",
-      title: "Head of R&D at Meska AI",
-      secondaryTitle: "Licensed Career Consultant (GCDF-19018)",
-      bio: "7,000+ training hours across B2C and B2B sectors. A licensed career development consultant and AI trainer specializing in AI applications to professional growth.",
+      id: "omar-el-monayar",
+      name: "Omar El Monayar",
+      title: "Co-Founder, Meska AI",
+      secondaryTitle: "",
+      bio: "I strive to enhance human lives through futuristic tech, using deep-tech innovation, blockchain, and smart wearables to empower adaptability and unlock new capabilities.",
+      image: "/media/instructors/optimized/omar-el-monayar.webp",
+      imageWidth: 800,
+      imageHeight: 800,
+      imageAlt: "Omar El Monayar, Co-Founder of Meska AI",
+      linkedin: "https://www.linkedin.com/in/omarelmonayar/",
     },
   ],
   media: {
+    brandLogo: {
+      src: "/media/brand/original/meska-2026-logo.png",
+      alt: "Meska AI",
+      width: 3283,
+      height: 576,
+    },
     mainVideo: {
       id: "VID-01",
       src: "/media/videos/original/meska-ai-diploma-main-video.mp4",
@@ -416,43 +551,193 @@ export const siteContent = {
         alt: "Meska AI post celebrating AI Copilot Diploma graduate Kholoud Samy",
       },
     ],
+    graduationVideo: {
+      id: "thank_you_graduation_video",
+      src: "/media/videos/optimized/graduation-wave.mp4",
+      poster: "/media/images/posters/graduation-wave.webp",
+      title: "A previous Meska AI diploma wave celebrating graduation",
+      width: 720,
+      height: 1280,
+      durationSeconds: 141.909,
+    },
+    insideDiplomaVideos: [
+      {
+        id: "inside_diploma_video_01",
+        label: "Day 1 · Diploma session moment 01",
+        src: "/media/videos/optimized/inside-diploma-session-01.mp4",
+        poster: "/media/images/posters/inside-diploma/session-01.webp",
+        width: 720,
+        height: 1280,
+        durationSeconds: 77.269,
+      },
+      {
+        id: "inside_diploma_video_02",
+        label: "Day 9 · Diploma session moment 02",
+        src: "/media/videos/optimized/inside-diploma-session-02.mp4",
+        poster: "/media/images/posters/inside-diploma/session-02.webp",
+        width: 720,
+        height: 1280,
+        durationSeconds: 95.659,
+      },
+      {
+        id: "inside_diploma_video_03",
+        label: "Day 1 · Diploma session moment 03",
+        src: "/media/videos/optimized/inside-diploma-session-03.mp4",
+        poster: "/media/images/posters/inside-diploma/session-03.webp",
+        width: 720,
+        height: 1280,
+        durationSeconds: 56.661,
+      },
+      {
+        id: "inside_diploma_video_04",
+        label: "Day 2 · Diploma session moment 04",
+        src: "/media/videos/optimized/inside-diploma-session-04.mp4",
+        poster: "/media/images/posters/inside-diploma/session-04.webp",
+        width: 720,
+        height: 1280,
+        durationSeconds: 100.224,
+      },
+      {
+        id: "inside_diploma_video_05",
+        label: "Day 6 · Diploma session moment 05",
+        src: "/media/videos/optimized/inside-diploma-session-05.mp4",
+        poster: "/media/images/posters/inside-diploma/session-05.webp",
+        width: 720,
+        height: 1280,
+        durationSeconds: 103.659,
+      },
+      {
+        id: "inside_diploma_video_06",
+        label: "Day 7 · Diploma session moment 06",
+        src: "/media/videos/optimized/inside-diploma-session-06.mp4",
+        poster: "/media/images/posters/inside-diploma/session-06.webp",
+        width: 720,
+        height: 1280,
+        durationSeconds: 101.525,
+      },
+      {
+        id: "inside_diploma_video_07",
+        label: "Diploma session moment 07",
+        src: "/media/videos/optimized/inside-diploma-session-07.mp4",
+        poster: "/media/images/posters/inside-diploma/session-07.webp",
+        width: 720,
+        height: 1280,
+        durationSeconds: 147.755,
+      },
+      {
+        id: "inside_diploma_video_08",
+        label: "Day 3 · Diploma session moment 08",
+        src: "/media/videos/optimized/inside-diploma-session-08.mp4",
+        poster: "/media/images/posters/inside-diploma/session-08.webp",
+        width: 720,
+        height: 1280,
+        durationSeconds: 86.123,
+      },
+      {
+        id: "inside_diploma_video_09",
+        label: "Diploma session moment 09",
+        src: "/media/videos/optimized/inside-diploma-session-09.mp4",
+        poster: "/media/images/posters/inside-diploma/session-09.webp",
+        width: 720,
+        height: 1280,
+        durationSeconds: 112.64,
+      },
+    ],
   },
   faq: [
     {
-      question: "What are the eligibility requirements?",
-      answer: "Final eligibility details will be supplied by Meska AI before the production launch.",
-    },
-    {
-      question: "How does payment work?",
+      question: "Does submitting the application charge me?",
       answer:
-        "Payment takes place through Shopify. The current diploma information states that flexible payment plans are available, including five interest-free installments with Sympl.",
+        "No. Submitting the application only tells the Meska team that you are interested. A program advisor will contact you, explain the details, and answer your questions. No payment is taken through the application form.",
     },
     {
-      question: "What is the attendance format?",
+      question: "Do I need a technical background?",
       answer:
-        "The offline option combines 8 offline and 3 online live sessions. The online option combines 8 live and 3 online recap sessions.",
+        "No. The diploma is designed for business professionals, managers, and entrepreneurs. You will learn how to use and apply AI without needing to code.",
     },
     {
-      question: "Are recordings included?",
-      answer: "Recording availability is still to be confirmed by Meska AI.",
+      question: "Is the diploma genuinely practical and hands-on?",
+      answer:
+        "Yes. Sessions are built around guided practice, real business tasks, applied workflows, and a graduation project. The objective is not simply to understand AI concepts; it is to use them in your actual work.",
+    },
+    {
+      question: "Will I receive support while applying what I learn?",
+      answer:
+        "Yes. You will have access to the Meska team and instructors through the program’s WhatsApp support channel. You can ask questions and get help as you apply the tools and workflows between sessions.",
+    },
+    {
+      question: "Are the sessions recorded?",
+      answer:
+        "Yes. Sessions are recorded so you can revisit explanations, demonstrations, and practical exercises after the live session.",
+    },
+    {
+      question: "What happens if I join Offline but miss a session?",
+      answer:
+        "The online cohort runs in parallel. If you miss an offline session, the Meska team can help you attend the corresponding online session where scheduling allows. You will also have access to the session recording.",
+    },
+    {
+      question: "What is the difference between Online and Offline?",
+      answer:
+        "Offline combines 8 in-person sessions at Creativa Innovation Hub in Giza with 3 online live sessions. Online is delivered virtually through 8 live sessions and 3 online recap sessions. Both formats centre on guided practice, real work, recordings, and hands-on support; the main difference is where and how you prefer to participate.",
+    },
+    {
+      question: "Are installment plans available?",
+      answer:
+        "Yes. You can pay through Sympl over five months, or speak with the Meska sales team to discuss the available payment arrangements.",
     },
     {
       question: "Will I receive a certificate?",
-      answer: "Yes. A certificate of completion is listed as included with both diploma options.",
+      answer:
+        "Yes. You will receive a certificate of completion after successfully completing the diploma requirements.",
+    },
+    {
+      question: "What are the eligibility requirements?",
+      answer:
+        "The diploma is designed for business professionals, managers, founders, and team leaders with at least 3–5 years of professional experience. You should be interested in applying AI to real business challenges and able to commit to the weekly live session, practical study, and graduation project.",
+    },
+    {
+      question: "What is the selection criteria?",
+      answer:
+        "We look for business professionals with at least 3–5 years of experience who are enthusiastic about AI, ready to practise consistently, and willing to contribute to and learn from the diploma community. Applicants must also have enough time to participate fully throughout the eight weeks.",
+    },
+    {
+      question: "What is the time commitment?",
+      answer:
+        "Plan for one live session each week, lasting up to five hours including breaks. In addition, you should dedicate approximately 15 hours per week to study, practice, applying the tools, and preparing your graduation project.",
+    },
+    {
+      question: "How long is the diploma?",
+      answer:
+        "The diploma runs for eight weeks. Offline sessions take place every Saturday, while Online sessions take place every Sunday.",
+    },
+    {
+      question: "What can I do to prepare?",
+      answer:
+        "Come ready to learn, practise, and contribute. The diploma works best when you actively apply what you learn and exchange experience with a group of like-minded business professionals.",
     },
     {
       question: "What is the cancellation or refund policy?",
-      answer: "The final cancellation and refund policy will be supplied before checkout links go live.",
+      answer:
+        "Cancellation and refund requests are accepted only before 25% of the diploma has been completed. After that point, the diploma fees are non-refundable.",
+    },
+    {
+      question: "What language are sessions delivered in?",
+      answer:
+        "Sessions are primarily delivered in Arabic. Our instructors are also comfortable using English whenever it helps explain a concept, tool, or business case more clearly.",
     },
   ],
   trackingNames: {
     landingView: "diploma_landing_view",
-    stickyCta: "sticky_mobile_start_application",
+    stickyCta: "sticky_start_application",
+    landingFormatToggle: "landing_format_toggle",
     primaryForm: "primary_interest_form",
     modalForm: "modal_interest_form",
     thankYouView: "lead_thank_you_view",
+    checkoutFormatToggle: "checkout_format_toggle",
+    graduationVideo: "thank_you_graduation_video",
     offlineCheckout: "offline_shopify_checkout",
     onlineCheckout: "online_shopify_checkout",
+    skillsMatrix: "skills_business_value_matrix",
   },
 } as const;
 

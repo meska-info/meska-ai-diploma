@@ -3,12 +3,13 @@
 import {
   CheckoutSection,
   FAQSection,
+  GraduationStory,
   InstructorSection,
   SiteFooter,
   SiteHeader,
+  SkillsBusinessValueSection,
   SnippetsCarousel,
   ThankYouLeadTracker,
-  VideoPlaceholder,
 } from "./sections";
 
 export function ThankYouPage() {
@@ -17,26 +18,20 @@ export function ThankYouPage() {
       <ThankYouLeadTracker />
       <SiteHeader ctaHref="#checkout" ctaLabel="Choose Diploma" />
 
-      <section className="thank-hero shell">
-        <div className="thank-hero-copy">
+      <section className="thank-confirmation shell">
+        <div className="thank-confirmation-copy">
           <p className="eyebrow">
-            <span aria-hidden="true" /> What they said about the diploma
+            <span aria-hidden="true" /> Application received
           </p>
-          <h1>See the experience through the people who lived it.</h1>
-          <p>
-            This space is reserved for an approved participant story and its
-            final video. No testimonial language has been invented for this
-            prototype.
-          </p>
+          <h1>Thank you — we’ve got your details.</h1>
+          <p>A Meska advisor will contact you soon.</p>
         </div>
-        <VideoPlaceholder
-          label="Participant testimonial video"
-          trackingId="thank_you_testimonial_video"
-        />
       </section>
 
+      <GraduationStory />
       <CheckoutSection />
       <SnippetsCarousel />
+      <SkillsBusinessValueSection />
       <InstructorSection />
       <FAQSection />
       <SiteFooter light />

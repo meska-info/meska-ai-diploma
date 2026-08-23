@@ -4,7 +4,8 @@ import { LandingPage } from "./components/LandingPage";
 export const metadata: Metadata = {
   title: "AI Co-Pilot Diploma",
   description:
-    "A hands-on AI diploma for professionals and managers who want to automate work, improve decisions, and lead smarter.",
+    "Solve real business challenges alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts.",
+  alternates: { canonical: "/" },
 };
 
 export default function Home() {

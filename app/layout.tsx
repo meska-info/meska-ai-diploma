@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MetaPixel } from "./components/MetaPixel";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,14 +8,15 @@ export const metadata: Metadata = {
     template: "%s | Meska AI",
   },
   description:
-    "A hands-on AI diploma for professionals and managers who want to automate work, improve decisions, and lead smarter.",
-  metadataBase: new URL("https://meska.ai"),
+    "Solve real business challenges alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts.",
+  metadataBase: new URL("https://diploma.meska.ai"),
   openGraph: {
     type: "website",
     siteName: "Meska AI",
+    url: "https://diploma.meska.ai",
     title: "AI Co-Pilot Diploma | Meska AI",
     description:
-      "Learn AI for business through hands-on sessions, practical workflows, and a graduation project.",
+      "Learn AI and apply it to real business alongside experienced business professionals and AI practitioners.",
   },
 };
 
@@ -25,7 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <MetaPixel />
+        {children}
+      </body>
     </html>
   );
 }

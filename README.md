@@ -1,64 +1,103 @@
-# Meska AI Diploma Journey
+# Meska AI Co-Pilot Diploma journey
 
-A local, mobile-first approval prototype for Meska AI’s AI Co-Pilot Diploma.
-It contains a conversion-focused landing page and a thank-you/Shopify handoff
-page. The approved landing video, testimonial images, and organization logos
-are stored locally. The production Meta Pixel, form destination, checkout URLs,
-and still-pending thank-you media are intentionally not connected.
+Mobile-first production website for the Meska AI Co-Pilot Diploma. It includes a conversion landing page, a post-application thank-you/consideration page, and responsive review routes.
 
-## Prerequisites
+Active architecture:
 
-- Node.js `>=22.13.0`
+```text
+Codex → GitHub → Vercel → https://diploma.meska.ai
+```
 
-## Quick Start
+GitHub is the source of truth and `main` is the production branch once the external repository is connected. See `DEPLOYMENT.md` for verified rollout status; do not infer completion from intended architecture.
+
+## Status
+
+```text
+Local development: verified
+Local Git repository: yes (main; external remote pending)
+GitHub: pending external repository creation/connection
+Vercel: pending Git import and first deployment
+Production deployment/domain/SSL: pending
+Production Meta Pixel: implemented locally; live verification pending
+Production Offline/Online lead destinations: pending
+Legacy Framer workflow: archived reference only
+```
+
+Pixel ID `4138749493027663` is initialized once through `app/components/MetaPixel.tsx`. Existing events remain centralized in `app/lib/tracking.ts`; see `TRACKING.md` for the complete mapping and deduplication contract.
+
+## Run locally
+
+Requires Node.js `>=22.13.0` and pnpm.
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm dev
 pnpm lint
+pnpm exec tsc --noEmit
 pnpm test
 ```
 
-This starter does not use `wrangler.jsonc`.
+`pnpm test` runs the native Next.js production build, retained worker compatibility build, and rendered HTML regression tests. There is no separate formatter script.
 
-## Project shape
+## Routes
 
-- `app/content.ts`: centralized editable course, pricing, instructor, FAQ, and tracking content.
-- `app/components/`: reusable page and section components.
-- `app/lib/tracking.ts`: local-only event abstraction and UTM handling.
-- `app/globals.css`: design tokens and responsive rules.
-- `public/media/`: approved local originals and presentation assets; the live landing page does not hotlink essential media.
-- `MEDIA_ASSET_MANIFEST.md`: asset provenance, dimensions, local paths, placement, and Framer upload status.
-- `MEDIA_PLACEMENT_PLAN.md`: approved media order and responsive behavior.
-- `app/thank-you/`: thank-you route.
-- `PROJECT_HANDOFF.md`: current implementation state, decisions, validation, and unfinished work.
-- `FRAMER_HANDOFF.md`: native-Framer recreation and Meta tracking plan.
-- `NEXT_CHAT_HANDOFF.md`: standalone cross-chat source of truth for the accepted checkpoint.
-- `AGENTS.md`: permanent rules for future Codex chats.
-- `.openai/hosting.json`: Sites project declaration; publishing remains unapproved.
+- `/` — landing page, dynamic Offline/Online pricing, and six visible fields plus hidden selected format.
+- `/thank-you` — qualified local thank-you state, format checkout, videos, skills matrix, instructors, and FAQ.
+- `/preview/mobile` — 390px live review frame.
+- `/preview/tablet` — 768px live review frame.
+- `/preview/desktop` — 1440px live review frame.
 
-## Useful commands
+## Current experience
 
-- `pnpm dev`: start the local preview.
-- `pnpm build`: verify the production build.
-- `pnpm test`: build and verify both rendered routes.
-- `pnpm lint`: run the existing lint configuration.
-- `pnpm exec tsc --noEmit`: run the TypeScript check.
+The landing page uses the official Meska logo, concise business-focused hero copy, approved 16:9 overview video, one compact format-aware price card with no Included area, one-line `5 interest-free payments via Sympl.` copy, a required interest form, impact metrics, independent outcome disclosures, a transparent greyscale sixteen-logo marquee, a distinctive nine-session curriculum disclosure, nine testimonial cards, and a persistent advisor CTA after the hero.
 
-Live review routes are available at `/preview/mobile`, `/preview/tablet`, and
-`/preview/desktop`. They render the real landing or thank-you page inside fixed
-390px, 768px, and 1440px review frames.
+The thank-you page uses a compact confirmation, portrait graduation story, one accessible unified checkout card, both approved Shopify checkout destinations, nine portrait session videos, a nine-item skills-to-business-value matrix, four official instructors, and sixteen FAQs. All ten thank-you videos are user-controlled; starting one pauses any other playing video.
 
-The landing implementation is mobile-first. It uses 16px mobile gutters and
-one-column mobile form fields, an intentional stacked conversion cluster at
-768px, and a top-aligned video/pricing + form row from 1024px. The testimonial
-screenshots retain their full aspect ratios. The organization logos use manual
-2×2 swipe pages below desktop and a static 8×2 desktop grid.
+The current local form validates and synchronizes the selected format, records PII-free local events, stores a temporary qualified token, preserves supported attribution, and redirects to the thank-you route. It does not send data externally because both verified lead destinations are missing. Production must confirm durable capture before creating the qualified thank-you state.
 
-## Important production notes
+## Project map
 
-- Do not install a real Meta Pixel in this local prototype.
-- Do not redirect until the production form integration confirms capture.
-- Replace all remaining thank-you placeholders and missing destinations before launch.
-- Upload every essential landing asset into Framer before production; external URLs in the manifest are provenance only.
-- Do not deploy or publish until the page is approved.
+- `app/content.ts` — approved copy, facts, formats, prices, checkout URLs, asset records, FAQs, and stable tracking IDs.
+- `app/components/LandingPage.tsx` — landing composition and sticky trigger/focus return.
+- `app/components/ThankYouPage.tsx` — thank-you composition.
+- `app/components/sections.tsx` — reusable controls, form, sections, carousels, checkout, media coordination, and trackers.
+- `app/components/MetaPixel.tsx` — one-time Pixel loading and pathname `PageView` tracking.
+- `app/lib/tracking.ts` — local evidence, Meta forwarding, deduplication, attribution, and PII filtering.
+- `app/globals.css` — design tokens, layouts, breakpoints, focus, safe-area, and reduced-motion rules.
+- `public/media/` — 77 local approved/source/optimized media files.
+- `tests/rendered-html.test.mjs` — landing, thank-you, and regression assertions.
+- `worker/index.ts` / `vite.config.ts` — retained worker compatibility/history; not the active Vercel adapter.
+- `vercel.json` — explicit Next.js framework, install, and build contract.
+- `DEPLOYMENT.md` / `TRACKING.md` — production workflow/status and analytics inventory.
+
+## Production documentation
+
+Read in this order before editing:
+
+1. `AGENTS.md`
+2. `CURRENT_STATE.md`
+3. `DEPLOYMENT.md`
+4. `TRACKING.md`
+
+The repository also preserves earlier Framer and cross-chat handoff documentation. It is historical reference only, is not part of active hosting/development/maintenance, and must not be deleted or used for deployment unless the user explicitly revives that workflow.
+
+## Tracking semantics
+
+- `CTAOpenForm` — ordinary header/sticky interaction; never a conversion.
+- `FormStart`, `FormError`, `FormSubmit` — PII-free form diagnostics with synchronized format.
+- `Lead` — only after a valid submission reaches the qualified thank-you state.
+- `FormatSelect` — changed landing/checkout format selection.
+- `CapabilitySelect` — changed skills-matrix selection.
+- `InitiateCheckout` — matching Offline/Online checkout click.
+- `VideoPlay` — first tracked graduation/session video play.
+- `Purchase` — future confirmed-payment event; not implemented.
+
+The browser Pixel forwards standard `ViewContent`, `Lead`, and `InitiateCheckout` events and sends all other active events as custom events. No CAPI, production form endpoint, Purchase event, or PII event parameter is present.
+
+## Pending production work
+
+1. Obtain and connect separate verified Offline and Online lead destinations.
+2. Create/connect the GitHub repository after explicit external-resource approval.
+3. Import GitHub into Vercel, verify Preview/Production branch behavior, and approve first production deployment.
+4. Assign only `diploma.meska.ai`, apply the exact inspected DNS record with approval, and verify SSL.
+5. Complete production responsive, accessibility, form, media, checkout, and Pixel/event QA.

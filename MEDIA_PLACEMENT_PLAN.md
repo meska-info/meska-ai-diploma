@@ -1,181 +1,149 @@
-# Meska AI Diploma Media Placement Plan
+# Meska AI Co-Pilot Diploma — Media Placement Plan
 
-Status: **Approved by user on 2026-08-15 and implemented locally**
+Status: approved and implemented locally · 16 August 2026
 
-Prepared: 2026-08-15
+This plan records the current placement and behavior of the official logo, eleven total site videos (one landing plus ten thank-you), poster frames, instructor portraits, testimonials and organization logos. `MEDIA_ASSET_MANIFEST.md` is the authoritative file-level inventory.
 
-## Scope and constraints
+## Rules
 
-- This plan covers the nine approved testimonial screenshots, the approved diploma video, and the approved organization-logo rail.
-- It did not independently authorize unrelated changes. The later user-approved layout correction removed redundant sections while preserving the conversion goal, application flow, tracking, pricing, dates, and program details; the final order below records that approved state.
-- Essential production media must not be hotlinked. Source URLs are retrieval sources only.
-- Approved assets will be stored locally for the Codex implementation and later uploaded to Framer. The Framer implementation must use Framer-hosted asset URLs.
-- Final user approval was received before local implementation began.
+- Rendered pages use local assets under `public/media`; external links are provenance only.
+- Production Framer pages must use Framer-hosted assets, never Google Drive or source-page hotlinks.
+- Preserve explicit dimensions/aspect ratios to prevent layout shift.
+- Preserve the accepted section order and natural media framing.
+- Do not invent captions, testimonial claims, organization relationships or instructor details.
+- Do not add autoplay with sound.
+- Validate 320, 375, 390, 768, 1024, 1280 and 1440px.
 
-## Final section order
+## Landing order
 
-1. Header
-2. Hero
-3. Primary conversion cluster: main diploma video, dynamic pricing card, and one seven-field application form
-4. Impact statistics
-5. Outcomes
-6. Organization logo grid
-7. Nine-session curriculum disclosure
-8. Testimonial carousel
-9. Footer
-10. Mobile sticky CTA and shared application modal
+1. Official Meska logo in header.
+2. Hero copy.
+3. Main 16:9 overview video above the landing price card in the conversion media column.
+4. Impact statistics.
+5. Outcomes.
+6. Continuous organization-logo marquee.
+7. Curriculum disclosure.
+8. Nine-image testimonial carousel.
+9. Official Meska logo in footer.
 
-The removed orbit image, hero buttons, duplicate course-details bar, mid-page CTA blocks, and duplicate final form remain absent.
+## Thank-you order
 
-## Shared implementation rules
+1. Official Meska logo in header.
+2. Application-capture confirmation.
+3. Portrait graduation video paired with previous-wave copy.
+4. Unified format/checkout card.
+5. Nine portrait session videos in the supplied order.
+6. Interactive skills-to-business-value matrix (no additional media).
+7. Four official instructor portraits.
+8. FAQ.
+9. Official Meska logo in footer.
 
-- Keep all media references and accessible labels in the central content/configuration layer.
-- Use reusable semantic components compatible with native Framer Stack recreation.
-- Define dimensions or aspect ratios before media loads to prevent layout shifts.
-- Preserve untouched approved originals. Create optimized presentation copies separately.
-- Do not fire new Meta Pixel events or other analytics for these assets.
-- Do not make testimonial images or logos clickable.
-- Validate at 320px, 360px, 390px, 430px, 768px, 1024px, 1440px, and 1920px when relevant.
+## 1. Official logo
 
-## 1. Testimonial carousel
+- Asset: `public/media/brand/original/meska-2026-logo.png`.
+- Selected after inspecting the official Drive variants because the blue/dark wordmark has correct contrast on white/off-white.
+- Header/footer only; accessible home link and `Meska AI` alt text.
+- Preserve intrinsic `3283×576` ratio. No recolor, recreation, tracing, stretching or substitute.
 
-### Approved placement
+## 2. Main landing video
 
-- Section: existing testimonial carousel, after the curriculum and before the footer.
-- Asset count: nine, replacing the six placeholders.
-- Display role: testimonial/social-proof media.
-- Sequence: IMG-01 through IMG-09 in the supplied order.
-- Interaction: manual only; no automatic advancement.
-- Click behavior: none.
-- Expansion/lightbox: none.
-- Tracking: none.
+- Asset: `public/media/videos/original/meska-ai-diploma-main-video.mp4`.
+- Poster: `public/media/images/posters/meska-ai-diploma-main-video-poster.webp`.
+- Position: inside the primary conversion cluster after the one-line “Why We Built the Diploma” heading.
+- Frame: natural 16:9, full available media-column width.
+- Controls: native, user-initiated, inline, metadata preload, no autoplay.
+- Crop: none; preserve presenter and Arabic graphics.
+- Tracking: none; this existing informational video remains outside the new thank-you video-play tracking.
 
-### Responsive behavior
+## 3. Graduation story video
 
-| Breakpoint | Visible cards | Navigation | Media treatment |
-| --- | ---: | --- | --- |
-| Desktop, including 1440px | 3 | Previous/next buttons, keyboard navigation, drag/swipe, and position indicator | Natural responsive height; full screenshot visible |
-| Tablet, including 768px | 2 | Previous/next buttons, keyboard navigation, drag/swipe, and position indicator | Natural responsive height; full screenshot visible |
-| Mobile, including 320px, 390px, and 430px | 1 | Visible previous/next buttons, native touch swipe/drag, and position indicator | Natural responsive height; full screenshot visible |
+- Video: `public/media/videos/optimized/graduation-wave.mp4`.
+- Poster: `public/media/images/posters/graduation-wave.webp`.
+- Position: immediately after the thank-you confirmation.
+- Frame: natural 9:16; max 360px; centered on mobile; paired with copy from 700px.
+- Controls: native, user-initiated, inline, metadata preload, no autoplay.
+- Tracking: first play emits `VideoPlay` / `thank_you_graduation_video`.
+- Coordination: starting it pauses any active session video; starting any session video pauses it.
 
-The carousel uses horizontal scroll snapping. Images use `height: auto` and `object-fit: contain`; no fixed-height media well, embedded name, copy, or LinkedIn context is cropped. Cards align at their top edge and may differ in height because the source screenshots have different portrait ratios.
+## 4. Inside the Diploma videos
 
-### Captions and labels
+Exact order:
 
-Each card will show the graduate's name and the neutral caption **AI Copilot Diploma graduate** below the image.
+1. `inside-diploma-session-01.mp4` / `session-01.webp`
+2. `inside-diploma-session-02.mp4` / `session-02.webp`
+3. `inside-diploma-session-03.mp4` / `session-03.webp`
+4. `inside-diploma-session-04.mp4` / `session-04.webp`
+5. `inside-diploma-session-05.mp4` / `session-05.webp`
+6. `inside-diploma-session-06.mp4` / `session-06.webp`
+7. `inside-diploma-session-07.mp4` / `session-07.webp`
+8. `inside-diploma-session-08.mp4` / `session-08.webp`
+9. `inside-diploma-session-09.mp4` / `session-09.webp`
 
-| Order | Asset ID | Supplied filename | Graduate name | Caption | Crop/focal point |
-| ---: | --- | --- | --- | --- | --- |
-| 1 | IMG-01 | `WhatsApp Image 2026-08-15 at 15.22.32.jpeg` | Ali Elsheikh | AI Copilot Diploma graduate | No crop; contain full screenshot |
-| 2 | IMG-02 | `WhatsApp Image 2026-08-15 at 15.22.15.jpeg` | Eslam Momtaz | AI Copilot Diploma graduate | No crop; contain full screenshot |
-| 3 | IMG-03 | `WhatsApp Image 2026-08-15 at 15.21.58.jpeg` | Eslam Osman | AI Copilot Diploma graduate | No crop; contain full screenshot |
-| 4 | IMG-04 | `WhatsApp Image 2026-08-15 at 15.21.28.jpeg` | Amr Mosallam | AI Copilot Diploma graduate | No crop; contain full screenshot |
-| 5 | IMG-05 | `WhatsApp Image 2026-08-15 at 15.20.55.jpeg` | Ibrahim Mubarak | AI Copilot Diploma graduate | No crop; contain full screenshot |
-| 6 | IMG-06 | `WhatsApp Image 2026-08-15 at 15.20.20.jpeg` | Reem Fahim | AI Copilot Diploma graduate | No crop; contain full screenshot |
-| 7 | IMG-07 | `WhatsApp Image 2026-08-15 at 15.17.22.jpeg` | Ali Shaker | AI Copilot Diploma graduate | No crop; contain full screenshot |
-| 8 | IMG-08 | `WhatsApp Image 2026-08-15 at 15.17.56.jpeg` | Dr. Khaled Said Salem | AI Copilot Diploma graduate | No crop; contain full screenshot |
-| 9 | IMG-09 | `WhatsApp Image 2026-08-15 at 15.19.01.jpeg` | Kholoud Samy | AI Copilot Diploma graduate | No crop; contain full screenshot |
+Videos live under `public/media/videos/optimized`; posters live under `public/media/images/posters/inside-diploma`.
 
-Alt text will identify the screenshot as a Meska AI post celebrating the named graduate. The embedded post text will not be transcribed into new marketing copy without separate approval.
+Responsive presentation:
 
-## 2. Main diploma video
+| Width | Cards | Behavior |
+| --- | ---: | --- |
+| below 700px | 86% primary card plus next peek | swipe, buttons, scroll snap |
+| 700–1199px | 2 | swipe, buttons, scroll snap |
+| 1200px+ | 3 | swipe, buttons, scroll snap |
 
-### Asset
+- Each card uses the complete 9:16 frame; no crop.
+- Native controls, inline playback, metadata preload, poster, no autoplay.
+- Only one page video may play. Starting another or moving the active clip out of the selected slide pauses it.
+- First play emits `VideoPlay` with `inside_diploma_video_01` through `_09` and 1-based index.
+- Carousel movement itself is not tracked; the current analytics plan did not need a navigation event.
 
-- Asset ID: VID-01
-- Source title: `NABIL 14.mp4`
-- Source: user-supplied Google Drive URL
-- Type: MP4, H.264 video with AAC audio
-- Dimensions: 1920 × 1080
-- Aspect ratio: 16:9
-- Duration: 1 minute 55.84 seconds
-- Size: 46,515,455 bytes (approximately 44.4 MiB)
-- Visual description: HD studio talking-head video with a presenter seated at a desk, a blue-lit background, and Arabic title graphics.
+## 5. Instructor portraits
 
-### Approved placement and behavior
+| Order | Instructor | Local asset |
+| ---: | --- | --- |
+| 1 | Nabil Khalifa | `public/media/instructors/optimized/nabil-khalifa.webp` |
+| 2 | Dr. Amr Fahmy | `public/media/instructors/optimized/amr-fahmy.webp` |
+| 3 | Youssef Al Refaey | `public/media/instructors/optimized/youssef-al-refaey.webp` |
+| 4 | Omar El Monayar | `public/media/instructors/optimized/omar-el-monayar.webp` |
 
-- Section: replace the existing main diploma video placeholder immediately below the hero.
-- Display role: main informational diploma video.
-- Desktop: full available section width within the existing content container, 16:9.
-- Tablet: full available section width, 16:9.
-- Mobile: full available section width, 16:9, with `playsInline` behavior.
-- Crop: none; contain the natural 16:9 frame.
-- Playback: user-initiated only, visible native controls, never autoplay.
-- Preloading: conservative `preload="metadata"` behavior with an optimized poster image.
-- Poster: create from a clear representative frame from the approved source video.
-- Caption or transcript: none requested.
-- Click destination: none beyond the native video controls.
-- Tracking: none. Do not add or activate play/progress/completion hooks.
-- Reduced motion: no autoplay or decorative motion is present; the video remains user-controlled.
+- Position: after the skills-to-business-value matrix and before FAQ.
+- Frame: consistent 4:5, `object-fit: cover`, top-centered focal point.
+- Cards: one/two/four columns at mobile/tablet/desktop and flex-balanced so biography length does not misalign LinkedIn buttons.
+- Links: official verified LinkedIn destinations, new tab, `noopener noreferrer`, accessible new-tab label.
+- Tracking: none; comparable outbound tracking did not already exist.
 
-The original video will be preserved. Any optimized delivery version or poster will be a separate derivative and documented in the asset manifest.
+## 6. Testimonial carousel
 
-## 3. Organization logo rail
+- Nine approved screenshots, IMG-01 through IMG-09 in `MEDIA_ASSET_MANIFEST.md` order.
+- Position: after curriculum, before footer.
+- One/two/three cards at mobile/tablet/desktop.
+- Preserve full screenshot at natural responsive height with `object-fit: contain`; no fixed-height crop.
+- Manual controls and touch scroll; no autoplay, lightbox, click destination or tracking.
+- Neutral caption: `AI Copilot Diploma graduate`.
 
-### Approved placement and relationship
+## 7. Organization marquee
 
-- Section: replace the existing logo placeholder grid in its current position after Outcomes and before Curriculum.
-- Display role: professional-affiliation logos.
-- Relationship statement: organizations represented by professionals who learned AI with Meska.
-- The section must not describe these organizations as Meska partners, clients, sponsors, certifications, or corporate-training customers.
+- Sixteen approved monochrome presentation assets in the existing `siteContent.media.organizationLogos` order.
+- Meaning: professionals from these organizations have joined Meska’s AI learning experiences. Do not call them partners, clients, sponsors, certifications or corporate-training customers.
+- Position: after Outcomes and before Curriculum.
+- One semantic sequence with organization alt text.
+- One visual-only duplicate sequence for a seamless loop; duplicate is `aria-hidden` and its images have empty alt.
+- 62-second linear motion at all ordinary breakpoints; transparent borderless slots around 180×96px at base and 214×108px from 700px, with optically enlarged 64/72px contained image wells.
+- Apply consistent greyscale through presentation styling; remove individual card backgrounds/borders and the visible rail/track without changing source assets.
+- Pause on hover and keyboard focus.
+- Reduced motion: stop animation, hide/remove duplicate sequence from layout and retain one manually scrollable sequence.
+- No link, hover-to-original-color behavior or tracking.
 
-### Approved copy
+## Framer upload sequence
 
-- Eyebrow: **Our Impact**
-- Heading: **Professionals from Egypt’s Leading Corporations Learn AI with Meska**
-- Supporting copy: **Professionals across these organizations have joined Meska’s AI learning experiences.**
+1. Upload the official logo.
+2. Upload main landing video/poster.
+3. Upload graduation video/poster.
+4. Upload nine session videos and map their nine posters without changing order.
+5. Upload four instructor portraits.
+6. Upload nine testimonial images.
+7. Upload sixteen organization presentation logos.
+8. Replace local paths with Framer-hosted URLs and verify dimensions before assigning media.
+9. Recreate one-video-at-a-time coordination and inactive-slide pausing.
+10. Recreate the semantic/visual marquee split and reduced-motion fallback.
+11. Run complete responsive, keyboard, media, tracking and overflow QA before publication.
 
-The heading follows the supplied Meska Offline Diploma reference page. The supporting line clarifies the relationship without making a partner or client claim.
-
-### Selected assets and order
-
-| Order | Asset ID | Organization | Role/category | Treatment | Notes |
-| ---: | --- | --- | --- | --- | --- |
-| 1 | LOGO-01 | SODIC | Professional-affiliation logo | Monochrome presentation copy | Cached raster source; inspect carefully after normalization |
-| 2 | LOGO-05 | Banque Misr | Professional-affiliation logo | Monochrome presentation copy | High-resolution transparent source |
-| 3 | LOGO-08 | AXA | Professional-affiliation logo | Monochrome presentation copy | Transparent source |
-| 4 | LOGO-13 | WUZZUF | Professional-affiliation logo | Monochrome presentation copy | Wide transparent wordmark |
-| 5 | LOGO-03 | Emirates NBD | Professional-affiliation logo | Monochrome presentation copy | Trim excess transparent canvas in presentation copy only |
-| 6 | LOGO-07 | Palm Hills Developments | Professional-affiliation logo | Monochrome presentation copy | Flag if raster artifacts remain visible at final size |
-| 7 | LOGO-14 | Orange | Professional-affiliation logo | Monochrome SVG presentation copy | Replacement approved SVG, 283.5 × 283.5 viewBox, 2,475 bytes |
-| 8 | LOGO-02 | Orascom Development | Professional-affiliation logo | Monochrome presentation copy | Preserve GIF original; use a normalized static presentation copy |
-| 9 | LOGO-16 | The American University in Cairo | Professional-affiliation logo | Monochrome presentation copy | Detailed mark; control optical size |
-| 10 | LOGO-04 | Wadi Group | Professional-affiliation logo | Monochrome presentation copy | Trim excess transparent canvas in presentation copy only |
-| 11 | LOGO-09 | National Bank of Egypt | Professional-affiliation logo | Monochrome presentation copy | Low-resolution source; flag if final rendering is soft |
-| 12 | LOGO-06 | Hassan Allam Properties | Professional-affiliation logo | Monochrome presentation copy | Thin artwork; flag if recoloring loses clarity |
-| 13 | LOGO-12 | G Developments | Professional-affiliation logo | Monochrome presentation copy | Small opaque raster source |
-| 14 | LOGO-10 | saib | Professional-affiliation logo | Monochrome presentation copy | JPEG background requires careful masking |
-| 15 | LOGO-15 | Arab Academy for Science, Technology & Maritime Transport | Professional-affiliation logo | Monochrome presentation copy | Detailed crest; control optical size |
-| 16 | LOGO-17 | Orascom Construction | Professional-affiliation logo | Monochrome presentation copy | Selected attached source |
-
-LOGO-11 and LOGO-18 are excluded from implementation as duplicate Orascom Construction inputs. LOGO-17 is the selected source. Excluded duplicates will be documented but will not be added as unnecessary duplicate project files.
-
-### Responsive motion and layout
-
-| Breakpoint | Rows | Motion | Cell behavior |
-| --- | ---: | --- | --- |
-| Desktop, 1200px and above | 2 | Static 8×2 grid | Equal cells, controlled maximum logo height, balanced optical sizing |
-| Tablet, 700–1199px | 2 | Manual horizontal paging; two 2×2 pages/four columns visible at once | Equal contained cells with 12px gaps |
-| Mobile, below 700px | 2 | Four ordered 2×2 swipe pages with scroll snap | Equal contained cells with 8px gaps |
-
-- Render exactly one semantic instance of every logo; do not duplicate the set.
-- Use native scrolling and scroll snap below 1200px; do not autoplay or transform the rail.
-- No Pause/Resume control is required because there is no automatic motion.
-- Logos remain static within their cells. They are not links and have no hover-to-original-color behavior unless separately approved.
-- Use one approved theme color and consistent opacity for all presentation copies.
-- Alt text uses the organization name.
-- No interaction or tracking events.
-
-## Implemented asset-management record
-
-The approved local implementation:
-
-1. Stores approved local media under `public/media`.
-2. Uses lowercase descriptive filenames and preserves untouched originals.
-3. Keeps optimized/presentation derivatives separate.
-4. Records sources, specifications, placement, behavior, alt text, authorization, tracking, and Framer-upload status in `MEDIA_ASSET_MANIFEST.md`.
-5. Uses reusable video, paged-logo-grid, and testimonial-carousel components while preserving the section order.
-6. Validates 320, 390, 430, 768, 1024, 1440, and 1920px layouts.
-7. Confirms that no essential rendered media depends on an external hotlink.
-
-No publishing or Framer upload is authorized in this phase.
+No publishing or Framer upload is authorized in the local implementation phase.
