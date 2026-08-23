@@ -13,9 +13,10 @@ GitHub is the source of truth. The production branch is `main`.
 Updated: 23 August 2026
 
 - Local production build: verified with native Next.js.
-- GitHub repository: verified at `https://github.com/meska-info/meska-ai-diploma`; `main` is production and baseline commit `e2c0ebe` is present locally and remotely.
+- GitHub repository: verified at `https://github.com/meska-info/meska-ai-diploma`; `main` is production, local `main` tracks remote `main`, and baseline commit `e2c0ebe` remains in history.
 - Vercel project: `meska-ai-diploma` (`prj_pngAONEjTfCOV8PqAk1hMl089eb1`), connected directly to the GitHub repository with `main` as `productionBranch` and Git deployments enabled.
 - Initial production deployment: `dpl_5ikQucV9zNi6rhzVKyNmr1ChehG5`, status `READY`.
+- Git automation proof: pull request #1 produced Vercel Preview `dpl_rCrNZoZy9Gm2kAifJa13E1ybx8KC`; merge commit `38d9d08` then produced and promoted Git-sourced production deployment `dpl_Ao1SYQSvUYAdkGpWd1XiXRoA5NRL`.
 - Production domain: `https://diploma.meska.ai`, attached and ownership-verified.
 - DNS: GoDaddy authoritative nameservers; scoped `_vercel` TXT verification and `diploma` CNAME only. Root and `www` records were not changed.
 - SSL/HTTPS: verified; HTTP redirects to HTTPS and HTTPS returns `200` with Vercel HSTS.

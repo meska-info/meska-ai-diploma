@@ -15,7 +15,7 @@ Production-transition snapshot · 23 August 2026
 - Full landing-page PNGs at 390, 768, and 1440px in `artifacts/full-page-pngs/`.
 - Production Meta Pixel `4138749493027663` is integrated once through the centralized tracking bridge; local and live technical verification are complete, while Meta Events Manager Test Events remains pending account-owner validation.
 - Active production documentation lives in `DEPLOYMENT.md`, `TRACKING.md`, `README.md`, and `AGENTS.md`.
-- GitHub source repository is connected at `https://github.com/meska-info/meska-ai-diploma`; local and remote `main` currently resolve to production baseline commit `e2c0ebe`.
+- GitHub source repository is connected at `https://github.com/meska-info/meska-ai-diploma`; local `main` tracks remote `main`, and production baseline commit `e2c0ebe` remains in history for recovery.
 - Vercel project `meska-ai-diploma` is connected directly to GitHub with `main` as its production branch.
 - Production is live at `https://diploma.meska.ai` with GoDaddy DNS, Vercel-managed HTTPS, and the verified initial deployment `dpl_5ikQucV9zNi6rhzVKyNmr1ChehG5`.
 
@@ -47,4 +47,4 @@ Production-transition snapshot · 23 August 2026
 
 ## Next phase
 
-Finish the production documentation pull request and confirm its Vercel Preview/merge workflow. Complete Meta Events Manager Test Events validation with the account owner. Production lead routing and Purchase/CAPI remain separate future work unless explicitly authorized.
+Complete Meta Events Manager Test Events validation with the account owner. Production lead routing and Purchase/CAPI remain separate future work unless explicitly authorized.

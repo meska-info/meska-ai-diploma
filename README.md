@@ -97,6 +97,5 @@ The browser Pixel forwards standard `ViewContent`, `Lead`, and `InitiateCheckout
 ## Pending production work
 
 1. Obtain and connect separate verified Offline and Online lead destinations.
-2. Complete the production documentation pull request and verify its Vercel Preview before merging to `main`.
-3. Complete Meta Events Manager Test Events validation for Pixel `4138749493027663` with the authenticated account owner.
-4. Keep verifying responsive, accessibility, form, media, checkout, and Pixel/event behavior after every future production change.
+2. Complete Meta Events Manager Test Events validation for Pixel `4138749493027663` with the authenticated account owner.
+3. Keep verifying responsive, accessibility, form, media, checkout, and Pixel/event behavior after every future production change.
