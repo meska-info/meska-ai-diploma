@@ -19,7 +19,7 @@ export type TrackingParameters = Record<
   string | number | boolean | undefined
 >;
 
-export const META_PIXEL_ID = "4138749493027663";
+export const META_PIXEL_ID = "1982493002344234";
 
 type MetaPixelFunction = (
   command: "init" | "track" | "trackCustom",

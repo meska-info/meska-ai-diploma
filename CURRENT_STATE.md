@@ -8,12 +8,12 @@ Production-transition snapshot · 23 August 2026
 - Landing page `/`, thank-you page `/thank-you`, and 390/768/1440 live preview routes.
 - Approved local assets: official logo, main video/poster, graduation video/poster, nine session video/poster pairs, four instructor portraits, nine testimonial pairs, and sixteen organization logo pairs.
 - One synchronized Offline/Online landing price/form state.
-- Six visible required lead fields plus hidden selected `diploma` value.
-- Local validation, PII-free diagnostic events, attribution, duplicate-submit guard, prototype thank-you redirect, and qualified local Lead token semantics.
+- Three visible required lead fields plus hidden selected `diploma` value.
+- Local validation, PII-free diagnostic events, attribution, duplicate-submit guard, server-side Supabase persistence, and persistence-qualified Lead token semantics.
 - One dynamic thank-you checkout card with both approved Shopify links.
-- Impact, outcomes, transparent greyscale marquee, curriculum disclosure, nine testimonials, ten thank-you videos, nine-item skills matrix, four instructors, and sixteen FAQs.
+- Impact, outcomes, transparent greyscale marquee, shared curriculum disclosure, nine image testimonials, nine shared Stream video testimonials, free guide, graduation/session videos, nine-item skills matrix, four instructors, and sixteen FAQs.
 - Full landing-page PNGs at 390, 768, and 1440px in `artifacts/full-page-pngs/`.
-- Production Meta Pixel `4138749493027663` is integrated once through the centralized tracking bridge; local and live technical verification are complete, while Meta Events Manager Test Events remains pending account-owner validation.
+- Phase 2 changes replace the active runtime Pixel constant with `1982493002344234`; production receipt remains unverified until the Phase 2 Preview is approved and deployed.
 - Active production documentation lives in `DEPLOYMENT.md`, `TRACKING.md`, `README.md`, and `AGENTS.md`.
 - GitHub source repository is connected at `https://github.com/meska-info/meska-ai-diploma`; local `main` tracks remote `main`, and production baseline commit `e2c0ebe` remains in history for recovery.
 - Vercel project `meska-ai-diploma` is connected directly to GitHub with `main` as its production branch.
@@ -21,7 +21,7 @@ Production-transition snapshot · 23 August 2026
 
 ## What does not exist yet
 
-- No production Offline or Online lead destination.
+- Phase 2 lead route has not yet been deployed and verified end-to-end.
 - No CAPI implementation or confirmed Shopify Purchase event implementation.
 - No live Framer changes or publication from this local project.
 
@@ -47,4 +47,4 @@ Production-transition snapshot · 23 August 2026
 
 ## Next phase
 
-Complete Meta Events Manager Test Events validation with the account owner. Production lead routing and Purchase/CAPI remain separate future work unless explicitly authorized.
+Finish Cloudflare guide encoding, release the Phase 2 branch through Vercel Preview/PR, test controlled Supabase leads, and complete Meta Events Manager validation. Purchase/CAPI remain separate future work.

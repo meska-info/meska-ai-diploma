@@ -5,6 +5,7 @@ export type Diploma = {
   label: string;
   wave: string;
   startDate: string;
+  schedule: string;
   time: string;
   duration: string;
   format: string;
@@ -34,28 +35,29 @@ export const siteContent = {
     diplomaName: "AI Co-Pilot Diploma",
   },
   hero: {
-    eyebrow: "Meska AI Copilot Diploma",
-    title: "Learn AI. Apply it to real business.",
+    eyebrow: "Meska AI Diploma",
+    titleBeforeAccent: "Build your first working AI App in",
+    titleAccent: "8 Weeks",
     subtitle:
-      "Solve real business challenges alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts.",
-    primaryCta: "Start Application",
+      "Learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts—not through generic AI theory.",
+    primaryCta: "Watch Free Guide",
   },
   landingVideoHeading: "Why We Built the Diploma",
   form: {
-    title: "Interested? Let’s Talk!",
+    eyebrow: "Free practical guide",
+    title: "Create your first AI Agent now",
     disclosure:
-      "A program advisor will answer your questions, walk you through payment options, and explain the next steps.",
-    reassurance: "No payment is required to submit your application.",
-    prototypeNote:
-      "Prototype mode: submissions are not stored. The verified Offline and Online lead destinations are still pending.",
+      "Watch a focused, practical session and take the first step toward building an AI agent you can actually use.",
+    reassurance: "Free access. No payment required.",
   },
   diplomas: {
     offline: {
       id: "offline",
       label: "Offline Diploma",
       wave: "Wave 14",
-      startDate: "22 August 2026",
-      time: "To be confirmed",
+      startDate: "26 September 2026",
+      schedule: "Every Saturday from 11AM to 4PM",
+      time: "11AM to 4PM",
       duration: "11 sessions + graduation project",
       format: "8 offline + 3 online live sessions",
       location: "Creativa Innovation Hub · Giza",
@@ -66,7 +68,7 @@ export const siteContent = {
         "https://aionline.meska.ai/checkouts/cn/hWNFhIiwrMjiccpLk4S6LHMp/en-eg?_r=AQABXK4iXZTRdGRlwSOl9-iRgmnxVhsceC_1stXdBBLG7M8",
       leadDestination: null,
       leadDestinationStatus: "pending",
-      formSubmitLabel: "Request Offline Diploma Details",
+      formSubmitLabel: "Watch Free Guide",
       installmentNote: "5 interest-free payments via Sympl.",
       included: [
         "8 offline + 3 online intensive sessions",
@@ -83,8 +85,9 @@ export const siteContent = {
       id: "online",
       label: "Online Diploma",
       wave: "Wave 10",
-      startDate: "23 August 2026",
-      time: "To be confirmed",
+      startDate: "27 September 2026",
+      schedule: "Every Sunday from 7PM to 11PM",
+      time: "7PM to 11PM",
       duration: "11 sessions + graduation project",
       format: "8 live + 3 online recap sessions",
       location: "Virtual · Live sessions",
@@ -95,7 +98,7 @@ export const siteContent = {
         "https://aionline.meska.ai/checkouts/cn/hWNFBXhbOuMmtlvxCWKSs35n/en-eg?_r=AQABZ-KT_ZesRudxZE6egaaE1qln6lpcrLJajz-FxH7Dbfw&cart_link_id=Qtc6lE74&channel=buy_button",
       leadDestination: null,
       leadDestinationStatus: "pending",
-      formSubmitLabel: "Request Online Diploma Details",
+      formSubmitLabel: "Watch Free Guide",
       installmentNote: "5 interest-free payments via Sympl.",
       included: [
         "8 live + 3 recap intensive sessions",
@@ -338,6 +341,7 @@ export const siteContent = {
     },
     mainVideo: {
       id: "VID-01",
+      streamId: "ab1723404c487a7f9adaac258e5673c6",
       src: "/media/videos/original/meska-ai-diploma-main-video.mp4",
       poster:
         "/media/images/posters/meska-ai-diploma-main-video-poster.webp",
@@ -551,8 +555,25 @@ export const siteContent = {
         alt: "Meska AI post celebrating AI Copilot Diploma graduate Kholoud Samy",
       },
     ],
+    freeGuideVideo: {
+      id: "thank_you_free_ai_agent_guide",
+      streamId: "c386998a14da13215f0577a22e570a73",
+      title: "Build Your First AI Agent: a practical free guide",
+    },
+    videoTestimonials: [
+      { id: "video_testimonial_01", label: "Student testimonial 01", streamId: "9446c6669fea31f2a82c5e5c25ad04ad" },
+      { id: "video_testimonial_02", label: "Student testimonial 02", streamId: "1c51117356f5628d29f9399fcbeeb1ba" },
+      { id: "video_testimonial_03", label: "Student testimonial 03", streamId: "f4c905d8eab0a358ddf4e0e08f612019" },
+      { id: "video_testimonial_04", label: "Student testimonial 04", streamId: "81016e15fa02f197293756409c7560b4" },
+      { id: "video_testimonial_05", label: "Student testimonial 05", streamId: "020a4007ee602cfecf62b3bccae1546e" },
+      { id: "video_testimonial_06", label: "Student testimonial 06", streamId: "be9951ce4377f8fdde5dd32c216589df" },
+      { id: "video_testimonial_07", label: "Student testimonial 07", streamId: "8bde09b5aba6f45ef3c2b0d6f4a49185" },
+      { id: "video_testimonial_08", label: "Student testimonial 08", streamId: "5f51b5b0df5ef8546e2e3a8a0708329a" },
+      { id: "video_testimonial_09", label: "Student testimonial 09", streamId: "eebc5609bdcf104f7cb06918a07c0919" },
+    ],
     graduationVideo: {
       id: "thank_you_graduation_video",
+      streamId: "70fd774da07ce0db65a5e515888e0e81",
       src: "/media/videos/optimized/graduation-wave.mp4",
       poster: "/media/images/posters/graduation-wave.webp",
       title: "A previous Meska AI diploma wave celebrating graduation",
@@ -563,6 +584,7 @@ export const siteContent = {
     insideDiplomaVideos: [
       {
         id: "inside_diploma_video_01",
+        streamId: "a82ebabcfbf23a79947f63ac8af25923",
         label: "Day 1 · Diploma session moment 01",
         src: "/media/videos/optimized/inside-diploma-session-01.mp4",
         poster: "/media/images/posters/inside-diploma/session-01.webp",
@@ -572,6 +594,7 @@ export const siteContent = {
       },
       {
         id: "inside_diploma_video_02",
+        streamId: "f4f9912fee838ecfa9e3bb3596134c9a",
         label: "Day 9 · Diploma session moment 02",
         src: "/media/videos/optimized/inside-diploma-session-02.mp4",
         poster: "/media/images/posters/inside-diploma/session-02.webp",
@@ -581,6 +604,7 @@ export const siteContent = {
       },
       {
         id: "inside_diploma_video_03",
+        streamId: "43cd9ee7aad707558cdc177079d38ddf",
         label: "Day 1 · Diploma session moment 03",
         src: "/media/videos/optimized/inside-diploma-session-03.mp4",
         poster: "/media/images/posters/inside-diploma/session-03.webp",
@@ -590,6 +614,7 @@ export const siteContent = {
       },
       {
         id: "inside_diploma_video_04",
+        streamId: "bb88c111b8cac1301a151f87ebc1ae51",
         label: "Day 2 · Diploma session moment 04",
         src: "/media/videos/optimized/inside-diploma-session-04.mp4",
         poster: "/media/images/posters/inside-diploma/session-04.webp",
@@ -599,6 +624,7 @@ export const siteContent = {
       },
       {
         id: "inside_diploma_video_05",
+        streamId: "b046a1ddd79fd68429d81ba1518935b4",
         label: "Day 6 · Diploma session moment 05",
         src: "/media/videos/optimized/inside-diploma-session-05.mp4",
         poster: "/media/images/posters/inside-diploma/session-05.webp",
@@ -608,6 +634,7 @@ export const siteContent = {
       },
       {
         id: "inside_diploma_video_06",
+        streamId: "1f0c3366eb69d0f6f6622ed018613beb",
         label: "Day 7 · Diploma session moment 06",
         src: "/media/videos/optimized/inside-diploma-session-06.mp4",
         poster: "/media/images/posters/inside-diploma/session-06.webp",
@@ -617,6 +644,7 @@ export const siteContent = {
       },
       {
         id: "inside_diploma_video_07",
+        streamId: "cf683d8d1e290fd725abee8bb3ba3860",
         label: "Diploma session moment 07",
         src: "/media/videos/optimized/inside-diploma-session-07.mp4",
         poster: "/media/images/posters/inside-diploma/session-07.webp",
@@ -626,6 +654,7 @@ export const siteContent = {
       },
       {
         id: "inside_diploma_video_08",
+        streamId: "b835b84649921904bb3fea39460da2a4",
         label: "Day 3 · Diploma session moment 08",
         src: "/media/videos/optimized/inside-diploma-session-08.mp4",
         poster: "/media/images/posters/inside-diploma/session-08.webp",
@@ -635,6 +664,7 @@ export const siteContent = {
       },
       {
         id: "inside_diploma_video_09",
+        streamId: "ef0d6902d47d43cdaa958a4e96aca468",
         label: "Diploma session moment 09",
         src: "/media/videos/optimized/inside-diploma-session-09.mp4",
         poster: "/media/images/posters/inside-diploma/session-09.webp",
