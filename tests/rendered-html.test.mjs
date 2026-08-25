@@ -57,9 +57,9 @@ test("server-renders the diploma landing page", async () => {
   assert.match(html, /Explore All Sessions/i);
   assert.match(
     html,
-    /customer-27axu7xjwelxbgon\.cloudflarestream\.com\/[a-f0-9]+\/iframe\?autoplay=true&amp;preload=auto/i,
+    /<video[^>]+autoplay=""[^>]+playsinline=""[^>]+src="\/media\/videos\/original\/meska-ai-diploma-main-video\.mp4"/i,
   );
-  assert.doesNotMatch(html, /autoplay=true[^\"']*muted=true/i);
+  assert.doesNotMatch(html, /<video[^>]+muted/i);
   assert.match(
     html,
     /Professionals from Egypt’s Leading Corporations Learn AI with Meska/i,
@@ -183,6 +183,13 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(sections, /className="is-portrait"[\s\S]*loading="eager"/);
   assert.match(sections, /image\.complete/);
   assert.match(sections, /image\.addEventListener\("error", settle/);
+  assert.match(sections, /element\.muted = false/);
+  assert.match(sections, /element\.defaultMuted = false/);
+  assert.match(sections, /element\.volume = 1/);
+  assert.match(sections, /element\.play\(\)\.catch/);
+  assert.match(sections, /error instanceof DOMException/);
+  assert.match(sections, /document\.addEventListener\("pointerdown", playWithSound/);
+  assert.doesNotMatch(sections, /element\.muted = true/);
   assert.match(streamVideo, /player\.muted = false/);
   assert.match(streamVideo, /player\.volume = 1/);
   assert.match(streamVideo, /player\.play\(\)\.catch/);

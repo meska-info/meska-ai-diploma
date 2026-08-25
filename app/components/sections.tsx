@@ -137,14 +137,66 @@ export function VideoPlaceholder({
 
 export function DiplomaVideo() {
   const video = siteContent.media.mainVideo;
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const element = videoRef.current;
+    if (!element) return;
+
+    element.muted = false;
+    element.defaultMuted = false;
+    element.volume = 1;
+
+    let removeInteractionFallback: (() => void) | undefined;
+    void element.play().catch((error: unknown) => {
+      console.info(
+        "[Meska video] Audible autoplay blocked by the browser",
+        JSON.stringify({
+          code: "autoplay_with_sound_blocked",
+          error:
+            error instanceof DOMException
+              ? error.name
+              : error instanceof Error
+                ? error.name
+                : "unknown",
+        }),
+      );
+
+      const playWithSound = () => {
+        removeInteractionFallback?.();
+        element.muted = false;
+        element.defaultMuted = false;
+        element.volume = 1;
+        void element.play().catch(() => undefined);
+      };
+      document.addEventListener("pointerdown", playWithSound, {
+        capture: true,
+        once: true,
+      });
+      document.addEventListener("keydown", playWithSound, {
+        capture: true,
+        once: true,
+      });
+      removeInteractionFallback = () => {
+        document.removeEventListener("pointerdown", playWithSound, true);
+        document.removeEventListener("keydown", playWithSound, true);
+      };
+    });
+
+    return () => removeInteractionFallback?.();
+  }, []);
 
   return (
-    <CloudflareStreamVideo
-      autoplay
+    <video
+      autoPlay
       className="diploma-video"
-      loading="eager"
+      controls
+      playsInline
+      poster={video.poster}
+      preload="auto"
+      ref={videoRef}
+      src={video.src}
       title={video.title}
-      videoId={video.streamId}
     />
   );
 }
