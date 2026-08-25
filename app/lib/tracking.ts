@@ -49,6 +49,31 @@ declare global {
 
 const onceKeys = new Set<string>();
 
+export function readSessionValue(key: string) {
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+export function writeSessionValue(key: string, value: string) {
+  try {
+    window.sessionStorage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function removeSessionValue(key: string) {
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // Restricted mobile/privacy contexts may disable storage entirely.
+  }
+}
+
 const standardMetaEvents = new Set<TrackingEventName>([
   "ViewContent",
   "Lead",
@@ -114,9 +139,9 @@ export function trackEvent(
 
   if (options?.onceKey) {
     const storageKey = `meska-event:${options.onceKey}`;
-    if (onceKeys.has(storageKey) || sessionStorage.getItem(storageKey)) return;
+    if (onceKeys.has(storageKey) || readSessionValue(storageKey)) return;
     onceKeys.add(storageKey);
-    sessionStorage.setItem(storageKey, "1");
+    writeSessionValue(storageKey, "1");
   }
 
   const safeParameters = Object.fromEntries(
@@ -174,14 +199,21 @@ export function captureAttribution() {
     "fbclid",
   ];
   const current = new URLSearchParams(window.location.search);
-  const stored = sessionStorage.getItem("meska-attribution");
-  const attribution: Record<string, string> = stored ? JSON.parse(stored) : {};
+  const stored = readSessionValue("meska-attribution");
+  let attribution: Record<string, string> = {};
+  if (stored) {
+    try {
+      attribution = JSON.parse(stored) as Record<string, string>;
+    } catch {
+      attribution = {};
+    }
+  }
 
   supported.forEach((key) => {
     const value = current.get(key);
     if (value) attribution[key] = value;
   });
 
-  sessionStorage.setItem("meska-attribution", JSON.stringify(attribution));
+  writeSessionValue("meska-attribution", JSON.stringify(attribution));
   return attribution;
 }
