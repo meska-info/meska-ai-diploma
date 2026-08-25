@@ -48,10 +48,33 @@ export async function POST(request: Request) {
     !/^\S+@\S+\.\S+$/.test(email) ||
     !allowedDiplomas.has(diplomaSlug) ||
     !["primary", "modal"].includes(sourceContext) ||
-    leadMagnet !== "free-ai-agent-guide" ||
-    honeypot
+    leadMagnet !== "free-ai-agent-guide"
   ) {
+    console.warn(
+      "Lead request rejected",
+      JSON.stringify({
+        step: "validation",
+        code: "invalid_lead_data",
+        sourceContext: sourceContext || "missing",
+        diplomaSlug: diplomaSlug || "missing",
+      }),
+    );
     return NextResponse.json({ error: "Invalid lead data" }, { status: 422 });
+  }
+
+  // Browser/profile autofill can populate visually hidden text fields on Android.
+  // Treat the legacy honeypot as an observability signal, never as a reason to
+  // discard an otherwise valid lead.
+  if (honeypot) {
+    console.warn(
+      "Lead honeypot populated",
+      JSON.stringify({
+        step: "validation",
+        code: "honeypot_autofill_ignored",
+        sourceContext,
+        diplomaSlug,
+      }),
+    );
   }
 
   const attribution = Object.fromEntries(
@@ -83,8 +106,27 @@ export async function POST(request: Request) {
   });
 
   if (!response.ok) {
-    console.error("Lead persistence failed", response.status);
-    return NextResponse.json({ error: "Lead persistence failed" }, { status: 502 });
+    let supabaseCode = "unknown";
+    try {
+      const errorBody = (await response.json()) as { code?: unknown };
+      if (typeof errorBody.code === "string") supabaseCode = errorBody.code;
+    } catch {
+      // A non-JSON upstream response is still reported without leaking its body.
+    }
+    console.error(
+      "Lead persistence failed",
+      JSON.stringify({
+        step: "supabase",
+        status: response.status,
+        code: supabaseCode,
+        sourceContext,
+        diplomaSlug,
+      }),
+    );
+    return NextResponse.json(
+      { error: "Lead persistence failed", code: "supabase_rejected" },
+      { status: 502 },
+    );
   }
 
   return NextResponse.json({ accepted: true }, { status: 201 });
