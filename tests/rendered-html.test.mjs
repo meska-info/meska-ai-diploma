@@ -184,8 +184,11 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(sections, /image\.complete/);
   assert.match(sections, /image\.addEventListener\("error", settle/);
   assert.match(streamVideo, /player\.muted = false/);
+  assert.match(streamVideo, /player\.volume = 1/);
   assert.match(streamVideo, /player\.play\(\)\.catch/);
-  assert.match(streamVideo, /document\.addEventListener\("pointerdown", enableAudio/);
+  assert.match(streamVideo, /autoplay_with_sound_blocked/);
+  assert.doesNotMatch(streamVideo, /player\.muted = true/);
+  assert.doesNotMatch(streamVideo, /enableAudio/);
   assert.match(apiRoute, /after\(async \(\) =>/);
   assert.match(apiRoute, /syncLeadToGoogleSheets\(persistedLead, vercelOidcToken\)/);
   assert.match(apiRoute, /x-vercel-oidc-token/);
