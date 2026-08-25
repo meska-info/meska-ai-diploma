@@ -117,6 +117,10 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
     new URL("../app/components/sections.tsx", import.meta.url),
     "utf8",
   );
+  const thankYouPage = readFileSync(
+    new URL("../app/components/ThankYouPage.tsx", import.meta.url),
+    "utf8",
+  );
 
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.logo-rail-track[\s\S]*animation:\s*none/i);
   assert.match(css, /\.logo-sequence\[aria-hidden="true"\][\s\S]*display:\s*none/i);
@@ -152,6 +156,14 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(tracking, /"ViewContent",\s*"Lead",\s*"InitiateCheckout"/s);
   assert.match(tracking, /standardMetaEvents\.has\(event\) \? "track" : "trackCustom"/);
   assert.match(tracking, /pageviews\.at\(-1\) === pathname/);
+  assert.match(tracking, /export function readSessionValue/);
+  assert.match(tracking, /export function writeSessionValue/);
+  assert.match(sections, /window\.name = `meska-pending-lead:/);
+  assert.match(sections, /readSessionValue\("meska-pending-lead"\)/);
+  assert.match(thankYouPage, /function FloatingCheckoutCTA/);
+  assert.match(thankYouPage, /new IntersectionObserver/);
+  assert.match(thankYouPage, /scrollIntoView\(\{/);
+  assert.match(thankYouPage, /headerCtaVisible \|\| checkoutCardVisible/);
   assert.match(metaPixel, /id="meska-meta-pixel"/);
   assert.match(metaPixel, /connect\.facebook\.net\/en_US\/fbevents\.js/);
   assert.match(metaPixel, /initializeMetaPixel\(\)/);

@@ -13,7 +13,10 @@ import { diplomaList, DiplomaId, siteContent } from "../content";
 import {
   captureAttribution,
   createEventId,
+  readSessionValue,
+  removeSessionValue,
   trackEvent,
+  writeSessionValue,
 } from "../lib/tracking";
 import { CloudflareStreamVideo } from "./CloudflareStreamVideo";
 
@@ -298,6 +301,11 @@ export function LeadCapture({
     if (submittingRef.current) return;
 
     const form = event.currentTarget;
+    form
+      .querySelectorAll<HTMLInputElement>('input[type="text"], input[type="email"], input[type="tel"]')
+      .forEach((field) => {
+        if (field.name !== "companyWebsite") field.value = field.value.trim();
+      });
     const invalid = Array.from(
       form.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
         "input[required], select[required]",
@@ -384,17 +392,17 @@ export function LeadCapture({
       return;
     }
 
-    sessionStorage.setItem(
-      "meska-pending-lead",
-      JSON.stringify({
-        eventId,
-        variant: selectedId,
-        wave: selected.wave,
-        formLocation: location,
-        leadDestinationStatus: "persisted",
-        attribution,
-      }),
-    );
+    const pendingLead = JSON.stringify({
+      eventId,
+      variant: selectedId,
+      wave: selected.wave,
+      formLocation: location,
+      leadDestinationStatus: "persisted",
+      attribution,
+    });
+    if (!writeSessionValue("meska-pending-lead", pendingLead)) {
+      window.name = `meska-pending-lead:${pendingLead}`;
+    }
 
     const query = new URLSearchParams({ diploma: selectedId });
     Object.entries(attribution).forEach(([key, value]) => query.set(key, value));
@@ -486,6 +494,7 @@ export function LeadCapture({
             name="fullName"
             type="text"
             autoComplete="name"
+            enterKeyHint="next"
             required
             placeholder="Your full name"
           />
@@ -498,6 +507,10 @@ export function LeadCapture({
               name="email"
               type="email"
               autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              enterKeyHint="next"
+              inputMode="email"
               required
               placeholder="you@company.com"
             />
@@ -508,6 +521,8 @@ export function LeadCapture({
               name="mobile"
               type="tel"
               autoComplete="tel"
+              enterKeyHint="send"
+              inputMode="tel"
               required
               placeholder="+20 1XX XXX XXXX"
             />
@@ -1432,16 +1447,27 @@ export function SiteFooter({ light = false }: { light?: boolean }) {
 
 export function ThankYouLeadTracker() {
   useEffect(() => {
-    const pendingRaw = sessionStorage.getItem("meska-pending-lead");
+    type PendingLead = {
+      eventId: string;
+      variant: DiplomaId;
+      wave: string;
+      formLocation: string;
+      leadDestinationStatus?: string;
+      attribution?: Record<string, string>;
+    };
+    const windowNamePrefix = "meska-pending-lead:";
+    const windowNamePending = window.name.startsWith(windowNamePrefix)
+      ? window.name.slice(windowNamePrefix.length)
+      : null;
+    const pendingRaw = readSessionValue("meska-pending-lead") ?? windowNamePending;
     if (pendingRaw) {
-      const pending = JSON.parse(pendingRaw) as {
-        eventId: string;
-        variant: DiplomaId;
-        wave: string;
-        formLocation: string;
-        leadDestinationStatus?: string;
-        attribution?: Record<string, string>;
-      };
+      let pending: PendingLead | null = null;
+      try {
+        pending = JSON.parse(pendingRaw) as PendingLead;
+      } catch {
+        pending = null;
+      }
+      if (pending) {
       trackEvent(
         "Lead",
         {
@@ -1461,8 +1487,10 @@ export function ThankYouLeadTracker() {
         },
         { onceKey: pending.eventId },
       );
-      sessionStorage.setItem("meska-last-lead", pendingRaw);
-      sessionStorage.removeItem("meska-pending-lead");
+      writeSessionValue("meska-last-lead", pendingRaw);
+      }
+      removeSessionValue("meska-pending-lead");
+      if (windowNamePending) window.name = "";
     }
 
     trackEvent(
