@@ -2,6 +2,17 @@
 
 Evidence-based continuation record updated 25 August 2026 (Africa/Cairo). The repository and external services are the source of truth. Never infer that a pending Preview or production check is complete.
 
+## Android autofill P0 incident — resolved 25 August 2026
+
+- A physical Android production attempt showed the generic save failure. Vercel logs proved the requests reached `POST /api/leads` and returned repeated HTTP `422` responses around 20:29–20:30 Cairo time, before Supabase was called.
+- The exact failure was reproduced by populating the off-screen `companyWebsite` text honeypot: the otherwise valid Android-shaped submission returned the same error and emitted zero `Lead`.
+- Root cause: Android profile/autofill or in-app browser behavior can populate visually hidden text inputs despite `autocomplete="off"`. The server treated any honeypot value as invalid lead data. The visible name, email, and leading-zero Egyptian phone were valid strings and were not the cause.
+- PR #5 changed the trap to a controlled hidden field, stopped treating a legacy client honeypot value as grounds to discard an otherwise valid lead, and added structured PII-free validation/API/Supabase diagnostics.
+- Physical Android verification passed both the main and sticky forms on the final Vercel Preview. Two distinct rows with distinct event IDs were confirmed in Supabase and deleted by exact controlled email.
+- PR #5 merged to `main` at `e847065d1e42cab0585278b2bf6140eaa8e96b89`; Vercel production completed successfully.
+- Production main and sticky submissions with `010...` and `011...` phone strings each persisted, redirected, and emitted exactly one `Lead` after matching `FormSubmit` event IDs. Their exact rows were confirmed and deleted.
+- Final production regression passed 12 widths from 320 to 1600px, the short 390×320 modal, correct Pixel `1982493002344234`, absence of `4138749493027663`, and thank-you floating CTA visibility at mobile/tablet/desktop. No application console errors were found.
+
 ## Post-production mobile conversion and thank-you CTA fix — verified 25 August 2026
 
 - PR #4 was merged to `main` at squash commit `0415f4938c16abc6981bd2f3763b50dffcda6ceb`.
