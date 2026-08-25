@@ -10,6 +10,7 @@ type StreamPlayer = {
   muted: boolean;
   pause: () => void;
   play: () => Promise<void>;
+  volume: number;
 };
 
 declare global {
@@ -42,7 +43,6 @@ export function CloudflareStreamVideo({
     let cancelled = false;
     let timeout: number | undefined;
     let player: StreamPlayer | undefined;
-    let removeInteractionFallback: (() => void) | undefined;
 
     const connect = () => {
       const iframe = iframeRef.current;
@@ -67,29 +67,20 @@ export function CloudflareStreamVideo({
       if (autoplay) {
         player.autoplay = true;
         player.muted = false;
-        void player.play().catch(() => {
-          if (cancelled || !player) return;
-          player.muted = true;
-          void player.play().catch(() => undefined);
-
-          const enableAudio = () => {
-            removeInteractionFallback?.();
-            if (cancelled || !player) return;
-            player.muted = false;
-            void player.play().catch(() => undefined);
-          };
-          document.addEventListener("pointerdown", enableAudio, {
-            capture: true,
-            once: true,
-          });
-          document.addEventListener("keydown", enableAudio, {
-            capture: true,
-            once: true,
-          });
-          removeInteractionFallback = () => {
-            document.removeEventListener("pointerdown", enableAudio, true);
-            document.removeEventListener("keydown", enableAudio, true);
-          };
+        player.volume = 1;
+        void player.play().catch((error: unknown) => {
+          console.info(
+            "[Meska video] Audible autoplay blocked by the browser",
+            JSON.stringify({
+              code: "autoplay_with_sound_blocked",
+              error:
+                error instanceof DOMException
+                  ? error.name
+                  : error instanceof Error
+                    ? error.name
+                    : "unknown",
+            }),
+          );
         });
       }
     };
@@ -98,7 +89,6 @@ export function CloudflareStreamVideo({
     return () => {
       cancelled = true;
       if (timeout) window.clearTimeout(timeout);
-      removeInteractionFallback?.();
       if (player) activePlayers.delete(player);
     };
   }, [autoplay, onFirstPlay]);
