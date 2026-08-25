@@ -121,6 +121,10 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
     new URL("../app/components/ThankYouPage.tsx", import.meta.url),
     "utf8",
   );
+  const apiRoute = readFileSync(
+    new URL("../app/api/leads/route.ts", import.meta.url),
+    "utf8",
+  );
 
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.logo-rail-track[\s\S]*animation:\s*none/i);
   assert.match(css, /\.logo-sequence\[aria-hidden="true"\][\s\S]*display:\s*none/i);
@@ -160,6 +164,10 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(tracking, /export function writeSessionValue/);
   assert.match(sections, /window\.name = `meska-pending-lead:/);
   assert.match(sections, /readSessionValue\("meska-pending-lead"\)/);
+  assert.match(sections, /name="companyWebsite"[\\s\\S]*readOnly[\\s\\S]*type="hidden"[\\s\\S]*value=""/);
+  assert.match(sections, /\\[Meska lead\\] Submission rejected/);
+  assert.doesNotMatch(apiRoute, /leadMagnet !== "free-ai-agent-guide" \\|\\|[\\s\\S]{0,40}honeypot/);
+  assert.match(apiRoute, /code: "honeypot_autofill_ignored"/);
   assert.match(thankYouPage, /function FloatingCheckoutCTA/);
   assert.match(thankYouPage, /new IntersectionObserver/);
   assert.match(thankYouPage, /checkoutCard\.getBoundingClientRect\(\)\.top/);
