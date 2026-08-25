@@ -2,6 +2,18 @@
 
 Evidence-based continuation record updated 25 August 2026 (Africa/Cairo). The repository and external services are the source of truth. Never infer that a pending Preview or production check is complete.
 
+## Production release — verified 25 August 2026
+
+- PR #3 was marked ready and merged to `main` at merge commit `91e89196e96d5d5b507c125809709e18faf813ee`.
+- Vercel production deployment `CYRARtL25AmQzMSb6umw3fgshKEg` completed successfully.
+- Production URL `https://diploma.meska.ai` serves the Phase 2 implementation.
+- Desktop (1440px) and mobile (390px) smoke tests passed with no horizontal overflow, browser console errors, or warnings.
+- Homepage Offline `26 September 2026` and Online `27 September 2026` dates are correct; the production sticky CTA appears and opens the modal.
+- Controlled production primary and sticky-modal submissions each persisted to Supabase and emitted exactly one local `Lead` after persistence. Their matching rows were confirmed and then deleted; Supabase returned to `0 records`.
+- Production contains Pixel/Dataset `1982493002344234`, loads its Meta runtime for `diploma.meska.ai`, and does not contain old Pixel `4138749493027663`.
+- Production thank-you renders 20 Cloudflare Stream players; user-controlled playback was smoke-tested successfully.
+- Meta Test Events receipt remains pending due to Meta-side propagation/caching, but this has been explicitly accepted as a non-blocking issue for production release.
+
 ## Architecture and release process
 
 ```text
