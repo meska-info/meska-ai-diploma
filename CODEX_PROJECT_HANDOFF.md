@@ -2,6 +2,18 @@
 
 Evidence-based continuation record updated 25 August 2026 (Africa/Cairo). The repository and external services are the source of truth. Never infer that a pending Preview or production check is complete.
 
+## Post-production mobile conversion and thank-you CTA fix — verified 25 August 2026
+
+- PR #4 was merged to `main` at squash commit `0415f4938c16abc6981bd2f3763b50dffcda6ceb`.
+- Vercel production deployment `meska-ai-diploma-6dfq8ur7o-info-21301372s-projects.vercel.app` completed successfully and is served by `https://diploma.meska.ai`.
+- Root cause: direct `sessionStorage` access could throw in storage-restricted mobile/privacy or in-app browser contexts, aborting tracking before persistence or redirect after persistence. Autofilled whitespace could also fail native email validity.
+- Fix: guarded session-storage helpers, a PII-free same-tab `window.name` fallback for the qualified persisted-lead token, field trimming, mobile keyboard hints, and hardened short-viewport modal scrolling with safe-area spacing.
+- Production primary and sticky/modal submissions at 390px persisted to Supabase and each emitted exactly one `Lead` only after successful persistence. Browser/server event IDs matched. Opening the modal and validation failure emitted no `Lead`.
+- The production sticky modal remained usable at 390×320: 312px client height, 638px scroll height, and `overflow: auto`.
+- The thank-you floating `Choose Diploma` CTA uses `IntersectionObserver`: hidden at the navigation CTA, visible between useful CTA areas, hidden over the checkout card, and visible after it. This passed at 390, 820, and 1440px with no horizontal overflow; clicking it smoothly scrolls to the actionable checkout card without changing the URL.
+- Production contains Pixel/Dataset `1982493002344234`, contains no `4138749493027663`, renders 10 homepage and 20 thank-you Cloudflare Stream frames, shows both approved dates, and produced no application console errors.
+- The two Preview and two production smoke-test rows were verified and deleted by exact email; all unrelated Supabase records were left untouched.
+
 ## Production release — verified 25 August 2026
 
 - PR #3 was marked ready and merged to `main` at merge commit `91e89196e96d5d5b507c125809709e18faf813ee`.
@@ -28,7 +40,7 @@ Codex → GitHub → Vercel → https://diploma.meska.ai
 
 ## Phase 2 implementation state
 
-The Phase 2 implementation remains preserved in the original uncommitted working tree and is now also committed remotely on `codex/phase2-lead-video-migration` at `61725a5f185dfb87974b3cb84c9d0c85da70dd9a`. Draft PR #3 is `https://github.com/meska-info/meska-ai-diploma/pull/3`. Vercel Preview deployment `B1G1iUkCA73trbeXCWmivijoj1ec` is Ready at `https://meska-ai-diploma-git-codex-phase-ac98a2-info-21301372s-projects.vercel.app`. Phase 2 has not been merged or released to production.
+Phase 2 is merged and released to production. PR #3 merged at `91e89196e96d5d5b507c125809709e18faf813ee`; the follow-up mobile conversion/thank-you CTA fix shipped through PR #4 at `0415f4938c16abc6981bd2f3763b50dffcda6ceb`. The original dirty managed working tree remains historical evidence and must not be used to infer production state.
 
 Implemented locally:
 
@@ -80,12 +92,11 @@ The default Turbopack build fails only in this managed sandbox because Turbopack
 
 Preview evidence completed: all mandated widths on both routes with no horizontal overflow; successful controlled primary and sticky-modal lead submissions; exact rows confirmed and deleted; both cohort dates verified; all Stream groups rendered; playback exclusivity passed; modal focus/Escape restoration passed; checkout destinations are exact; no local MP4 or old Pixel runtime reference remains; and no application console error was found. Authenticated Meta Business settings confirm selected asset `26737634695875002` is `Meska's Pixel | Onnline`, dataset/Pixel `1982493002344234`, owned by `meska.ai`, and receiving Meta Pixel plus Conversions API data. Validation failure and modal open emitted zero `Lead`; persisted primary and modal submissions emitted exactly one `Lead` each with matching event IDs. The exact Preview hostname was added to the Pixel allow list on 25 August 2026, but Meta's delivery endpoint continued returning its cached traffic-permission rejection through bounded retries, so Test Events receipt remains the sole release blocker. Supabase returned to `0 records` after cleanup.
 
-## Required continuation sequence
+## Current continuation notes
 
-1. Continue from draft PR #3 and its existing Vercel Preview; do not recreate the implementation or make a second branch.
-2. After Meta's persisted Preview-domain allow-list change propagates, verify Test Events receipt for Pixel `1982493002344234`: one `PageView`, one persisted primary-form `Lead`, one persisted sticky-modal `Lead`, no duplicates, and no old Pixel traffic. Remove the temporary Preview hostname afterward.
-3. Fix any issue discovered by the Meta check and rerun proportionate validation.
-4. Mark the PR ready and merge only after Preview approval, then verify `https://diploma.meska.ai` and update this handoff with exact production evidence.
+- Phase 2 and the post-production mobile conversion fix are live; do not recreate either implementation.
+- Meta Test Events visual receipt remains accepted as a non-blocking Meta-side propagation/caching item. The production runtime and local event evidence are verified as documented above.
+- Any future change must use a focused branch, Vercel Preview verification, PR merge, and production smoke test.
 
 ## Remaining non-Phase-2 items
 
