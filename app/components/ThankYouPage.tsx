@@ -64,11 +64,25 @@ function FloatingCheckoutCTA() {
             tracking_id: "floating_choose_diploma",
             cta_location: "floating",
           });
-          document.getElementById("checkout")?.scrollIntoView({
+          const checkoutCard = document.querySelector<HTMLElement>(
+            "#checkout .checkout-card",
+          );
+          if (!checkoutCard) return;
+          const header = document.querySelector<HTMLElement>(".site-header");
+          const headerPosition = header
+            ? window.getComputedStyle(header).position
+            : "static";
+          const headerOffset =
+            header && (headerPosition === "fixed" || headerPosition === "sticky")
+              ? header.getBoundingClientRect().height + 12
+              : 0;
+          const top =
+            window.scrollY + checkoutCard.getBoundingClientRect().top - headerOffset;
+          window.scrollTo({
             behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
               ? "auto"
               : "smooth",
-            block: "start",
+            top,
           });
         }}
         type="button"

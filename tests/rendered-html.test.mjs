@@ -162,7 +162,8 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(sections, /readSessionValue\("meska-pending-lead"\)/);
   assert.match(thankYouPage, /function FloatingCheckoutCTA/);
   assert.match(thankYouPage, /new IntersectionObserver/);
-  assert.match(thankYouPage, /scrollIntoView\(\{/);
+  assert.match(thankYouPage, /checkoutCard\.getBoundingClientRect\(\)\.top/);
+  assert.match(thankYouPage, /window\.scrollTo\(\{/);
   assert.match(thankYouPage, /headerCtaVisible \|\| checkoutCardVisible/);
   assert.match(metaPixel, /id="meska-meta-pixel"/);
   assert.match(metaPixel, /connect\.facebook\.net\/en_US\/fbevents\.js/);
