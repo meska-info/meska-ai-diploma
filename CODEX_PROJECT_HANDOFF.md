@@ -66,15 +66,14 @@ Passed after the main Phase 2 code changes: ESLint, strict TypeScript, native Ne
 
 The default Turbopack build fails only in this managed sandbox because Turbopack attempts to bind a local helper port and receives `Operation not permitted`; the webpack production build passes. The exact patch was also applied to a clean writable clone and all 19 implementation/documentation files matched byte-for-byte before the remote commit was created.
 
-Preview evidence completed: representative visual checks at 390, 768, and 1440px; successful controlled primary and sticky-modal lead submissions; two exact rows confirmed in Supabase; both cohort dates verified on homepage and thank-you; all Stream embed groups rendered; and the new Pixel ID/runtime script was present. Exact remaining checks are the other mandated widths, player playback/exclusivity, console/network review, modal focus/Escape, and Meta Events Manager event receipt/no-duplicate evidence.
+Preview evidence completed: all mandated widths on both routes with no horizontal overflow; successful controlled primary and sticky-modal lead submissions; both exact rows confirmed and then deleted under authorization; both cohort dates verified on homepage and thank-you; all Stream embed groups rendered; user-controlled playback and cross-player pause behavior passed; modal focus/Escape restoration passed; checkout destinations are exact; no local MP4 or old Pixel runtime reference remains; and no application console error was found. The new Pixel runtime is present, but Meta reports that Pixel `1982493002344234` is unavailable on the Preview domain because of its traffic-permission settings. Meta Events Manager receipt/no-duplicate evidence is the remaining Preview release blocker.
 
 ## Required continuation sequence
 
 1. Continue from draft PR #3 and its existing Vercel Preview; do not recreate the implementation or make a second branch.
-2. Finish exact-width checks at 320, 375, 1024, and 1280px on `/` and `/thank-you`, plus real-device-style vertical scrolling where available.
-3. Verify Cloudflare playback/exclusivity, console/network errors, modal focus/Escape, checkout URLs, Pixel events/receipt, and absence of old active video URLs.
-4. Remove the two clearly identified controlled test rows only after action-time deletion confirmation.
-5. Mark the PR ready and merge only after Preview approval, then verify `https://diploma.meska.ai` and update this handoff with exact production evidence.
+2. In Meta Events Manager, resolve/confirm the Preview-domain traffic permission and verify Pixel `1982493002344234`, one `PageView`, one persisted primary-form `Lead`, one persisted sticky-modal `Lead`, no duplicate events, and no old Pixel traffic.
+3. Fix any issue discovered by the Meta check and rerun proportionate validation.
+4. Mark the PR ready and merge only after Preview approval, then verify `https://diploma.meska.ai` and update this handoff with exact production evidence.
 
 ## Remaining non-Phase-2 items
 

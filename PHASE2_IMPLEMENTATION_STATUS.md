@@ -68,14 +68,20 @@ The complete implementation patch was applied to a clean clone at baseline `670d
 - Offline `26 September 2026` and Online `27 September 2026` were verified on both homepage and thank-you experiences.
 - The Pixel runtime contains ID `1982493002344234`, and the Meta script loaded from `connect.facebook.net` for that ID.
 - The Cloudflare hero and the free-guide, graduation, inside-diploma, and nine testimonial embeds render in Preview.
+- All required 320, 375, 390, 768, 1024, 1280, and 1440px checks completed on `/` and `/thank-you`; no horizontal document overflow was found.
+- The sticky modal focuses its Close control on open, closes with Escape, and restores focus to the sticky trigger.
+- Starting the graduation player paused the already-playing free-guide player, confirming exclusive Stream playback.
+- Both checkout destinations match the complete approved URLs and query strings.
+- Active Preview markup contains no local MP4 runtime references and does not contain old Pixel `4138749493027663`.
+- The two authorized controlled test rows were deleted by exact email selection; Supabase refreshed to `0 records` and reported successful deletion.
+- Browser diagnostics found no application runtime error. Meta reports that Pixel `1982493002344234` is unavailable on the Preview domain because of its traffic-permission settings; this must be resolved/verified in Meta Events Manager before merge.
 
 ## Exact remaining work
 
-1. Complete the remaining Preview checks: all mandated exact widths, real player playback/exclusivity, console/network review, modal focus/Escape, and Meta Events Manager receipt/no-duplicate evidence for `PageView` and `Lead`.
-2. Remove the two controlled Supabase test rows only after explicit action-time deletion confirmation.
-3. Fix any Preview-only issue found and rerun proportionate validation.
-4. Mark PR #3 ready and merge only after all Preview checks pass.
-5. Verify `https://diploma.meska.ai` after production deployment and update `CODEX_PROJECT_HANDOFF.md` with exact production evidence.
+1. In Meta Events Manager, resolve/confirm traffic permission for the Vercel Preview domain, then obtain receipt/no-duplicate evidence for `PageView` and persisted primary/modal `Lead` events and confirm the old Pixel is absent.
+2. Fix any issue discovered by the Meta verification and rerun proportionate validation.
+3. Mark PR #3 ready and merge only after all Preview checks pass.
+4. Verify `https://diploma.meska.ai` after production deployment and update `CODEX_PROJECT_HANDOFF.md` with exact production evidence.
 
 ## Restoration rule
 
