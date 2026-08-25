@@ -1,5 +1,3 @@
-import { createSign } from "node:crypto";
-
 type DiplomaSlug = "offline" | "online";
 
 export type SheetLead = {
@@ -15,51 +13,64 @@ export type SheetLead = {
   attribution: Record<string, string>;
 };
 
-function base64Url(value: string | Buffer) {
-  return Buffer.from(value)
-    .toString("base64")
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
-
-async function getGoogleAccessToken() {
-  const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-  if (!serviceAccountEmail || !privateKey) {
-    throw new Error("google_credentials_missing");
+async function getGoogleAccessToken(vercelOidcToken: string) {
+  const projectNumber = process.env.GCP_PROJECT_NUMBER;
+  const poolId = process.env.GCP_WORKLOAD_IDENTITY_POOL_ID;
+  const providerId = process.env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID;
+  const serviceAccountEmail = process.env.GCP_SERVICE_ACCOUNT_EMAIL;
+  if (!projectNumber || !poolId || !providerId || !serviceAccountEmail) {
+    throw new Error("google_federation_config_missing");
   }
 
-  const now = Math.floor(Date.now() / 1000);
-  const unsignedToken = `${base64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${base64Url(
-    JSON.stringify({
-      aud: "https://oauth2.googleapis.com/token",
-      exp: now + 3600,
-      iat: now,
-      iss: serviceAccountEmail,
-      scope: "https://www.googleapis.com/auth/spreadsheets",
-    }),
-  )}`;
-  const signer = createSign("RSA-SHA256");
-  signer.update(unsignedToken);
-  signer.end();
-  const assertion = `${unsignedToken}.${base64Url(signer.sign(privateKey))}`;
-
-  const response = await fetch("https://oauth2.googleapis.com/token", {
+  const audience = `//iam.googleapis.com/projects/${projectNumber}/locations/global/workloadIdentityPools/${poolId}/providers/${providerId}`;
+  const exchangeResponse = await fetch("https://sts.googleapis.com/v1/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      assertion,
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      audience,
+      grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
+      requested_token_type: "urn:ietf:params:oauth:token-type:access_token",
+      scope: "https://www.googleapis.com/auth/cloud-platform",
+      subject_token: vercelOidcToken,
+      subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
     }),
     cache: "no-store",
   });
-  if (!response.ok) throw new Error(`google_auth_${response.status}`);
-  const body = (await response.json()) as { access_token?: unknown };
-  if (typeof body.access_token !== "string") {
-    throw new Error("google_auth_token_missing");
+  if (!exchangeResponse.ok) {
+    throw new Error(`google_sts_${exchangeResponse.status}`);
   }
-  return body.access_token;
+  const exchangeBody = (await exchangeResponse.json()) as {
+    access_token?: unknown;
+  };
+  if (typeof exchangeBody.access_token !== "string") {
+    throw new Error("google_sts_token_missing");
+  }
+
+  const impersonationResponse = await fetch(
+    `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${encodeURIComponent(serviceAccountEmail)}:generateAccessToken`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${exchangeBody.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        lifetime: "3600s",
+        scope: ["https://www.googleapis.com/auth/spreadsheets"],
+      }),
+      cache: "no-store",
+    },
+  );
+  if (!impersonationResponse.ok) {
+    throw new Error(`google_impersonation_${impersonationResponse.status}`);
+  }
+  const impersonationBody = (await impersonationResponse.json()) as {
+    accessToken?: unknown;
+  };
+  if (typeof impersonationBody.accessToken !== "string") {
+    throw new Error("google_impersonation_token_missing");
+  }
+  return impersonationBody.accessToken;
 }
 
 function spreadsheetIdFor(diploma: DiplomaSlug) {
@@ -71,9 +82,13 @@ function spreadsheetIdFor(diploma: DiplomaSlug) {
   return id;
 }
 
-export async function syncLeadToGoogleSheets(lead: SheetLead) {
+export async function syncLeadToGoogleSheets(
+  lead: SheetLead,
+  vercelOidcToken: string | null | undefined,
+) {
+  if (!vercelOidcToken) throw new Error("vercel_oidc_token_missing");
   const spreadsheetId = spreadsheetIdFor(lead.diploma_slug);
-  const accessToken = await getGoogleAccessToken();
+  const accessToken = await getGoogleAccessToken(vercelOidcToken);
   const headers = { Authorization: `Bearer ${accessToken}` };
   const requestIdsResponse = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!B:B")}?majorDimension=COLUMNS`,

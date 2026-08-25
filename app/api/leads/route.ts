@@ -18,6 +18,8 @@ function text(value: unknown, maxLength: number) {
 export async function POST(request: Request) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const vercelOidcToken =
+    request.headers.get("x-vercel-oidc-token") ?? process.env.VERCEL_OIDC_TOKEN;
   if (!supabaseUrl || !serviceRoleKey) {
     return NextResponse.json({ error: "Lead service unavailable" }, { status: 503 });
   }
@@ -152,7 +154,7 @@ export async function POST(request: Request) {
   if (persistedLead) {
     after(async () => {
       try {
-        await syncLeadToGoogleSheets(persistedLead);
+        await syncLeadToGoogleSheets(persistedLead, vercelOidcToken);
       } catch (error) {
         console.error(
           "Lead Google Sheets sync failed",

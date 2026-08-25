@@ -187,8 +187,11 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(streamVideo, /player\.play\(\)\.catch/);
   assert.match(streamVideo, /document\.addEventListener\("pointerdown", enableAudio/);
   assert.match(apiRoute, /after\(async \(\) =>/);
-  assert.match(apiRoute, /syncLeadToGoogleSheets\(persistedLead\)/);
-  assert.match(googleSheets, /GOOGLE_SERVICE_ACCOUNT_EMAIL/);
+  assert.match(apiRoute, /syncLeadToGoogleSheets\(persistedLead, vercelOidcToken\)/);
+  assert.match(apiRoute, /x-vercel-oidc-token/);
+  assert.match(googleSheets, /GCP_SERVICE_ACCOUNT_EMAIL/);
+  assert.match(googleSheets, /sts\.googleapis\.com\/v1\/token/);
+  assert.match(googleSheets, /iamcredentials\.googleapis\.com/);
   assert.match(googleSheets, /requestIds\.includes\(lead\.request_id\)/);
   assert.match(googleSheets, /diploma === "offline"/);
   assert.match(thankYouPage, /function FloatingCheckoutCTA/);
