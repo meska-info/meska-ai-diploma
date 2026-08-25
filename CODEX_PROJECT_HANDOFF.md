@@ -16,7 +16,7 @@ Codex → GitHub → Vercel → https://diploma.meska.ai
 
 ## Phase 2 implementation state
 
-The Phase 2 implementation exists in the current uncommitted working tree. It has not been pushed, previewed, merged, or released because the managed workspace does not permit Git metadata writes. Do not claim the following changes are live until the release workflow succeeds.
+The Phase 2 implementation remains preserved in the original uncommitted working tree and is now also committed remotely on `codex/phase2-lead-video-migration` at `61725a5f185dfb87974b3cb84c9d0c85da70dd9a`. Draft PR #3 is `https://github.com/meska-info/meska-ai-diploma/pull/3`. Vercel Preview deployment `B1G1iUkCA73trbeXCWmivijoj1ec` is Ready at `https://meska-ai-diploma-git-codex-phase-ac98a2-info-21301372s-projects.vercel.app`. Phase 2 has not been merged or released to production.
 
 Implemented locally:
 
@@ -40,7 +40,7 @@ Implemented locally:
 
 - Account customer code: `27axu7xjwelxbgon`; playback host is `customer-27axu7xjwelxbgon.cloudflarestream.com`.
 - The user approved all 21 uploads: hero, graduation, nine inside-diploma videos, free guide, and nine testimonials.
-- All 21 uploads have public playback IDs in `app/content.ts` and report Ready/Ready to Stream. Preview and production playback verification are still required.
+- All 21 uploads have public playback IDs in `app/content.ts` and report Ready/Ready to Stream. Their players render in Preview; interactive playback/exclusivity and production playback verification remain required.
 - `CLOUDFLARE_STREAM_MIGRATION.md` is the authoritative filename-to-ID/status inventory.
 - Preserve local source/reference media until Preview and production playback are verified and active runtime references are clean.
 
@@ -58,21 +58,23 @@ Implemented locally:
 - `InitiateCheckout`: only on the matching Shopify checkout click.
 - `Purchase`: intentionally not implemented locally; belongs to confirmed Shopify payment.
 - Never send PII in event parameters or add duplicate `PageView`/`Lead` calls.
-- Meta Events Manager receipt for the new Pixel remains unverified until Preview/production browser validation.
+- The Preview loaded the Meta runtime configuration for Pixel `1982493002344234`. Meta Events Manager receipt and explicit no-duplicate `PageView`/`Lead` evidence remain unverified.
 
 ## Validation evidence
 
 Passed after the main Phase 2 code changes: ESLint, strict TypeScript, native Next.js webpack production build, retained vinext worker build, three rendered-route tests, and `git diff --check`.
 
-The default Turbopack build fails only in this managed sandbox because Turbopack attempts to bind a local helper port and receives `Operation not permitted`; the webpack production build passes. Full browser console/network, viewport, form, Supabase-row, Meta receipt, Preview, and production checks remain pending until complete Stream IDs and a releasable Git branch exist.
+The default Turbopack build fails only in this managed sandbox because Turbopack attempts to bind a local helper port and receives `Operation not permitted`; the webpack production build passes. The exact patch was also applied to a clean writable clone and all 19 implementation/documentation files matched byte-for-byte before the remote commit was created.
+
+Preview evidence completed: representative visual checks at 390, 768, and 1440px; successful controlled primary and sticky-modal lead submissions; two exact rows confirmed in Supabase; both cohort dates verified on homepage and thank-you; all Stream embed groups rendered; and the new Pixel ID/runtime script was present. Exact remaining checks are the other mandated widths, player playback/exclusivity, console/network review, modal focus/Escape, and Meta Events Manager event receipt/no-duplicate evidence.
 
 ## Required continuation sequence
 
-1. Create a focused `codex/` branch once Git metadata writes are available. Do not commit this work directly to `main`.
-2. Push and verify the Vercel Preview at 320, 375, 390, 768, 1024, 1280, and 1440px on `/` and `/thank-you`.
-3. Test the primary and modal forms with controlled leads. Confirm rows in Supabase and Lead timing. Remove only clearly identified test rows after the required deletion confirmation.
-4. Verify Cloudflare players, mobile vertical scrolling, console/network errors, dates, modal focus/Escape, checkout URLs, Pixel ID/events, and absence of old active video URLs.
-5. Open a PR, merge only after Preview approval, then verify `https://diploma.meska.ai` and update this handoff with the exact commit/deployment evidence.
+1. Continue from draft PR #3 and its existing Vercel Preview; do not recreate the implementation or make a second branch.
+2. Finish exact-width checks at 320, 375, 1024, and 1280px on `/` and `/thank-you`, plus real-device-style vertical scrolling where available.
+3. Verify Cloudflare playback/exclusivity, console/network errors, modal focus/Escape, checkout URLs, Pixel events/receipt, and absence of old active video URLs.
+4. Remove the two clearly identified controlled test rows only after action-time deletion confirmation.
+5. Mark the PR ready and merge only after Preview approval, then verify `https://diploma.meska.ai` and update this handoff with exact production evidence.
 
 ## Remaining non-Phase-2 items
 
