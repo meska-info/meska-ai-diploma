@@ -55,7 +55,11 @@ test("server-renders the diploma landing page", async () => {
   assert.doesNotMatch(html, /Request Diploma Details|View everything included/i);
   assert.match(html, /Explore the complete curriculum/i);
   assert.match(html, /Explore All Sessions/i);
-  assert.match(html, /customer-27axu7xjwelxbgon\.cloudflarestream\.com\/[a-f0-9]+\/iframe\?autoplay=true/i);
+  assert.match(
+    html,
+    /customer-27axu7xjwelxbgon\.cloudflarestream\.com\/[a-f0-9]+\/iframe\?autoplay=true&amp;preload=auto/i,
+  );
+  assert.doesNotMatch(html, /autoplay=true[^\"']*muted=true/i);
   assert.match(
     html,
     /Professionals from Egypt’s Leading Corporations Learn AI with Meska/i,
@@ -125,6 +129,14 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
     new URL("../app/api/leads/route.ts", import.meta.url),
     "utf8",
   );
+  const streamVideo = readFileSync(
+    new URL("../app/components/CloudflareStreamVideo.tsx", import.meta.url),
+    "utf8",
+  );
+  const googleSheets = readFileSync(
+    new URL("../app/lib/googleSheets.ts", import.meta.url),
+    "utf8",
+  );
 
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.logo-rail-track[\s\S]*animation:\s*none/i);
   assert.match(css, /\.logo-sequence\[aria-hidden="true"\][\s\S]*display:\s*none/i);
@@ -164,10 +176,24 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(tracking, /export function writeSessionValue/);
   assert.match(sections, /window\.name = `meska-pending-lead:/);
   assert.match(sections, /readSessionValue\("meska-pending-lead"\)/);
-  assert.match(sections, /name="companyWebsite"[\\s\\S]*readOnly[\\s\\S]*type="hidden"[\\s\\S]*value=""/);
-  assert.match(sections, /\\[Meska lead\\] Submission rejected/);
-  assert.doesNotMatch(apiRoute, /leadMagnet !== "free-ai-agent-guide" \\|\\|[\\s\\S]{0,40}honeypot/);
+  assert.match(sections, /name="companyWebsite"[\s\S]*readOnly[\s\S]*type="hidden"[\s\S]*value=""/);
+  assert.match(sections, /\[Meska lead\] Submission rejected/);
+  assert.doesNotMatch(apiRoute, /leadMagnet !== "free-ai-agent-guide" \|\|[\s\S]{0,40}honeypot/);
   assert.match(apiRoute, /code: "honeypot_autofill_ignored"/);
+  assert.match(sections, /className="is-portrait"[\s\S]*loading="eager"/);
+  assert.match(sections, /image\.complete/);
+  assert.match(sections, /image\.addEventListener\("error", settle/);
+  assert.match(streamVideo, /player\.muted = false/);
+  assert.match(streamVideo, /player\.play\(\)\.catch/);
+  assert.match(streamVideo, /document\.addEventListener\("pointerdown", enableAudio/);
+  assert.match(apiRoute, /after\(async \(\) =>/);
+  assert.match(apiRoute, /syncLeadToGoogleSheets\(persistedLead, vercelOidcToken\)/);
+  assert.match(apiRoute, /x-vercel-oidc-token/);
+  assert.match(googleSheets, /GCP_SERVICE_ACCOUNT_EMAIL/);
+  assert.match(googleSheets, /sts\.googleapis\.com\/v1\/token/);
+  assert.match(googleSheets, /iamcredentials\.googleapis\.com/);
+  assert.match(googleSheets, /requestIds\.includes\(lead\.request_id\)/);
+  assert.match(googleSheets, /diploma === "offline"/);
   assert.match(thankYouPage, /function FloatingCheckoutCTA/);
   assert.match(thankYouPage, /new IntersectionObserver/);
   assert.match(thankYouPage, /checkoutCard\.getBoundingClientRect\(\)\.top/);

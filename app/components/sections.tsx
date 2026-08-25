@@ -637,10 +637,8 @@ export function OutcomesSection() {
 
 function OrganizationLogoSequence({
   duplicate = false,
-  onLogoLoad,
 }: {
   duplicate?: boolean;
-  onLogoLoad?: () => void;
 }) {
   return (
     <div className="logo-sequence" aria-hidden={duplicate || undefined}>
@@ -655,7 +653,6 @@ function OrganizationLogoSequence({
             decoding="async"
             height={logo.height}
             loading="eager"
-            onLoad={duplicate ? undefined : onLogoLoad}
             src={logo.src}
             width={logo.width}
           />
@@ -667,8 +664,38 @@ function OrganizationLogoSequence({
 
 export function OrganizationLogoRail() {
   const heading = siteContent.media.organizationSection;
-  const [loadedLogos, setLoadedLogos] = useState(0);
-  const logosReady = loadedLogos >= siteContent.media.organizationLogos.length;
+  const railRef = useRef<HTMLDivElement>(null);
+  const [logosReady, setLogosReady] = useState(false);
+
+  useEffect(() => {
+    const images = Array.from(
+      railRef.current?.querySelectorAll<HTMLImageElement>(
+        '.logo-sequence:not([aria-hidden="true"]) img',
+      ) ?? [],
+    );
+    if (!images.length) return;
+
+    const pending = new Set(images.filter((image) => !image.complete));
+    if (!pending.size) {
+      setLogosReady(true);
+      return;
+    }
+
+    const settle = (event: Event) => {
+      pending.delete(event.currentTarget as HTMLImageElement);
+      if (!pending.size) setLogosReady(true);
+    };
+    pending.forEach((image) => {
+      image.addEventListener("load", settle, { once: true });
+      image.addEventListener("error", settle, { once: true });
+    });
+    return () => {
+      pending.forEach((image) => {
+        image.removeEventListener("load", settle);
+        image.removeEventListener("error", settle);
+      });
+    };
+  }, []);
 
   return (
     <section className="logo-section shell" aria-labelledby="organization-logo-title">
@@ -680,12 +707,13 @@ export function OrganizationLogoRail() {
       <div
         className={`logo-rail ${logosReady ? "logos-ready" : ""}`}
         id="organization-logo-title"
+        ref={railRef}
         role="region"
         aria-label="Organizations represented by Meska AI learners"
         tabIndex={0}
       >
         <div className="logo-rail-track">
-          <OrganizationLogoSequence onLogoLoad={() => setLoadedLogos((count) => count + 1)} />
+          <OrganizationLogoSequence />
           <OrganizationLogoSequence duplicate />
         </div>
       </div>
@@ -1004,6 +1032,7 @@ export function VideoTestimonialsSection({
             <article className="video-testimonial-card" key={video.id}>
               <CloudflareStreamVideo
                 className="is-portrait"
+                loading="eager"
                 onFirstPlay={() =>
                   trackEvent(
                     "VideoPlay",
