@@ -378,8 +378,29 @@ export function LeadCapture({
           attribution,
         }),
       });
-      if (!response.ok) throw new Error("Lead persistence failed");
-    } catch {
+      if (!response.ok) {
+        let code = "unknown";
+        try {
+          const responseBody = (await response.json()) as { code?: unknown };
+          if (typeof responseBody.code === "string") code = responseBody.code;
+        } catch {
+          // Keep diagnostics useful even when an intermediary returns non-JSON.
+        }
+        console.warn(
+          "[Meska lead] Submission rejected",
+          JSON.stringify({ step: "api", status: response.status, code, location }),
+        );
+        throw new Error(`Lead persistence failed: ${response.status}:${code}`);
+      }
+    } catch (error) {
+      console.warn(
+        "[Meska lead] Submission failed",
+        JSON.stringify({
+          step: "request",
+          code: error instanceof TypeError ? "network" : "api",
+          location,
+        }),
+      );
       submittingRef.current = false;
       setSubmitting(false);
       setErrors({ form: "We couldn’t save your details. Please try again." });
@@ -477,16 +498,15 @@ export function LeadCapture({
           <p>{siteContent.form.disclosure}</p>
         </div>
         <input name="diploma" type="hidden" value={selectedId} />
-        <div className="form-honeypot" aria-hidden="true">
-          <label htmlFor={`${trackingId}-companyWebsite`}>Company website</label>
-          <input
-            autoComplete="off"
-            id={`${trackingId}-companyWebsite`}
-            name="companyWebsite"
-            tabIndex={-1}
-            type="text"
-          />
-        </div>
+        <input
+          aria-hidden="true"
+          autoComplete="off"
+          name="companyWebsite"
+          readOnly
+          tabIndex={-1}
+          type="hidden"
+          value=""
+        />
 
         <FormField label="Full name" name="fullName" error={errors.fullName}>
           <input
