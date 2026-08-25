@@ -6,7 +6,10 @@ const STREAM_CUSTOMER_CODE = "27axu7xjwelxbgon";
 
 type StreamPlayer = {
   addEventListener: (event: "play", listener: () => void) => void;
+  autoplay: boolean;
+  muted: boolean;
   pause: () => void;
+  play: () => Promise<void>;
 };
 
 declare global {
@@ -39,6 +42,7 @@ export function CloudflareStreamVideo({
     let cancelled = false;
     let timeout: number | undefined;
     let player: StreamPlayer | undefined;
+    let removeInteractionFallback: (() => void) | undefined;
 
     const connect = () => {
       const iframe = iframeRef.current;
@@ -59,20 +63,50 @@ export function CloudflareStreamVideo({
           onFirstPlay?.();
         }
       });
+
+      if (autoplay) {
+        player.autoplay = true;
+        player.muted = false;
+        void player.play().catch(() => {
+          if (cancelled || !player) return;
+          player.muted = true;
+          void player.play().catch(() => undefined);
+
+          const enableAudio = () => {
+            removeInteractionFallback?.();
+            if (cancelled || !player) return;
+            player.muted = false;
+            void player.play().catch(() => undefined);
+          };
+          document.addEventListener("pointerdown", enableAudio, {
+            capture: true,
+            once: true,
+          });
+          document.addEventListener("keydown", enableAudio, {
+            capture: true,
+            once: true,
+          });
+          removeInteractionFallback = () => {
+            document.removeEventListener("pointerdown", enableAudio, true);
+            document.removeEventListener("keydown", enableAudio, true);
+          };
+        });
+      }
     };
 
     connect();
     return () => {
       cancelled = true;
       if (timeout) window.clearTimeout(timeout);
+      removeInteractionFallback?.();
       if (player) activePlayers.delete(player);
     };
-  }, [onFirstPlay]);
+  }, [autoplay, onFirstPlay]);
 
   const parameters = new URLSearchParams();
   if (autoplay) {
     parameters.set("autoplay", "true");
-    parameters.set("muted", "true");
+    parameters.set("preload", "auto");
   }
 
   return (

@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { syncLeadToGoogleSheets, type SheetLead } from "../../lib/googleSheets";
 
 const allowedDiplomas = new Set(["offline", "online"]);
 const allowedAttributionKeys = [
@@ -84,13 +85,14 @@ export async function POST(request: Request) {
     }),
   );
 
-  const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/leads`, {
+  const leadsEndpoint = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/leads`;
+  const response = await fetch(`${leadsEndpoint}?select=*`, {
     method: "POST",
     headers: {
       apikey: serviceRoleKey,
       Authorization: `Bearer ${serviceRoleKey}`,
       "Content-Type": "application/json",
-      Prefer: "return=minimal,resolution=ignore-duplicates",
+      Prefer: "return=representation,resolution=ignore-duplicates",
     },
     body: JSON.stringify({
       request_id: requestId,
@@ -127,6 +129,42 @@ export async function POST(request: Request) {
       { error: "Lead persistence failed", code: "supabase_rejected" },
       { status: 502 },
     );
+  }
+
+  let persistedLeads = (await response.json()) as SheetLead[];
+  if (!persistedLeads.length) {
+    const existingResponse = await fetch(
+      `${leadsEndpoint}?request_id=eq.${encodeURIComponent(requestId)}&select=*`,
+      {
+        headers: {
+          apikey: serviceRoleKey,
+          Authorization: `Bearer ${serviceRoleKey}`,
+        },
+        cache: "no-store",
+      },
+    );
+    if (existingResponse.ok) {
+      persistedLeads = (await existingResponse.json()) as SheetLead[];
+    }
+  }
+
+  const persistedLead = persistedLeads[0];
+  if (persistedLead) {
+    after(async () => {
+      try {
+        await syncLeadToGoogleSheets(persistedLead);
+      } catch (error) {
+        console.error(
+          "Lead Google Sheets sync failed",
+          JSON.stringify({
+            step: "google_sheets",
+            code: error instanceof Error ? error.message : "unknown",
+            requestId: persistedLead.request_id,
+            diplomaSlug: persistedLead.diploma_slug,
+          }),
+        );
+      }
+    });
   }
 
   return NextResponse.json({ accepted: true }, { status: 201 });
