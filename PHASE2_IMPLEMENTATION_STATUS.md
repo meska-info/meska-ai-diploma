@@ -74,11 +74,12 @@ The complete implementation patch was applied to a clean clone at baseline `670d
 - Both checkout destinations match the complete approved URLs and query strings.
 - Active Preview markup contains no local MP4 runtime references and does not contain old Pixel `4138749493027663`.
 - The two authorized controlled test rows were deleted by exact email selection; Supabase refreshed to `0 records` and reported successful deletion.
-- Browser diagnostics found no application runtime error. Meta reports that Pixel `1982493002344234` is unavailable on the Preview domain because of its traffic-permission settings; this must be resolved/verified in Meta Events Manager before merge.
+- Browser diagnostics found no application runtime error. Authenticated Meta Business settings confirm selected asset `26737634695875002` is `Meska's Pixel | Onnline`, dataset/Pixel `1982493002344234`, owned by `meska.ai`, and Meta reports it receives Meta Pixel and Conversions API events. The exact Vercel Preview hostname was added to this Pixel's allow list on 25 August 2026, but Meta's delivery endpoint continued returning the previous traffic-permission rejection through the final bounded retry. Meta Test Events therefore showed no Preview receipt yet.
+- Deterministic Preview tracking checks passed: validation failure and modal open emitted zero `Lead`; persisted primary and modal submissions emitted exactly one `Lead` each, after `FormSubmit`, with matching event IDs and `lead_destination_status: persisted`. Both exact rows were confirmed in Supabase and deleted afterward; the table returned to `0 records`.
 
 ## Exact remaining work
 
-1. In Meta Events Manager, resolve/confirm traffic permission for the Vercel Preview domain, then obtain receipt/no-duplicate evidence for `PageView` and persisted primary/modal `Lead` events and confirm the old Pixel is absent.
+1. After Meta's persisted allow-list change propagates, rerun Test Events for the Vercel Preview and obtain receipt/no-duplicate evidence for `PageView` and persisted primary/modal `Lead` events. Remove the temporary Preview hostname from the allow list after receipt verification.
 2. Fix any issue discovered by the Meta verification and rerun proportionate validation.
 3. Mark PR #3 ready and merge only after all Preview checks pass.
 4. Verify `https://diploma.meska.ai` after production deployment and update `CODEX_PROJECT_HANDOFF.md` with exact production evidence.
