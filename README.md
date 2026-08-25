@@ -19,11 +19,11 @@ GitHub: https://github.com/meska-info/meska-ai-diploma
 Vercel: `meska-ai-diploma`, connected directly to GitHub
 Production deployment/domain/SSL: verified at https://diploma.meska.ai
 Production Meta Pixel: loader and production event flow technically verified; Meta Events Manager Test Events pending
-Production Offline/Online lead destinations: pending
+Lead persistence: Supabase server-side route configured in Vercel Preview and Production; deployment verification pending
 Legacy Framer workflow: archived reference only
 ```
 
-Pixel ID `4138749493027663` is initialized once through `app/components/MetaPixel.tsx`. Existing events remain centralized in `app/lib/tracking.ts`; see `TRACKING.md` for the complete mapping and deduplication contract.
+Pixel ID `1982493002344234` is initialized once through `app/components/MetaPixel.tsx`. Existing events remain centralized in `app/lib/tracking.ts`; see `TRACKING.md` for the complete mapping and deduplication contract.
 
 ## Run locally
 
@@ -41,7 +41,7 @@ pnpm test
 
 ## Routes
 
-- `/` — landing page, dynamic Offline/Online pricing, and six visible fields plus hidden selected format.
+- `/` — landing page, dynamic Offline/Online pricing, and a three-field free-guide form plus hidden selected format.
 - `/thank-you` — qualified local thank-you state, format checkout, videos, skills matrix, instructors, and FAQ.
 - `/preview/mobile` — 390px live review frame.
 - `/preview/tablet` — 768px live review frame.
@@ -49,11 +49,11 @@ pnpm test
 
 ## Current experience
 
-The landing page uses the official Meska logo, concise business-focused hero copy, approved 16:9 overview video, one compact format-aware price card with no Included area, one-line `5 interest-free payments via Sympl.` copy, a required interest form, impact metrics, independent outcome disclosures, a transparent greyscale sixteen-logo marquee, a distinctive nine-session curriculum disclosure, nine testimonial cards, and a persistent advisor CTA after the hero.
+The landing page uses the official Meska logo, relaxed build-focused hero copy, a Cloudflare Stream 16:9 overview video, one compact format-aware price card, one-line `5 interest-free payments via Sympl.` copy, a three-field free-guide form, impact metrics, independent outcome disclosures, a transparent greyscale sixteen-logo marquee, a shared nine-session curriculum disclosure, nine Cloudflare video testimonials, nine image testimonial cards, and a persistent free-guide CTA after the hero.
 
-The thank-you page uses a compact confirmation, portrait graduation story, one accessible unified checkout card, both approved Shopify checkout destinations, nine portrait session videos, a nine-item skills-to-business-value matrix, four official instructors, and sixteen FAQs. All ten thank-you videos are user-controlled; starting one pauses any other playing video.
+The thank-you page begins with the Cloudflare-hosted free guide, followed by the graduation story, shared curriculum, one accessible unified checkout card, both approved Shopify checkout destinations, nine portrait session videos, a nine-item skills-to-business-value matrix, four official instructors, shared video testimonials, and sixteen FAQs. All below-fold videos are user-controlled; starting one pauses any other playing Stream player.
 
-The current local form validates and synchronizes the selected format, records PII-free local events, stores a temporary qualified token, preserves supported attribution, and redirects to the thank-you route. It does not send data externally because both verified lead destinations are missing. Production must confirm durable capture before creating the qualified thank-you state.
+The current local form validates and synchronizes the selected format, posts to the server-only Supabase route, records PII-free events, stores a qualified token only after accepted persistence, preserves supported attribution, and redirects to the thank-you route. Preview and production journey verification remain required before release.
 
 ## Project map
 
@@ -83,7 +83,7 @@ The repository also preserves earlier Framer and cross-chat handoff documentatio
 
 ## Tracking semantics
 
-- `CTAOpenForm` — ordinary header/sticky interaction; never a conversion.
+- `CTAOpenForm` — ordinary header/sticky free-guide interaction; never a conversion.
 - `FormStart`, `FormError`, `FormSubmit` — PII-free form diagnostics with synchronized format.
 - `Lead` — only after a valid submission reaches the qualified thank-you state.
 - `FormatSelect` — changed landing/checkout format selection.
@@ -92,10 +92,11 @@ The repository also preserves earlier Framer and cross-chat handoff documentatio
 - `VideoPlay` — first tracked graduation/session video play.
 - `Purchase` — future confirmed-payment event; not implemented.
 
-The browser Pixel forwards standard `ViewContent`, `Lead`, and `InitiateCheckout` events and sends all other active events as custom events. No CAPI, production form endpoint, Purchase event, or PII event parameter is present.
+The browser Pixel forwards standard `ViewContent`, `Lead`, and `InitiateCheckout` events and sends all other active events as custom events. No CAPI, Purchase event, or PII event parameter is present.
 
 ## Pending production work
 
-1. Obtain and connect separate verified Offline and Online lead destinations.
-2. Complete Meta Events Manager Test Events validation for Pixel `4138749493027663` with the authenticated account owner.
-3. Keep verifying responsive, accessibility, form, media, checkout, and Pixel/event behavior after every future production change.
+1. Verify all 21 Stream players in Vercel Preview.
+2. Release the Phase 2 branch through Preview and PR after Git metadata writes are available.
+3. Verify controlled Supabase leads and Meta Test Events for Pixel `1982493002344234` on the deployed build.
+4. Keep verifying responsive, accessibility, form, media, checkout, and Pixel/event behavior after every production change.
