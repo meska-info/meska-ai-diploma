@@ -20,6 +20,7 @@ Vercel: `meska-ai-diploma`, connected directly to GitHub
 Production deployment/domain/SSL: verified at https://diploma.meska.ai
 Production Meta Pixel: loader and production event flow technically verified; Meta Events Manager Test Events pending
 Lead persistence: Supabase server-side route configured in Vercel Preview and Production; deployment verification pending
+Shopify/WhatsApp offer automation: repository implementation present; external migration, credentials, activation, and live verification pending
 Legacy Framer workflow: archived reference only
 ```
 
@@ -62,6 +63,7 @@ The current local form validates and synchronizes the selected format, posts to 
 - `app/components/ThankYouPage.tsx` — thank-you composition.
 - `app/components/sections.tsx` — reusable controls, form, sections, carousels, checkout, media coordination, and trackers.
 - `app/components/MetaPixel.tsx` — one-time Pixel loading and pathname `PageView` tracking.
+- `app/lib/leadAutomation.ts` — normalized persisted-lead payload and authenticated n8n trigger.
 - `app/lib/tracking.ts` — local evidence, Meta forwarding, deduplication, attribution, and PII filtering.
 - `app/globals.css` — design tokens, layouts, breakpoints, focus, safe-area, and reduced-motion rules.
 - `public/media/` — 77 local approved/source/optimized media files.
@@ -69,6 +71,7 @@ The current local form validates and synchronizes the selected format, posts to 
 - `worker/index.ts` / `vite.config.ts` — retained worker compatibility/history; not the active Vercel adapter.
 - `vercel.json` — explicit Next.js framework, install, and build contract.
 - `DEPLOYMENT.md` / `TRACKING.md` — production workflow/status and analytics inventory.
+- `docs/shopify-whatsapp-automation.md` — inactive-by-default Shopify/CEQUENS automation setup, testing, and rollback.
 
 ## Production documentation
 

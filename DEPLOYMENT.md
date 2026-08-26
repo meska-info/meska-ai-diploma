@@ -24,6 +24,8 @@ Updated: 23 August 2026
 
 Never describe a pending item as complete without inspecting the external state.
 
+The repository also contains an inactive-by-default Shopify/CEQUENS lead-offer integration. Its code can deploy without blocking lead acceptance, but the automation must remain described as inactive until the migration, n8n workflow, credentials, Vercel variables, and controlled live test in `docs/shopify-whatsapp-automation.md` are complete.
+
 ## Normal change flow
 
 ```text
@@ -69,7 +71,7 @@ For future domain work:
 Current production DNS records are intentionally limited to:
 
 ```text
-TXT   _vercel   vc-domain-verify=diploma.meska.ai,a0d8b17a5817394c03ab
+TXT   _vercel   vc-domain-verify=diploma.meska.ai,<VERCEL_VERIFICATION_TOKEN>
 CNAME diploma   c939ed6df8b99cba.vercel-dns-017.com
 ```
 
