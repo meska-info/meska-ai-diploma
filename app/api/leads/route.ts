@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 import { syncLeadToGoogleSheets, type SheetLead } from "../../lib/googleSheets";
 import { validateLead } from "../../lib/leadValidation";
+import { triggerLeadAutomation } from "../../lib/leadAutomation";
 
 const allowedDiplomas = new Set(["offline", "online"]);
 const allowedAttributionKeys = [
@@ -192,19 +193,33 @@ export async function POST(request: Request) {
   }
 
   after(async () => {
-    try {
-      await syncLeadToGoogleSheets(persistedLead, vercelOidcToken);
-    } catch (error) {
-      console.error(
-        "Lead Google Sheets sync failed",
-        JSON.stringify({
-          step: "google_sheets",
-          code: error instanceof Error ? error.message : "unknown",
-          requestId: persistedLead.request_id,
-          diplomaSlug: persistedLead.diploma_slug,
-        }),
-      );
-    }
+    const jobs = [
+      {
+        name: "google_sheets",
+        run: () => syncLeadToGoogleSheets(persistedLead, vercelOidcToken),
+      },
+      {
+        name: "n8n",
+        run: () => triggerLeadAutomation(persistedLead),
+      },
+    ];
+
+    const results = await Promise.allSettled(jobs.map((job) => job.run()));
+
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        console.error(
+          "Lead background integration failed",
+          JSON.stringify({
+            step: jobs[index].name,
+            code:
+              result.reason instanceof Error ? result.reason.message : "unknown",
+            requestId: persistedLead.request_id,
+            diplomaSlug: persistedLead.diploma_slug,
+          }),
+        );
+      }
+    });
   });
 
   return NextResponse.json({ accepted: true, requestId: persistedLead.request_id }, { status: 201 });

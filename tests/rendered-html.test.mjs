@@ -140,19 +140,20 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
     new URL("../app/lib/googleSheets.ts", import.meta.url),
     "utf8",
   );
+  const leadAutomation = readFileSync(
+    new URL("../app/lib/leadAutomation.ts", import.meta.url),
+    "utf8",
+  );
 
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.logo-rail-track[\s\S]*animation:\s*none/i);
   assert.match(css, /\.logo-sequence\[aria-hidden="true"\][\s\S]*display:\s*none/i);
   assert.match(css, /--blue:\s*#021f94/i);
   assert.match(css, /--blue-bright:\s*#f54f1b/i);
-  assert.match(
-    content,
-    /hWNFhIiwrMjiccpLk4S6LHMp\/en-eg\?_r=AQABXK4iXZTRdGRlwSOl9-iRgmnxVhsceC_1stXdBBLG7M8/,
+  assert.equal(
+    (content.match(/https:\/\/aionline\.meska\.ai\/checkouts\/cn\//g) ?? []).length,
+    2,
   );
-  assert.match(
-    content,
-    /hWNFBXhbOuMmtlvxCWKSs35n\/en-eg\?_r=AQABZ-KT_ZesRudxZE6egaaE1qln6lpcrLJajz-FxH7Dbfw&cart_link_id=Qtc6lE74&channel=buy_button/,
-  );
+  assert.equal((content.match(/checkoutUrl:/g) ?? []).length, 3);
   assert.equal((content.match(/inside_diploma_video_\d{2}/g) ?? []).length, 9);
   assert.equal((content.match(/leadDestination: null,/g) ?? []).length, 2);
   assert.equal((content.match(/Check Eligibility & Enquire/g) ?? []).length, 2);
@@ -202,7 +203,14 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.doesNotMatch(streamVideo, /enableAudio/);
   assert.match(apiRoute, /after\(async \(\) =>/);
   assert.match(apiRoute, /syncLeadToGoogleSheets\(persistedLead, vercelOidcToken\)/);
+  assert.match(apiRoute, /triggerLeadAutomation\(persistedLead\)/);
+  assert.match(apiRoute, /Promise\.allSettled/);
+  assert.match(apiRoute, /status:\s*201/);
   assert.match(apiRoute, /x-vercel-oidc-token/);
+  assert.match(leadAutomation, /N8N_LEAD_WEBHOOK_URL/);
+  assert.match(leadAutomation, /N8N_LEAD_WEBHOOK_SECRET/);
+  assert.match(leadAutomation, /"X-Meska-Webhook-Secret"/);
+  assert.doesNotMatch(leadAutomation, /NEXT_PUBLIC_/);
   assert.match(googleSheets, /GCP_SERVICE_ACCOUNT_EMAIL/);
   assert.match(googleSheets, /sts\.googleapis\.com\/v1\/token/);
   assert.match(googleSheets, /iamcredentials\.googleapis\.com/);
