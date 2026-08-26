@@ -1,0 +1,849 @@
+{
+  "name": "Meska — Lead → Shopify 24h Discount → CEQUENS WhatsApp — Cloud FINAL",
+  "nodes": [
+    {
+      "id": "10e23703-c32d-4fe8-9ba5-ea1014eacb40",
+      "name": "SETUP — READ ME",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1040,
+        -520
+      ],
+      "parameters": {
+        "width": 720,
+        "height": 420,
+        "content": "## Meska — Shopify 24h Discount → CEQUENS WhatsApp\n\nCloud-safe workflow: no API token or webhook secret is stored in this JSON.\n\n### Select credentials after import\n- Webhook: `Meska Webhook Auth` (`X-Meska-Webhook-Secret`)\n- Supabase HTTP nodes: `Meska Supabase Admin`\n- Shopify HTTP nodes: `Shopify Admin API` (`X-Shopify-Access-Token`)\n- CEQUENS node: `CEQUENS WhatsApp API` (`Authorization: Bearer ...`)\n\n### Enter non-secret values in `CONFIG — Meska Offer`\nThe workflow will fail validation while required config is blank. Keep it inactive until the migration and credentials are complete. Shopify recovery requires `read_discounts`; creation requires `write_discounts`."
+      }
+    },
+    {
+      "id": "8223f438-2268-47f3-b47e-eb2942d19b85",
+      "name": "Lead Created Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "meska-lead-created",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "98286289-2d38-435a-a0d2-af97d18f2e8a",
+      "name": "CONFIG — Meska Offer",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -800,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "config-supabase-url",
+              "name": "supabaseUrl",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "config-shopify-domain",
+              "name": "shopifyStoreDomain",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "config-shopify-version",
+              "name": "shopifyApiVersion",
+              "value": "2026-07",
+              "type": "string"
+            },
+            {
+              "id": "config-percent",
+              "name": "discountPercent",
+              "value": 15,
+              "type": "number"
+            },
+            {
+              "id": "config-template",
+              "name": "cequensTemplateName",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "config-language",
+              "name": "cequensTemplateLanguage",
+              "value": "ar",
+              "type": "string"
+            },
+            {
+              "id": "config-offline-product",
+              "name": "offlineProductGid",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "config-online-product",
+              "name": "onlineProductGid",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "63f571d4-45a7-47ea-9782-1e702d669abc",
+      "name": "Validate + Prepare Lead",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        0
+      ],
+      "parameters": {
+        "jsCode": "\nconst req = $input.first().json;\nconst body = req.body ?? req;\n\nfunction clean(value, max = 500) {\n  return typeof value === 'string' ? value.trim().slice(0, max) : '';\n}\n\nfunction normalizePhone(value) {\n  let digits = clean(value, 40).replace(/\\D/g, '');\n  if (digits.startsWith('0020')) digits = digits.slice(2);\n  if (digits.startsWith('0') && digits.length === 11) digits = '20' + digits.slice(1);\n  if (!digits.startsWith('20') && digits.length === 10 && digits.startsWith('1')) digits = '20' + digits;\n  return digits;\n}\n\nconst config = {\n  supabaseUrl: clean(req.supabaseUrl, 300).replace(/\\/$/, ''),\n  shopifyStoreDomain: clean(req.shopifyStoreDomain, 200)\n    .replace(/^https?:\\/\\//, '')\n    .replace(/\\/$/, ''),\n  shopifyApiVersion: clean(req.shopifyApiVersion, 20) || '2026-07',\n  discountPercent: Number(req.discountPercent ?? 15),\n  cequensTemplateName: clean(req.cequensTemplateName, 200),\n  cequensTemplateLanguage: clean(req.cequensTemplateLanguage, 20) || 'ar',\n  offlineProductGid: clean(req.offlineProductGid, 300),\n  onlineProductGid: clean(req.onlineProductGid, 300),\n};\n\nif (!config.supabaseUrl || !config.shopifyStoreDomain || !config.cequensTemplateName) {\n  throw new Error('Complete the non-secret CONFIG — Meska Offer values before activation');\n}\nif (!/^https:\\/\\/[a-z0-9-]+\\.supabase\\.co$/i.test(config.supabaseUrl)) {\n  throw new Error('supabaseUrl must be the project https URL');\n}\nif (!/^[a-z0-9][a-z0-9-]*\\.myshopify\\.com$/i.test(config.shopifyStoreDomain)) {\n  throw new Error('shopifyStoreDomain must use the store.myshopify.com format');\n}\nif (!Number.isFinite(config.discountPercent) || config.discountPercent <= 0 || config.discountPercent >= 100) {\n  throw new Error('discountPercent must be between 0 and 100');\n}\n\nconst leadId = clean(body.leadId, 100);\nconst requestId = clean(body.requestId, 100);\nconst name = clean(body.name, 120);\nconst email = clean(body.email, 254).toLowerCase();\nconst mobile = normalizePhone(body.mobile);\nconst diplomaSlug = clean(body.diplomaSlug, 40);\n\nif (body.event !== 'meska.lead.created') throw new Error('Unsupported webhook event');\nif (!leadId || !requestId || !name || !/^\\S+@\\S+\\.\\S+$/.test(email) || mobile.length < 8 || mobile.length > 15) {\n  throw new Error('Invalid lead payload');\n}\nif (!['offline', 'online'].includes(diplomaSlug)) throw new Error('Unsupported diplomaSlug');\n\nconst alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';\nlet suffix = '';\nfor (let index = 0; index < 9; index++) {\n  suffix += alphabet[Math.floor(Math.random() * alphabet.length)];\n}\n\nconst now = new Date();\nconst expires = new Date(now.getTime() + 24 * 60 * 60 * 1000);\nconst productGid = diplomaSlug === 'offline'\n  ? config.offlineProductGid\n  : config.onlineProductGid;\n\nconst expiryDisplay = new Intl.DateTimeFormat('en-GB', {\n  timeZone: 'Africa/Cairo',\n  day: '2-digit',\n  month: 'short',\n  year: 'numeric',\n  hour: '2-digit',\n  minute: '2-digit',\n}).format(expires);\n\nreturn [{\n  json: {\n    leadId,\n    requestId,\n    name,\n    email,\n    mobile,\n    diplomaSlug,\n    source: clean(body.source, 100),\n    sourceContext: clean(body.sourceContext, 100),\n    attribution: body.attribution && typeof body.attribution === 'object' ? body.attribution : {},\n    claimToken: String($execution.id) + ':' + leadId,\n    candidateCode: 'MESKA-' + suffix,\n    startsAt: now.toISOString(),\n    expiresAt: expires.toISOString(),\n    expiryDisplay,\n    discountPercent: config.discountPercent,\n    productGid,\n    config,\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "89252665-56bf-48df-9197-c937d3bef563",
+      "name": "Supabase — Claim Lead Offer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -320,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$json.config.supabaseUrl + '/rest/v1/rpc/claim_lead_offer'}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ p_lead_id: $json.leadId, p_discount_code: $json.candidateCode, p_discount_percent: $json.discountPercent, p_starts_at: $json.startsAt, p_expires_at: $json.expiresAt, p_claim_token: $json.claimToken }) }}",
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "id": "42ca679f-66d6-4c86-9400-d7c0e0b476b6",
+      "name": "Resolve Offer Claim",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        0
+      ],
+      "parameters": {
+        "jsCode": "\nconst base = $('Validate + Prepare Lead').first().json;\nconst payload = $input.first().json;\nconst result = Array.isArray(payload) ? payload[0] : payload;\nif (!result || typeof result !== 'object' || !result.offer) {\n  throw new Error('Supabase claim response is invalid');\n}\nreturn [{\n  json: {\n    ...base,\n    claimed: result.claimed === true,\n    action: result.action,\n    offer: result.offer,\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "c57b4f89-20c3-4573-bf0b-fd559081b42b",
+      "name": "Claim Acquired?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        160,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c57b4f89-20c3-4573-bf0b-fd559081b42b-condition",
+              "leftValue": "={{$json.claimed}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a20238c2-7a12-4dad-a31b-1d9c2f9d2143",
+      "name": "Resume Existing Shopify Offer?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "a20238c2-7a12-4dad-a31b-1d9c2f9d2143-condition",
+              "leftValue": "={{$json.action}}",
+              "rightValue": "resume_whatsapp",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "7c513344-e0a2-4170-bdf0-03b64bc414fb",
+      "name": "Use Existing Shopify Offer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        -160
+      ],
+      "parameters": {
+        "jsCode": "\nconst data = $input.first().json;\nconst offer = data.offer;\nconst expiresAt = offer.expires_at || data.expiresAt;\nconst expiryDisplay = new Intl.DateTimeFormat('en-GB', {\n  timeZone: 'Africa/Cairo',\n  day: '2-digit',\n  month: 'short',\n  year: 'numeric',\n  hour: '2-digit',\n  minute: '2-digit',\n}).format(new Date(expiresAt));\nreturn [{\n  json: {\n    ...data,\n    discountCode: offer.discount_code,\n    shopifyDiscountId: offer.shopify_discount_id,\n    startsAt: offer.starts_at || data.startsAt,\n    expiresAt,\n    expiryDisplay,\n    discountPercent: Number(offer.discount_percent || data.discountPercent),\n    offerOrigin: 'existing',\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "d1122ad1-3fd3-40da-94be-4fcae5af8d33",
+      "name": "Shopify — Find Discount By Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        640,
+        160
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{$json.config.shopifyStoreDomain}}/admin/api/{{$json.config.shopifyApiVersion}}/graphql.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ query: `query FindDiscountCode($code: String!) { codeDiscountNodeByCode(code: $code) { id codeDiscount { ... on DiscountCodeBasic { startsAt endsAt codes(first: 1) { nodes { code } } } } } }`, variables: { code: $json.offer.discount_code } }) }}",
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500
+    },
+    {
+      "id": "66b75c7d-5814-4b08-bc23-88fe9240fb29",
+      "name": "Resolve Shopify Lookup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        160
+      ],
+      "parameters": {
+        "jsCode": "\nconst base = $('Resolve Offer Claim').first().json;\nconst payload = $input.first().json;\nif (Array.isArray(payload?.errors) && payload.errors.length) {\n  throw new Error('Shopify lookup errors: ' + JSON.stringify(payload.errors));\n}\nconst node = payload?.data?.codeDiscountNodeByCode ?? null;\nreturn [{\n  json: {\n    ...base,\n    discountCode: base.offer.discount_code,\n    shopifyFound: Boolean(node?.id),\n    shopifyDiscountId: node?.id ?? null,\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "fb03d1bf-3192-446c-85a5-b3d3ac2ed196",
+      "name": "Shopify Discount Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        160
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "fb03d1bf-3192-446c-85a5-b3d3ac2ed196-condition",
+              "leftValue": "={{$json.shopifyFound}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "517e9ee0-c789-46b3-900e-2db47fc6b13b",
+      "name": "Shopify — Create 24h Discount",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1360,
+        320
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://{{$json.config.shopifyStoreDomain}}/admin/api/{{$json.config.shopifyApiVersion}}/graphql.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ query: `mutation CreateDiscountCode($input: DiscountCodeBasicInput!) { discountCodeBasicCreate(basicCodeDiscount: $input) { codeDiscountNode { id codeDiscount { ... on DiscountCodeBasic { startsAt endsAt codes(first: 1) { nodes { code } } } } } userErrors { field message code } } }`, variables: { input: { title: `Meska ${$json.diplomaSlug} lead — ${$json.discountCode}`, code: $json.discountCode, startsAt: $json.offer.starts_at || $json.startsAt, endsAt: $json.offer.expires_at || $json.expiresAt, context: { all: 'ALL' }, customerGets: { value: { percentage: $json.discountPercent / 100 }, items: $json.productGid ? { products: { productsToAdd: [$json.productGid] } } : { all: true } }, usageLimit: 1, appliesOncePerCustomer: true } } }) }}",
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1500
+    },
+    {
+      "id": "bd71234a-5695-4cf9-80f0-d5931d4090d5",
+      "name": "Resolve Shopify Create",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        320
+      ],
+      "parameters": {
+        "jsCode": "\nconst base = $('Resolve Shopify Lookup').first().json;\nconst payload = $input.first().json;\nconst result = payload?.data?.discountCodeBasicCreate;\nconst errors = [\n  ...(Array.isArray(payload?.errors) ? payload.errors : []),\n  ...(Array.isArray(result?.userErrors) ? result.userErrors : []),\n];\nconst node = result?.codeDiscountNode;\nreturn [{\n  json: {\n    ...base,\n    shopifyCreateOk: errors.length === 0 && Boolean(node?.id),\n    shopifyError: errors.length ? JSON.stringify(errors) : 'Shopify discount ID missing',\n    shopifyDiscountId: node?.id ?? null,\n    discountCode: node?.codeDiscount?.codes?.nodes?.[0]?.code || base.discountCode,\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "28a42f16-41c3-4182-813c-5c48e3f3d91f",
+      "name": "Shopify Create Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1840,
+        320
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "28a42f16-41c3-4182-813c-5c48e3f3d91f-condition",
+              "leftValue": "={{$json.shopifyCreateOk}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6c75f92c-6eea-47f2-9870-a39538977dfa",
+      "name": "Supabase — Save Shopify Offer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2080,
+        80
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{$json.config.supabaseUrl + '/rest/v1/lead_offers?lead_id=eq.' + encodeURIComponent($json.leadId) + '&processing_token=eq.' + encodeURIComponent($json.claimToken)}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ shopify_discount_id: $json.shopifyDiscountId, discount_code: $json.discountCode, discount_percent: $json.discountPercent, starts_at: $json.offer.starts_at || $json.startsAt, expires_at: $json.offer.expires_at || $json.expiresAt, status: 'shopify_created', last_error: null, updated_at: new Date().toISOString() }) }}",
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "id": "cba794fe-4aa0-4f59-bc8d-6c651eea21ce",
+      "name": "Use Saved Shopify Offer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2320,
+        80
+      ],
+      "parameters": {
+        "jsCode": "\nconst base = $('Resolve Offer Claim').first().json;\nconst payload = $input.first().json;\nconst offer = Array.isArray(payload) ? payload[0] : payload;\nif (!offer?.shopify_discount_id || !offer?.discount_code) {\n  throw new Error('Supabase did not return the saved Shopify offer');\n}\nconst expiresAt = offer.expires_at || base.expiresAt;\nreturn [{\n  json: {\n    ...base,\n    offer,\n    discountCode: offer.discount_code,\n    shopifyDiscountId: offer.shopify_discount_id,\n    startsAt: offer.starts_at || base.startsAt,\n    expiresAt,\n    expiryDisplay: new Intl.DateTimeFormat('en-GB', {\n      timeZone: 'Africa/Cairo',\n      day: '2-digit',\n      month: 'short',\n      year: 'numeric',\n      hour: '2-digit',\n      minute: '2-digit',\n    }).format(new Date(expiresAt)),\n    offerOrigin: 'new_or_recovered',\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "3d3579ef-9f6b-4c17-af98-d321f8b05dd8",
+      "name": "Supabase — Record Shopify Failure",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2080,
+        400
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{$json.config.supabaseUrl + '/rest/v1/rpc/fail_lead_offer_claim'}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ p_lead_id: $json.leadId, p_claim_token: $json.claimToken, p_error: $json.shopifyError }) }}",
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    },
+    {
+      "id": "141e7049-7202-473d-b123-3c9da2f72c7f",
+      "name": "Stop — Shopify Rejected Discount",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2320,
+        400
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "={{$('Resolve Shopify Create').first().json.shopifyError}}"
+      }
+    },
+    {
+      "id": "03fbf42a-dbb5-44e3-a822-f8646e90ada2",
+      "name": "Build WhatsApp Template Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        -80
+      ],
+      "parameters": {
+        "jsCode": "\nconst data = $input.first().json;\nif (!data.discountCode || !data.shopifyDiscountId) {\n  throw new Error('A confirmed Shopify discount is required before WhatsApp');\n}\nreturn [{\n  json: {\n    ...data,\n    cequensPayload: {\n      to: data.mobile,\n      recipient_type: 'individual',\n      type: 'template',\n      clientReferenceID: data.requestId,\n      isTemplateWithFlow: false,\n      template: {\n        language: {\n          policy: 'deterministic',\n          code: data.config.cequensTemplateLanguage,\n        },\n        name: data.config.cequensTemplateName,\n        components: [{\n          type: 'body',\n          parameters: [\n            { type: 'text', text: data.name },\n            { type: 'text', text: String(data.discountPercent) },\n            { type: 'text', text: data.discountCode },\n            { type: 'text', text: data.expiryDisplay },\n          ],\n        }],\n      },\n    },\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "6c33abc4-8cd0-45a4-b080-65a69cb8781a",
+      "name": "CEQUENS — Send WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2800,
+        -80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://apis.cequens.com/conversation/wab/v1/messages/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{JSON.stringify($json.cequensPayload)}}",
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "id": "3021ce08-8f56-4c9e-8e57-0b4e7a51678a",
+      "name": "Capture CEQUENS Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3040,
+        -80
+      ],
+      "parameters": {
+        "jsCode": "\nconst base = $('Build WhatsApp Template Payload').first().json;\nconst response = $input.first().json;\nconst messageId = response?.messageId\n  ?? response?.message_id\n  ?? response?.id\n  ?? response?.data?.messageId\n  ?? response?.data?.message_id\n  ?? response?.data?.id\n  ?? null;\nreturn [{\n  json: {\n    ...base,\n    cequensMessageId: messageId,\n    whatsappSentAt: new Date().toISOString(),\n  },\n}];\n"
+      }
+    },
+    {
+      "id": "2e943e43-f994-4a5e-8507-ce2e5629979c",
+      "name": "Supabase — Mark WhatsApp Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3280,
+        -80
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{$json.config.supabaseUrl + '/rest/v1/lead_offers?lead_id=eq.' + encodeURIComponent($json.leadId) + '&processing_token=eq.' + encodeURIComponent($json.claimToken)}}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ status: 'whatsapp_sent', cequens_message_id: $json.cequensMessageId, whatsapp_sent_at: $json.whatsappSentAt, last_error: null, processing_token: null, processing_started_at: null, updated_at: new Date().toISOString() }) }}",
+        "options": {}
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Lead Created Webhook": {
+      "main": [
+        [
+          {
+            "node": "CONFIG — Meska Offer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONFIG — Meska Offer": {
+      "main": [
+        [
+          {
+            "node": "Validate + Prepare Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate + Prepare Lead": {
+      "main": [
+        [
+          {
+            "node": "Supabase — Claim Lead Offer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase — Claim Lead Offer": {
+      "main": [
+        [
+          {
+            "node": "Resolve Offer Claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Offer Claim": {
+      "main": [
+        [
+          {
+            "node": "Claim Acquired?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Acquired?": {
+      "main": [
+        [
+          {
+            "node": "Resume Existing Shopify Offer?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Resume Existing Shopify Offer?": {
+      "main": [
+        [
+          {
+            "node": "Use Existing Shopify Offer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Shopify — Find Discount By Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Existing Shopify Offer": {
+      "main": [
+        [
+          {
+            "node": "Build WhatsApp Template Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify — Find Discount By Code": {
+      "main": [
+        [
+          {
+            "node": "Resolve Shopify Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Shopify Lookup": {
+      "main": [
+        [
+          {
+            "node": "Shopify Discount Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify Discount Exists?": {
+      "main": [
+        [
+          {
+            "node": "Supabase — Save Shopify Offer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Shopify — Create 24h Discount",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify — Create 24h Discount": {
+      "main": [
+        [
+          {
+            "node": "Resolve Shopify Create",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resolve Shopify Create": {
+      "main": [
+        [
+          {
+            "node": "Shopify Create Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify Create Succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Supabase — Save Shopify Offer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Supabase — Record Shopify Failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase — Save Shopify Offer": {
+      "main": [
+        [
+          {
+            "node": "Use Saved Shopify Offer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use Saved Shopify Offer": {
+      "main": [
+        [
+          {
+            "node": "Build WhatsApp Template Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase — Record Shopify Failure": {
+      "main": [
+        [
+          {
+            "node": "Stop — Shopify Rejected Discount",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build WhatsApp Template Payload": {
+      "main": [
+        [
+          {
+            "node": "CEQUENS — Send WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CEQUENS — Send WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Capture CEQUENS Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture CEQUENS Result": {
+      "main": [
+        [
+          {
+            "node": "Supabase — Mark WhatsApp Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "8d5b5141-5230-4a8f-817c-24a6c6210e0a",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}

@@ -1,5 +1,9 @@
 import { after, NextResponse } from "next/server";
 import { syncLeadToGoogleSheets, type SheetLead } from "../../lib/googleSheets";
+import {
+  normalizeMobile,
+  triggerLeadAutomation,
+} from "../../lib/leadAutomation";
 
 const allowedDiplomas = new Set(["offline", "online"]);
 const allowedAttributionKeys = [
@@ -34,7 +38,7 @@ export async function POST(request: Request) {
   const requestId = text(input.requestId, 100);
   const name = text(input.name, 120);
   const email = text(input.email, 254).toLowerCase();
-  const mobile = text(input.mobile, 40);
+  const mobile = normalizeMobile(text(input.mobile, 40));
   const diplomaSlug = text(input.diplomaSlug, 40);
   const sourceContext = text(input.sourceContext, 40);
   const leadMagnet = text(input.leadMagnet, 80);
@@ -153,19 +157,35 @@ export async function POST(request: Request) {
   const persistedLead = persistedLeads[0];
   if (persistedLead) {
     after(async () => {
-      try {
-        await syncLeadToGoogleSheets(persistedLead, vercelOidcToken);
-      } catch (error) {
-        console.error(
-          "Lead Google Sheets sync failed",
-          JSON.stringify({
-            step: "google_sheets",
-            code: error instanceof Error ? error.message : "unknown",
-            requestId: persistedLead.request_id,
-            diplomaSlug: persistedLead.diploma_slug,
-          }),
-        );
-      }
+      const jobs = [
+        {
+          name: "google_sheets",
+          run: () => syncLeadToGoogleSheets(persistedLead, vercelOidcToken),
+        },
+        {
+          name: "n8n",
+          run: () => triggerLeadAutomation(persistedLead),
+        },
+      ];
+
+      const results = await Promise.allSettled(jobs.map((job) => job.run()));
+
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          console.error(
+            "Lead background integration failed",
+            JSON.stringify({
+              step: jobs[index].name,
+              code:
+                result.reason instanceof Error
+                  ? result.reason.message
+                  : "unknown",
+              requestId: persistedLead.request_id,
+              diplomaSlug: persistedLead.diploma_slug,
+            }),
+          );
+        }
+      });
     });
   }
 
