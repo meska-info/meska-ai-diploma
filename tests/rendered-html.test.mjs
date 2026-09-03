@@ -32,11 +32,12 @@ test("server-renders the diploma landing page", async () => {
   assert.match(html, /<html lang="en">/i);
   assert.match(html, /<title>AI Co-Pilot Diploma \| Meska AI<\/title>/i);
   assert.match(html, /Meska AI Diploma/i);
-  assert.match(html, /Solve a real business bottleneck with AI/i);
-  assert.match(html, /Build your solution in 8 weeks/i);
+  assert.match(html, /Build an/i);
+  assert.match(html, /AI solution/i);
+  assert.match(html, /to a real business problem in 8 weeks/i);
   assert.match(
     html,
-    /Bring a challenge from your work and learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts/i,
+    /Learn AI to solve real business challenges, unlock new opportunities, and build practical solutions alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts/i,
   );
   assert.match(html, /Why We Built the Diploma/i);
   assert.match(html, /Interested\? Talk with a Meska Advisor/i);
