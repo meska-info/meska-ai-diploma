@@ -67,6 +67,18 @@ const keyboardRuns = [
   "mnbvc",
 ];
 
+const placeholderWords = new Set([
+  "demo",
+  "dummy",
+  "example",
+  "fake",
+  "placeholder",
+  "sample",
+  "synthetic",
+  "test",
+  "testing",
+]);
+
 function repeatedOrSequentialDigits(value: string) {
   const digits = value.replace(/\D/g, "");
   return /(\d)\1{6,}/.test(digits) ||
@@ -93,11 +105,9 @@ function asciiGarbageSignals(value: string) {
 
   let score = 0;
   if (/^(.)\1{3,}$/.test(compact) || isRepeatedPattern(compact)) score += 4;
-  if (
-    keyboardRuns.some(
-      (run) => compact.includes(run) || (run.includes(compact) && compact.length >= 5),
-    )
-  ) score += 4;
+  if (keyboardRuns.some((run) => compact.includes(run) || run.startsWith(compact))) {
+    score += 4;
+  }
   if (/^(?:abc|xyz)(?:abc|xyz|\d)*$/i.test(value.replace(/[^a-z\d]/gi, ""))) score += 4;
 
   const vowels = (compact.match(/[aeiouy]/g) ?? []).length;
@@ -113,19 +123,14 @@ function asciiGarbageSignals(value: string) {
 
 function looksLikeGarbageName(value: string) {
   const tokens = value.toLowerCase().split(/[\s.'’-]+/u).filter(Boolean);
-  if (
-    tokens.some((token) =>
-      /^(test|testing|synthetic|dummy|fake|example|placeholder)$/u.test(token),
-    )
-  ) return true;
+  if (tokens.some((token) => placeholderWords.has(token))) return true;
   return tokens.some((token) => /^[a-z]+$/i.test(token) && asciiGarbageSignals(token) >= 4);
 }
 
 function looksLikeGarbageEmailLocal(local: string, domain: string) {
   const atoms = local.split(/[._+-]+/).filter(Boolean);
-  if (
-    /^(?:test(?:ing)?|fake|example|demo|sample|placeholder|no-?reply)(?:\d+)?$/i.test(local)
-  ) return true;
+  const placeholderStem = local.toLowerCase().replace(/[._+-]?\d+$/, "");
+  if (placeholderWords.has(placeholderStem) || /^(?:no-?reply)$/i.test(placeholderStem)) return true;
   if (/^(?:asdf|qwerty|zxcv|abcabc|12345)(?:\d+)?$/i.test(local)) return true;
   if (/^(.)\1{4,}$/u.test(local)) return true;
 
@@ -173,27 +178,37 @@ export function validateLead(input: LeadInput) {
   const email = input.email.trim().toLowerCase();
   const mobile = normalizePhone(input.mobile);
   const linkedinUrl = normalizeLinkedIn(input.linkedinUrl);
+  const nameLetterCount = (name.match(/\p{L}/gu) ?? []).length;
 
   if (!name) errors.fullName = "Full name is required.";
   else if (
-    name.length < 2 ||
+    nameLetterCount < 3 ||
     name.length > 120 ||
     !/\p{L}/u.test(name) ||
     /^\d+$/u.test(name) ||
     /[^\p{L}\p{M}\s.'’-]/u.test(name) ||
     looksLikeGarbageName(name)
-  ) errors.fullName = "Enter your real name; random or repeated text isn’t accepted.";
+  ) errors.fullName = "Please enter your real full name.";
 
   const emailMatch = email.match(/^([^\s@]+)@([a-z\d](?:[a-z\d-]{0,61}[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?)+)$/i);
   if (!email) errors.email = "Email address is required.";
   else if (!emailMatch || email.length > 254) errors.email = "Enter a valid email address.";
   else {
     const [local, domain] = [emailMatch[1], emailMatch[2]];
+    const domainLabels = domain.split(".");
+    const tld = domainLabels.at(-1) ?? "";
     if (
+      local.length > 64 ||
+      !/^[a-z\d!#$%&'*+/=?^_`{|}~.-]+$/i.test(local) ||
+      local.startsWith(".") ||
+      local.endsWith(".") ||
+      local.includes("..") ||
+      domainLabels.some((label) => label.length > 63) ||
+      !/^(?:[a-z]{2,63}|xn--[a-z\d-]{2,59})$/i.test(tld) ||
       /^(\d)\1{4,}$/.test(local) ||
       looksLikeGarbageEmailLocal(local, domain) ||
       disposableDomains.has(domain)
-    ) errors.email = "Enter a genuine work or personal email address.";
+    ) errors.email = "Please enter a valid email address you actively use.";
   }
 
   const digits = mobile.replace(/\D/g, "");

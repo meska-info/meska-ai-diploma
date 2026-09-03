@@ -18,7 +18,9 @@ for (const [label, changes, expected] of [
   ["Egyptian +20 mobile", { mobile: "+20 101 234 5678" }, "+201012345678"],
   ["international mobile", { mobile: "+44 7700 900123" }, "+447700900123"],
   ["Arabic name", { fullName: "أحمد زكي" }, "+201012345678"],
-  ["legitimate short name", { fullName: "Li" }, "+201012345678"],
+  ["international name", { fullName: "José García" }, "+201012345678"],
+  ["legitimate single-word name", { fullName: "Ari" }, "+201012345678"],
+  ["hyphenated and apostrophe name", { fullName: "Anne-Marie O'Neil" }, "+201012345678"],
   ["normal Gmail address", { email: "sarah.khan@gmail.com" }, "+201012345678"],
   ["legitimate short email", { email: "li@gmail.com" }, "+201012345678"],
   ["email containing numbers", { email: "ahmed.zaki2026@gmail.com" }, "+201012345678"],
@@ -53,18 +55,28 @@ for (const [label, changes, field] of [
   ["placeholder email", { email: "12345@gmail.com" }, "email"],
   ["random email", { email: "jdfkjfkdkngjng@gmail.com" }, "email"],
   ["reported garbage email", { email: "dnfd@gmail.com" }, "email"],
+  ["short keyboard email", { email: "asdf@gmail.com" }, "email"],
   ["keyboard email", { email: "asdfgh@gmail.com" }, "email"],
   ["qwerty email", { email: "qwerty@gmail.com" }, "email"],
+  ["test email", { email: "test@gmail.com" }, "email"],
+  ["testing email", { email: "testing@gmail.com" }, "email"],
+  ["invalid domain", { email: "person@example.1com" }, "email"],
   ["letters in phone", { mobile: "+20phone" }, "mobile"],
   ["impossible phone length", { mobile: "+20123" }, "mobile"],
   ["repeated phone", { mobile: "+201111111111" }, "mobile"],
   ["garbage name", { fullName: "!!!!!!" }, "fullName"],
   ["numeric name", { fullName: "123456" }, "fullName"],
+  ["two-letter name", { fullName: "ab" }, "fullName"],
+  ["two repeated letters", { fullName: "aa" }, "fullName"],
+  ["two numeric characters", { fullName: "12" }, "fullName"],
+  ["short keyboard-row name", { fullName: "asdf" }, "fullName"],
   ["reported machine-like name", { fullName: "fdfdknfkn" }, "fullName"],
   ["keyboard-row name", { fullName: "asdfgh" }, "fullName"],
   ["qwerty name", { fullName: "qwerty" }, "fullName"],
   ["repeated-character name", { fullName: "aaaaaaa" }, "fullName"],
   ["repeated-pattern name", { fullName: "abcabcabc" }, "fullName"],
+  ["placeholder name", { fullName: "test" }, "fullName"],
+  ["placeholder testing name", { fullName: "testing" }, "fullName"],
   ["malformed LinkedIn", { linkedinUrl: "linkedin.com" }, "linkedinUrl"],
   ["other social URL", { linkedinUrl: "facebook.com/ahmed" }, "linkedinUrl"],
   ["fake LinkedIn domain", { linkedinUrl: "linkedin.example/in/ahmed" }, "linkedinUrl"],
@@ -88,6 +100,6 @@ test("rejects the exact reported name and email together", () => {
     email: "dnfd@gmail.com",
   });
   assert.equal(result.valid, false);
-  assert.equal(result.errors.fullName, "Enter your real name; random or repeated text isn’t accepted.");
-  assert.equal(result.errors.email, "Enter a genuine work or personal email address.");
+  assert.equal(result.errors.fullName, "Please enter your real full name.");
+  assert.equal(result.errors.email, "Please enter a valid email address you actively use.");
 });
