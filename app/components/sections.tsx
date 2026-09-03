@@ -657,7 +657,7 @@ export function LeadCapture({
               required
               value={paymentPreference}
             >
-              <option disabled value="">Select payment option</option>
+              <option disabled value="">Payment preference</option>
               <option value="full">I’m willing to pay {selected.price} in full</option>
               <option value="installments">I’m willing to pay {selected.price} in installments</option>
             </select>

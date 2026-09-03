@@ -37,7 +37,7 @@ export const siteContent = {
   hero: {
     eyebrow: "Meska AI Diploma",
     titleBeforeAccent: "Solve a real business bottleneck with AI.",
-    titleAccent: "Build the solution in 8 weeks.",
+    titleAccent: "Build your solution in 8 weeks.",
     subtitle:
       "Bring a challenge from your work and learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts.",
     primaryCta: "Watch Free Guide",
@@ -45,7 +45,7 @@ export const siteContent = {
   landingVideoHeading: "Why We Built the Diploma",
   form: {
     eyebrow: "Diploma enquiry",
-    title: "Interested in joining the AI Co-Pilot Diploma?",
+    title: "Interested? Talk with a Meska Advisor.",
     disclosure:
       "Share your details for an eligibility review. A Meska advisor will contact you about fit, format, payment, and enrollment for the current wave.",
     reassurance: "Enquiry only. No payment is taken here.",
@@ -68,7 +68,7 @@ export const siteContent = {
         "https://aionline.meska.ai/checkouts/cn/hWNFhIiwrMjiccpLk4S6LHMp/en-eg?_r=AQABXK4iXZTRdGRlwSOl9-iRgmnxVhsceC_1stXdBBLG7M8",
       leadDestination: null,
       leadDestinationStatus: "pending",
-      formSubmitLabel: "Check Eligibility & Enquire",
+      formSubmitLabel: "Submit Enquiry",
       installmentNote: "5 interest-free payments via Sympl.",
       included: [
         "8 offline + 3 online intensive sessions",
@@ -98,7 +98,7 @@ export const siteContent = {
         "https://aionline.meska.ai/checkouts/cn/hWNFBXhbOuMmtlvxCWKSs35n/en-eg?_r=AQABZ-KT_ZesRudxZE6egaaE1qln6lpcrLJajz-FxH7Dbfw&cart_link_id=Qtc6lE74&channel=buy_button",
       leadDestination: null,
       leadDestinationStatus: "pending",
-      formSubmitLabel: "Check Eligibility & Enquire",
+      formSubmitLabel: "Submit Enquiry",
       installmentNote: "5 interest-free payments via Sympl.",
       included: [
         "8 live + 3 recap intensive sessions",
