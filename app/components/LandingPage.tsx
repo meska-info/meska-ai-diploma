@@ -79,7 +79,8 @@ export function LandingPage() {
           </p>
           <h1>
             {siteContent.hero.titleBeforeAccent}{" "}
-            <span>{siteContent.hero.titleAccent}</span>
+            <span>{siteContent.hero.titleAccent}</span>{" "}
+            {siteContent.hero.titleAfterAccent}
           </h1>
           <p className="hero-subtitle">{siteContent.hero.subtitle}</p>
         </div>

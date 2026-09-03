@@ -36,10 +36,11 @@ export const siteContent = {
   },
   hero: {
     eyebrow: "Meska AI Diploma",
-    titleBeforeAccent: "Solve a real business bottleneck with AI.",
-    titleAccent: "Build your solution in 8 weeks.",
+    titleBeforeAccent: "Build an",
+    titleAccent: "AI solution",
+    titleAfterAccent: "to a real business problem in 8 weeks.",
     subtitle:
-      "Bring a challenge from your work and learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts.",
+      "Learn AI to solve real business challenges, unlock new opportunities, and build practical solutions alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts.",
     primaryCta: "Watch Free Guide",
   },
   landingVideoHeading: "Why We Built the Diploma",
