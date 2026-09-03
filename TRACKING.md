@@ -4,6 +4,8 @@ Meta Pixel ID: `1982493002344234`
 
 The Pixel is initialized once by `app/components/MetaPixel.tsx`. `PageView` is deduplicated by pathname for the current browser page lifecycle. All other events flow through `app/lib/tracking.ts`, which retains the local `window.__MESKA_EVENTS__` evidence log, filters PII-shaped parameter keys, and forwards events to Meta only after initialization.
 
+Meta forwarding is enabled only on the production hostname `diploma.meska.ai`. Vercel Preview and localhost sessions retain the PII-free diagnostic evidence log without sending synthetic `PageView`, `Lead`, or other test events to the live dataset.
+
 | Event | Trigger | Component/page | Meta call | Expected behavior |
 | --- | --- | --- | --- | --- |
 | `PageView` | Initial Pixel load and changed App Router pathname | `MetaPixel`, all routes | `track` | Once for each pathname navigation; never duplicated by rerender/script reload. |

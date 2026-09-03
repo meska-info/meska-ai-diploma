@@ -172,6 +172,7 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
     "utf8",
   );
   assert.match(tracking, /META_PIXEL_ID = "1982493002344234"/);
+  assert.match(tracking, /window\.location\.hostname === "diploma\.meska\.ai"/);
   assert.match(tracking, /"ViewContent",\s*"Lead",\s*"InitiateCheckout"/s);
   assert.match(tracking, /standardMetaEvents\.has\(event\) \? "track" : "trackCustom"/);
   assert.match(tracking, /pageviews\.at\(-1\) === pathname/);
