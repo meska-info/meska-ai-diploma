@@ -192,7 +192,9 @@ export function validateLead(input: LeadInput) {
 
   const emailMatch = email.match(/^([^\s@]+)@([a-z\d](?:[a-z\d-]{0,61}[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?)+)$/i);
   if (!email) errors.email = "Email address is required.";
-  else if (!emailMatch || email.length > 254) errors.email = "Enter a valid email address.";
+  else if (!emailMatch || email.length > 254) {
+    errors.email = "Please enter a valid email address you actively use.";
+  }
   else {
     const [local, domain] = [emailMatch[1], emailMatch[2]];
     const domainLabels = domain.split(".");
