@@ -36,25 +36,25 @@ export const siteContent = {
   },
   hero: {
     eyebrow: "Meska AI Diploma",
-    titleBeforeAccent: "Build your first working AI App in",
-    titleAccent: "8 Weeks",
+    titleBeforeAccent: "Solve a real business bottleneck with AI.",
+    titleAccent: "Build the solution in 8 weeks.",
     subtitle:
-      "Learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts—not through generic AI theory.",
+      "Bring a challenge from your work and learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts.",
     primaryCta: "Watch Free Guide",
   },
   landingVideoHeading: "Why We Built the Diploma",
   form: {
-    eyebrow: "Free practical guide",
-    title: "Create your first AI Agent now",
+    eyebrow: "Diploma enquiry",
+    title: "Interested in joining the AI Co-Pilot Diploma?",
     disclosure:
-      "Watch a focused, practical session and take the first step toward building an AI agent you can actually use.",
-    reassurance: "Free access. No payment required.",
+      "Share your details for an eligibility review. A Meska advisor will contact you about fit, format, payment, and enrollment for the current wave.",
+    reassurance: "Enquiry only. No payment is taken here.",
   },
   diplomas: {
     offline: {
       id: "offline",
       label: "Offline Diploma",
-      wave: "Wave 14",
+      wave: "Wave 15",
       startDate: "26 September 2026",
       schedule: "Every Saturday from 11AM to 4PM",
       time: "11AM to 4PM",
@@ -68,7 +68,7 @@ export const siteContent = {
         "https://aionline.meska.ai/checkouts/cn/hWNFhIiwrMjiccpLk4S6LHMp/en-eg?_r=AQABXK4iXZTRdGRlwSOl9-iRgmnxVhsceC_1stXdBBLG7M8",
       leadDestination: null,
       leadDestinationStatus: "pending",
-      formSubmitLabel: "Watch Free Guide",
+      formSubmitLabel: "Check Eligibility & Enquire",
       installmentNote: "5 interest-free payments via Sympl.",
       included: [
         "8 offline + 3 online intensive sessions",
@@ -84,7 +84,7 @@ export const siteContent = {
     online: {
       id: "online",
       label: "Online Diploma",
-      wave: "Wave 10",
+      wave: "Wave 11",
       startDate: "27 September 2026",
       schedule: "Every Sunday from 7PM to 11PM",
       time: "7PM to 11PM",
@@ -98,7 +98,7 @@ export const siteContent = {
         "https://aionline.meska.ai/checkouts/cn/hWNFBXhbOuMmtlvxCWKSs35n/en-eg?_r=AQABZ-KT_ZesRudxZE6egaaE1qln6lpcrLJajz-FxH7Dbfw&cart_link_id=Qtc6lE74&channel=buy_button",
       leadDestination: null,
       leadDestinationStatus: "pending",
-      formSubmitLabel: "Watch Free Guide",
+      formSubmitLabel: "Check Eligibility & Enquire",
       installmentNote: "5 interest-free payments via Sympl.",
       included: [
         "8 live + 3 recap intensive sessions",

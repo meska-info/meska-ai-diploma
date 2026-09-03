@@ -11,7 +11,6 @@ import {
   InstructorSection,
   SiteFooter,
   SiteHeader,
-  SkillsBusinessValueSection,
   SnippetsCarousel,
   SyllabusSection,
   ThankYouLeadTracker,
@@ -99,12 +98,18 @@ export function ThankYouPage() {
       <ThankYouLeadTracker />
       <SiteHeader ctaHref="#checkout" ctaLabel="Choose Diploma" />
 
+      <section className="thank-confirmation shell" aria-labelledby="thank-confirmation-title">
+        <div className="thank-confirmation-copy">
+          <p className="eyebrow"><span aria-hidden="true" /> Enquiry received</p>
+          <h1 id="thank-confirmation-title">Thank you — we’ve received your details.</h1>
+          <p>A Meska advisor will review your information and contact you shortly.</p>
+        </div>
+      </section>
       <FreeGuideSection />
-      <GraduationStory />
       <SyllabusSection description="Each session supports the next stage of an eight-week journey from practical AI foundations to a working, real-world build." />
       <CheckoutSection />
+      <GraduationStory />
       <SnippetsCarousel />
-      <SkillsBusinessValueSection />
       <InstructorSection />
       <VideoTestimonialsSection context="thank_you" />
       <FAQSection />

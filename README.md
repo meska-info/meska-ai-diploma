@@ -20,7 +20,6 @@ Vercel: `meska-ai-diploma`, connected directly to GitHub
 Production deployment/domain/SSL: verified at https://diploma.meska.ai
 Production Meta Pixel: loader and production event flow technically verified; Meta Events Manager Test Events pending
 Lead persistence: Supabase server-side route configured in Vercel Preview and Production; deployment verification pending
-Shopify/WhatsApp offer automation: repository implementation present; external migration, credentials, activation, and live verification pending
 Legacy Framer workflow: archived reference only
 ```
 
@@ -42,7 +41,7 @@ pnpm test
 
 ## Routes
 
-- `/` — landing page, dynamic Offline/Online pricing, and a three-field free-guide form plus hidden selected format.
+- `/` — landing page, dynamic Offline/Online pricing, and a seven-field Diploma enquiry/qualification form plus hidden selected format.
 - `/thank-you` — qualified local thank-you state, format checkout, videos, skills matrix, instructors, and FAQ.
 - `/preview/mobile` — 390px live review frame.
 - `/preview/tablet` — 768px live review frame.
@@ -50,7 +49,7 @@ pnpm test
 
 ## Current experience
 
-The landing page uses the official Meska logo, relaxed build-focused hero copy, a Cloudflare Stream 16:9 overview video, one compact format-aware price card, one-line `5 interest-free payments via Sympl.` copy, a three-field free-guide form, impact metrics, independent outcome disclosures, a transparent greyscale sixteen-logo marquee, a shared nine-session curriculum disclosure, nine Cloudflare video testimonials, nine image testimonial cards, and a persistent free-guide CTA after the hero.
+The landing page uses the official Meska logo, outcome-led build-focused hero copy, a Cloudflare Stream 16:9 overview video, one compact format-aware price card, one-line `5 interest-free payments via Sympl.` copy, a seven-field Diploma enquiry form, impact metrics, independent outcome disclosures, a transparent greyscale sixteen-logo marquee, a shared nine-session curriculum disclosure, nine Cloudflare video testimonials, the skills-to-business-value matrix, nine image testimonial cards, and a persistent advisor CTA after the hero.
 
 The thank-you page begins with the Cloudflare-hosted free guide, followed by the graduation story, shared curriculum, one accessible unified checkout card, both approved Shopify checkout destinations, nine portrait session videos, a nine-item skills-to-business-value matrix, four official instructors, shared video testimonials, and sixteen FAQs. All below-fold videos are user-controlled; starting one pauses any other playing Stream player.
 
@@ -63,7 +62,6 @@ The current local form validates and synchronizes the selected format, posts to 
 - `app/components/ThankYouPage.tsx` — thank-you composition.
 - `app/components/sections.tsx` — reusable controls, form, sections, carousels, checkout, media coordination, and trackers.
 - `app/components/MetaPixel.tsx` — one-time Pixel loading and pathname `PageView` tracking.
-- `app/lib/leadAutomation.ts` — normalized persisted-lead payload and authenticated n8n trigger.
 - `app/lib/tracking.ts` — local evidence, Meta forwarding, deduplication, attribution, and PII filtering.
 - `app/globals.css` — design tokens, layouts, breakpoints, focus, safe-area, and reduced-motion rules.
 - `public/media/` — 77 local approved/source/optimized media files.
@@ -71,7 +69,6 @@ The current local form validates and synchronizes the selected format, posts to 
 - `worker/index.ts` / `vite.config.ts` — retained worker compatibility/history; not the active Vercel adapter.
 - `vercel.json` — explicit Next.js framework, install, and build contract.
 - `DEPLOYMENT.md` / `TRACKING.md` — production workflow/status and analytics inventory.
-- `docs/shopify-whatsapp-automation.md` — inactive-by-default Shopify/CEQUENS automation setup, testing, and rollback.
 
 ## Production documentation
 

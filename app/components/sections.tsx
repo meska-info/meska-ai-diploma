@@ -18,6 +18,7 @@ import {
   trackEvent,
   writeSessionValue,
 } from "../lib/tracking";
+import { experienceOptions, validateLead } from "../lib/leadValidation";
 import { CloudflareStreamVideo } from "./CloudflareStreamVideo";
 
 export function BrandMark() {
@@ -39,7 +40,7 @@ export function BrandMark() {
 
 export function SiteHeader({
   ctaHref = "#apply",
-  ctaLabel = "Watch Free Guide",
+  ctaLabel = "Start Application",
 }: {
   ctaHref?: string;
   ctaLabel?: string;
@@ -201,12 +202,6 @@ export function DiplomaVideo() {
   );
 }
 
-const fieldLabels: Record<string, string> = {
-  fullName: "Full name",
-  email: "Email address",
-  mobile: "Mobile number",
-};
-
 type FormatSelectionSource = "pointer" | "keyboard";
 
 function FormatToggle({
@@ -285,6 +280,8 @@ export function LeadCapture({
 }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [paymentPreference, setPaymentPreference] = useState("");
+  const [startTiming, setStartTiming] = useState("");
   const submittingRef = useRef(false);
   const started = useRef(false);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -338,6 +335,8 @@ export function LeadCapture({
   ) {
     if (nextId === selectedId) return;
     const previousId = selectedId;
+    setPaymentPreference("");
+    setStartTiming("");
     onSelectedIdChange(nextId);
     trackEvent("FormatSelect", {
       tracking_id: siteContent.trackingNames.landingFormatToggle,
@@ -358,34 +357,36 @@ export function LeadCapture({
       .forEach((field) => {
         if (field.name !== "companyWebsite") field.value = field.value.trim();
       });
-    const invalid = Array.from(
-      form.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
-        "input[required], select[required]",
-      ),
-    ).filter((field) => !field.checkValidity());
+    const formData = new FormData(form);
+    const validation = validateLead({
+      fullName: String(formData.get("fullName") ?? ""),
+      email: String(formData.get("email") ?? ""),
+      mobile: String(formData.get("mobile") ?? ""),
+      linkedinUrl: String(formData.get("linkedinUrl") ?? ""),
+      yearsExperience: String(formData.get("yearsExperience") ?? ""),
+      paymentPreference: String(formData.get("paymentPreference") ?? ""),
+      startTiming: String(formData.get("startTiming") ?? ""),
+      diplomaSlug: String(formData.get("diploma") ?? ""),
+    });
 
-    if (invalid.length) {
-      const nextErrors = Object.fromEntries(
-        invalid.map((field) => [
-          field.name,
-          field.validity.valueMissing
-            ? `${fieldLabels[field.name]} is required.`
-            : `Enter a valid ${fieldLabels[field.name].toLowerCase()}.`,
-        ]),
-      );
+    if (!validation.valid) {
+      const nextErrors = validation.errors;
       setErrors(nextErrors);
-      invalid[0].focus();
+      const firstInvalidName = Object.keys(nextErrors)[0];
+      const firstInvalid = form.elements.namedItem(firstInvalidName) as HTMLElement | null;
+      firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" });
+      firstInvalid?.focus({ preventScroll: true });
       trackEvent("FormError", {
         tracking_id: trackingId,
         form_location: location,
         error_type: "validation",
-        invalid_field_count: invalid.length,
+        invalid_field_count: Object.keys(nextErrors).length,
         variant: selectedId,
       });
       return;
     }
 
-    const submittedFormat = new FormData(form).get("diploma");
+    const submittedFormat = formData.get("diploma");
     if (submittedFormat !== selectedId) {
       trackEvent("FormError", {
         tracking_id: trackingId,
@@ -401,7 +402,6 @@ export function LeadCapture({
     setSubmitting(true);
     const eventId = createEventId("lead");
     const attribution = captureAttribution();
-    const formData = new FormData(form);
     trackEvent(
       "FormSubmit",
       {
@@ -420,9 +420,17 @@ export function LeadCapture({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           requestId: eventId,
-          name: formData.get("fullName"),
-          email: formData.get("email"),
-          mobile: formData.get("mobile"),
+          name: validation.normalized.name,
+          email: validation.normalized.email,
+          mobile: validation.normalized.mobile,
+          linkedinUrl: validation.normalized.linkedinUrl,
+          yearsExperience: validation.normalized.yearsExperience,
+          paymentPreference: validation.normalized.paymentPreference,
+          programmePrice: selected.price,
+          programmePriceValue: selected.priceValue,
+          startTiming: validation.normalized.startTiming,
+          currentWave: selected.wave,
+          currentWaveStartDate: selected.startDate,
           diplomaSlug: selectedId,
           sourceContext: location,
           leadMagnet: "free-ai-agent-guide",
@@ -491,6 +499,7 @@ export function LeadCapture({
     >
       {media}
       <div className="price-panel">
+        <p className="format-guidance">Choose how you want to join the diploma</p>
         <FormatToggle
           controlsId={`${trackingId}-price-content`}
           idPrefix={`${trackingId}-format-tab`}
@@ -562,6 +571,8 @@ export function LeadCapture({
 
         <FormField label="Full name" name="fullName" error={errors.fullName}>
           <input
+            aria-describedby={errors.fullName ? "fullName-error" : undefined}
+            aria-invalid={Boolean(errors.fullName)}
             id={`${trackingId}-fullName`}
             name="fullName"
             type="text"
@@ -575,6 +586,8 @@ export function LeadCapture({
         <div className="field-row">
           <FormField label="Email address" name="email" error={errors.email}>
             <input
+              aria-describedby={errors.email ? "email-error" : undefined}
+              aria-invalid={Boolean(errors.email)}
               id={`${trackingId}-email`}
               name="email"
               type="email"
@@ -589,6 +602,8 @@ export function LeadCapture({
           </FormField>
           <FormField label="Mobile number" name="mobile" error={errors.mobile}>
             <input
+              aria-describedby={errors.mobile ? "mobile-error" : undefined}
+              aria-invalid={Boolean(errors.mobile)}
               id={`${trackingId}-mobile`}
               name="mobile"
               type="tel"
@@ -600,6 +615,70 @@ export function LeadCapture({
             />
           </FormField>
         </div>
+
+        <FormField label="LinkedIn profile" name="linkedinUrl" error={errors.linkedinUrl}>
+          <input
+            aria-describedby={errors.linkedinUrl ? "linkedinUrl-error" : undefined}
+            aria-invalid={Boolean(errors.linkedinUrl)}
+            autoCapitalize="none"
+            autoComplete="url"
+            autoCorrect="off"
+            enterKeyHint="next"
+            id={`${trackingId}-linkedinUrl`}
+            inputMode="url"
+            name="linkedinUrl"
+            placeholder="linkedin.com/in/your-profile"
+            required
+            type="url"
+          />
+        </FormField>
+
+        <div className="field-row">
+          <FormField label="Years of experience" name="yearsExperience" error={errors.yearsExperience}>
+            <select
+              aria-describedby={errors.yearsExperience ? "yearsExperience-error" : undefined}
+              aria-invalid={Boolean(errors.yearsExperience)}
+              defaultValue=""
+              id={`${trackingId}-yearsExperience`}
+              name="yearsExperience"
+              required
+            >
+              <option disabled value="">Select experience</option>
+              {experienceOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </FormField>
+          <FormField label="Payment readiness" name="paymentPreference" error={errors.paymentPreference}>
+            <select
+              aria-describedby={errors.paymentPreference ? "paymentPreference-error" : undefined}
+              aria-invalid={Boolean(errors.paymentPreference)}
+              id={`${trackingId}-paymentPreference`}
+              name="paymentPreference"
+              onChange={(event) => setPaymentPreference(event.target.value)}
+              required
+              value={paymentPreference}
+            >
+              <option disabled value="">Select payment option</option>
+              <option value="full">I’m willing to pay {selected.price} in full</option>
+              <option value="installments">I’m willing to pay {selected.price} in installments</option>
+            </select>
+          </FormField>
+        </div>
+
+        <FormField label="When could you join?" name="startTiming" error={errors.startTiming}>
+          <select
+            aria-describedby={errors.startTiming ? "startTiming-error" : undefined}
+            aria-invalid={Boolean(errors.startTiming)}
+            id={`${trackingId}-startTiming`}
+            name="startTiming"
+            onChange={(event) => setStartTiming(event.target.value)}
+            required
+            value={startTiming}
+          >
+            <option disabled value="">Select timing</option>
+            <option value="current_wave">I can join {selected.wave}, starting {selected.startDate.replace(" 2026", "")}</option>
+            <option value="later_wave">I’m interested, but would join a later wave</option>
+          </select>
+        </FormField>
 
         <button
           className="button button-submit"
@@ -668,8 +747,8 @@ export function OutcomesSection() {
     <section className="section shell" id="outcomes">
       <SectionHeading
         eyebrow="The shift"
-        title="Work differently after the diploma."
-        description="Move from experimenting with AI to using it with purpose — across your decisions, workflows, communication, and everyday responsibilities."
+        title="From describing business problems to building AI solutions."
+        description="Turn real bottlenecks into working AI-powered workflows, tools, and apps your business can use."
       />
       <div className="outcome-grid">
         {siteContent.outcomes.map((outcome) => (
@@ -958,9 +1037,9 @@ export function LeadModal({
       <div className="dialog-toolbar">
         <div>
           <span>Meska AI</span>
-          <strong id="modal-title">Watch the Free Guide</strong>
+          <strong id="modal-title">Diploma Enquiry</strong>
         </div>
-        <button type="button" onClick={onClose} aria-label="Close free guide form">
+        <button type="button" onClick={onClose} aria-label="Close diploma enquiry form">
           ×
         </button>
       </div>
@@ -993,7 +1072,7 @@ export function StickyMobileCTA({
         }}
         data-track-id={siteContent.trackingNames.stickyCta}
       >
-        Watch Free Guide <span aria-hidden="true">↗</span>
+        Speak with a Meska Advisor <span aria-hidden="true">↗</span>
       </button>
     </div>
   );
@@ -1039,12 +1118,12 @@ export function FreeGuideSection() {
     <section className="section free-guide-section shell">
       <div className="free-guide-copy">
         <SectionHeading
-          eyebrow="Your free practical guide"
-          title="Start building your first AI Agent."
-          description="Your eight-week AI-app journey starts with one practical step: turning a real task into an agent you can understand, shape, and use."
+          eyebrow="Pre-diploma session"
+          title="See how we build AI Agents for real business problems."
+          description="Preview the practical, hands-on work you will experience inside the diploma."
         />
         <p className="free-guide-caption">
-          Follow the session at your own pace and leave with a clearer path from idea to a working first build.
+          This session shows how a business challenge becomes a working AI Agent.
         </p>
       </div>
       <div className="free-guide-video-frame">
@@ -1366,7 +1445,7 @@ export function SkillsBusinessValueSection() {
       capability_id: items[nextIndex].id,
       previous_capability_id: previous.id,
       selection_source: source,
-      interaction_location: "thank_you_skills_matrix",
+      interaction_location: "landing_skills_matrix",
     });
   }
 

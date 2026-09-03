@@ -8,8 +8,8 @@ Production-transition snapshot · 23 August 2026
 - Landing page `/`, thank-you page `/thank-you`, and 390/768/1440 live preview routes.
 - Approved local assets: official logo, main video/poster, graduation video/poster, nine session video/poster pairs, four instructor portraits, nine testimonial pairs, and sixteen organization logo pairs.
 - One synchronized Offline/Online landing price/form state.
-- Three visible required lead fields plus hidden selected `diploma` value.
-- Local validation, PII-free diagnostic events, attribution, duplicate-submit guard, server-side Supabase persistence, and persistence-qualified Lead token semantics.
+- Seven visible required enquiry fields plus hidden selected `diploma` value.
+- Shared client/server validation, normalized contact/profile data, PII-free diagnostic events, attribution, duplicate-submit guard, server-side Supabase persistence, Google Sheets sync, and persistence-qualified Lead token semantics.
 - One dynamic thank-you checkout card with both approved Shopify links.
 - Impact, outcomes, transparent greyscale marquee, shared curriculum disclosure, nine image testimonials, nine shared Stream video testimonials, free guide, graduation/session videos, nine-item skills matrix, four instructors, and sixteen FAQs.
 - Full landing-page PNGs at 390, 768, and 1440px in `artifacts/full-page-pngs/`.
@@ -18,13 +18,11 @@ Production-transition snapshot · 23 August 2026
 - GitHub source repository is connected at `https://github.com/meska-info/meska-ai-diploma`; local `main` tracks remote `main`, and production baseline commit `e2c0ebe` remains in history for recovery.
 - Vercel project `meska-ai-diploma` is connected directly to GitHub with `main` as its production branch.
 - Production is live at `https://diploma.meska.ai` with GoDaddy DNS, Vercel-managed HTTPS, and the verified initial deployment `dpl_5ikQucV9zNi6rhzVKyNmr1ChehG5`.
-- The repository includes a fail-open n8n lead trigger, a versioned `lead_offers` migration with an atomic processing claim, and an inactive credential-free n8n Cloud import for real Shopify 24-hour codes followed by an approved CEQUENS WhatsApp template.
 
 ## What does not exist yet
 
 - Phase 2 lead route has not yet been deployed and verified end-to-end.
 - No CAPI implementation or confirmed Shopify Purchase event implementation.
-- Shopify/CEQUENS lead-offer automation is not live until the Supabase migration, n8n credentials/config, CEQUENS template approval, Vercel server variables, and controlled end-to-end test are complete.
 - No live Framer changes or publication from this local project.
 
 ## Most important constraints
