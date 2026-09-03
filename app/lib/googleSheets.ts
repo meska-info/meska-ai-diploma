@@ -99,7 +99,7 @@ export async function syncLeadToGoogleSheets(
   const accessToken = await getGoogleAccessToken(vercelOidcToken);
   const headers = { Authorization: `Bearer ${accessToken}` };
   const qualificationHeadersResponse = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!O1:V1")}?valueInputOption=RAW`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!P1:W1")}?valueInputOption=RAW`,
     {
       method: "PUT",
       headers: { ...headers, "Content-Type": "application/json" },
@@ -137,7 +137,7 @@ export async function syncLeadToGoogleSheets(
 
   const attribution = lead.attribution ?? {};
   const appendResponse = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!A:V")}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!A:W")}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
     {
       method: "POST",
       headers: { ...headers, "Content-Type": "application/json" },
@@ -159,6 +159,7 @@ export async function syncLeadToGoogleSheets(
             attribution.utm_term ?? "",
             attribution.utm_content ?? "",
             attribution.fbclid ?? "",
+            "",
             lead.linkedin_url,
             lead.years_experience,
             lead.payment_preference,
