@@ -3626,3 +3626,50 @@ main#top:not(.thank-you-page) .footer-inner {
     line-height: 1.02;
   }
 }
+
+/* Targeted hero and enquiry-copy refinement */
+.hero-copy {
+  max-width: 1240px;
+}
+
+.hero h1 {
+  max-width: 1240px;
+  font-size: clamp(2rem, 4.25vw, 3.8rem);
+  font-weight: 760;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.hero h1 > span {
+  display: inline;
+  white-space: normal;
+}
+
+.hero-subtitle {
+  max-width: 1180px;
+  font-size: clamp(0.98rem, 1.35vw, 1.1rem);
+  line-height: 1.5;
+}
+
+.form-heading h3 {
+  max-width: none;
+  font-size: clamp(1.45rem, 2vw, 1.75rem);
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+@media (min-width: 1180px) {
+  .hero-subtitle,
+  .form-heading h3 {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero h1 {
+    font-size: clamp(1.95rem, 9.2vw, 2.35rem);
+    line-height: 1.03;
+  }
+}

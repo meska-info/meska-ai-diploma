@@ -33,19 +33,20 @@ test("server-renders the diploma landing page", async () => {
   assert.match(html, /<title>AI Co-Pilot Diploma \| Meska AI<\/title>/i);
   assert.match(html, /Meska AI Diploma/i);
   assert.match(html, /Solve a real business bottleneck with AI/i);
-  assert.match(html, /Build the solution in 8 weeks/i);
+  assert.match(html, /Build your solution in 8 weeks/i);
   assert.match(
     html,
     /Bring a challenge from your work and learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts/i,
   );
   assert.match(html, /Why We Built the Diploma/i);
-  assert.match(html, /Interested in joining the AI Co-Pilot Diploma/i);
+  assert.match(html, /Interested\? Talk with a Meska Advisor/i);
   assert.match(html, /Enquiry only\. No payment is taken here\./i);
   assert.match(html, /name="fullName"/i);
   assert.match(html, /type="hidden" name="diploma" value="offline"/i);
   assert.doesNotMatch(html, /<select[^>]+name="diploma"/i);
   assert.match(html, /role="tablist" aria-label="Diploma format"/i);
-  assert.match(html, /Check Eligibility &amp; Enquire/i);
+  assert.match(html, /Submit Enquiry/i);
+  assert.match(html, /Payment preference/i);
   assert.match(html, /name="linkedinUrl"/i);
   assert.match(html, /name="yearsExperience"/i);
   assert.match(html, /name="paymentPreference"/i);
@@ -156,7 +157,7 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.equal((content.match(/checkoutUrl:/g) ?? []).length, 3);
   assert.equal((content.match(/inside_diploma_video_\d{2}/g) ?? []).length, 9);
   assert.equal((content.match(/leadDestination: null,/g) ?? []).length, 2);
-  assert.equal((content.match(/Check Eligibility & Enquire/g) ?? []).length, 2);
+  assert.equal((content.match(/Submit Enquiry/g) ?? []).length, 2);
   assert.match(content, /26 September 2026/);
   assert.match(content, /27 September 2026/);
   assert.equal((content.match(/5 interest-free payments via Sympl\./g) ?? []).length, 2);
