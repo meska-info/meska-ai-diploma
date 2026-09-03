@@ -32,21 +32,25 @@ test("server-renders the diploma landing page", async () => {
   assert.match(html, /<html lang="en">/i);
   assert.match(html, /<title>AI Co-Pilot Diploma \| Meska AI<\/title>/i);
   assert.match(html, /Meska AI Diploma/i);
-  assert.match(html, /Build your first working AI App in/i);
-  assert.match(html, /8 Weeks/i);
+  assert.match(html, /Solve a real business bottleneck with AI/i);
+  assert.match(html, /Build the solution in 8 weeks/i);
   assert.match(
     html,
-    /Learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts/i,
+    /Bring a challenge from your work and learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts/i,
   );
   assert.match(html, /Why We Built the Diploma/i);
-  assert.match(html, /Create your first AI Agent now/i);
-  assert.match(html, /Free access\. No payment required\./i);
+  assert.match(html, /Interested in joining the AI Co-Pilot Diploma/i);
+  assert.match(html, /Enquiry only\. No payment is taken here\./i);
   assert.match(html, /name="fullName"/i);
   assert.match(html, /type="hidden" name="diploma" value="offline"/i);
   assert.doesNotMatch(html, /<select[^>]+name="diploma"/i);
   assert.match(html, /role="tablist" aria-label="Diploma format"/i);
-  assert.match(html, /Watch Free Guide/i);
-  assert.match(html, /Create your first AI Agent now/i);
+  assert.match(html, /Check Eligibility &amp; Enquire/i);
+  assert.match(html, /name="linkedinUrl"/i);
+  assert.match(html, /name="yearsExperience"/i);
+  assert.match(html, /name="paymentPreference"/i);
+  assert.match(html, /name="startTiming"/i);
+  assert.match(html, /Wave 15/i);
   assert.match(html, /26 September 2026/i);
   assert.match(html, /Every Saturday from 11AM to 4PM/i);
   assert.doesNotMatch(html, /name="job"|name="company"|name="website"/i);
@@ -89,8 +93,9 @@ test("server-renders the thank-you comparison page", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>Free AI Agent Guide \| Meska AI<\/title>/i);
-  assert.match(html, /Start building your first AI Agent\./i);
-  assert.match(html, /Your free practical guide/i);
+  assert.match(html, /Thank you — we’ve received your details/i);
+  assert.match(html, /Pre-diploma session/i);
+  assert.match(html, /See how we build AI Agents for real business problems/i);
   assert.match(html, /One outcome\. Two practical ways to get there\./i);
   assert.match(html, /Offline Diploma/i);
   assert.match(html, /<button[^>]+role="tab"[^>]*>Online<\/button>/i);
@@ -98,9 +103,7 @@ test("server-renders the thank-you comparison page", async () => {
   assert.equal((html.match(/class="checkout-card checkout-card-unified"/g) ?? []).length, 1);
   assert.match(html, /Continue with the [\s\S]{0,30}Offline Diploma/i);
   assert.match(html, /Step inside the diploma and see for yourself\./i);
-  assert.match(html, /From AI skills to measurable business value\./i);
-  assert.match(html, /AI foundations and tool selection/i);
-  assert.match(html, /aria-label="AI capabilities"[^>]+role="tablist"/i);
+  assert.doesNotMatch(html, /From AI skills to measurable business value\./i);
   assert.equal((html.match(/<iframe[^>]+cloudflare-stream-player/g) ?? []).length, 20);
   assert.doesNotMatch(html, /<video\b/i);
   assert.match(html, /Step inside the diploma and see for yourself\./i);
@@ -153,7 +156,7 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.equal((content.match(/checkoutUrl:/g) ?? []).length, 3);
   assert.equal((content.match(/inside_diploma_video_\d{2}/g) ?? []).length, 9);
   assert.equal((content.match(/leadDestination: null,/g) ?? []).length, 2);
-  assert.equal((content.match(/Watch Free Guide/g) ?? []).length, 3);
+  assert.equal((content.match(/Check Eligibility & Enquire/g) ?? []).length, 2);
   assert.match(content, /26 September 2026/);
   assert.match(content, /27 September 2026/);
   assert.equal((content.match(/5 interest-free payments via Sympl\./g) ?? []).length, 2);
@@ -170,6 +173,7 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
     "utf8",
   );
   assert.match(tracking, /META_PIXEL_ID = "1982493002344234"/);
+  assert.match(tracking, /window\.location\.hostname === "diploma\.meska\.ai"/);
   assert.match(tracking, /"ViewContent",\s*"Lead",\s*"InitiateCheckout"/s);
   assert.match(tracking, /standardMetaEvents\.has\(event\) \? "track" : "trackCustom"/);
   assert.match(tracking, /pageviews\.at\(-1\) === pathname/);

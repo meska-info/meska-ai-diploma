@@ -1889,6 +1889,77 @@ h3 {
   }
 }
 
+/* September 2026 Diploma enquiry amendments */
+.hero h1 {
+  max-width: 1080px;
+  font-size: clamp(2.35rem, 7.7vw, 5.5rem);
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.hero h1 > span {
+  display: block;
+}
+
+.hero-subtitle {
+  text-wrap: balance;
+}
+
+.format-guidance {
+  margin: 0 0 calc(var(--space-2) * -1);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.application-form {
+  gap: var(--space-3);
+}
+
+.application-form .field-row {
+  gap: var(--space-3);
+}
+
+.application-form select {
+  padding-right: 36px;
+  text-overflow: ellipsis;
+}
+
+.field-error input,
+.field-error select,
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"] {
+  border-color: var(--error);
+  background: #fff8f7;
+}
+
+.snippets-section .section-heading.is-inverted .eyebrow {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+@media (min-width: 700px) {
+  .application-form .field-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .hero h1 {
+    font-size: clamp(2.15rem, 10.6vw, 2.85rem);
+    line-height: 1.02;
+  }
+
+  .application-form,
+  .price-panel {
+    padding: var(--space-4);
+  }
+
+  .application-form select {
+    font-size: 15px;
+  }
+}
+
 /* Phase 2 final cascade */
 .hero h1 {
   max-width: 1040px;
@@ -3512,5 +3583,46 @@ main#top:not(.thank-you-page) .footer-inner {
   .skills-tabs button,
   .curriculum-disclosure > summary {
     transition: none;
+  }
+}
+
+/* Final Diploma enquiry cascade */
+.hero h1 {
+  max-width: 1080px;
+  font-size: clamp(2.35rem, 7.7vw, 5.5rem);
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.hero h1 > span {
+  display: block;
+}
+
+.format-guidance {
+  margin: 0 0 calc(var(--space-2) * -1);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.application-form,
+.application-form .field-row {
+  gap: var(--space-3);
+}
+
+.snippets-section .section-heading.is-inverted .eyebrow {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+@media (min-width: 700px) {
+  .application-form .field-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .hero h1 {
+    font-size: clamp(2.15rem, 10.6vw, 2.85rem);
+    line-height: 1.02;
   }
 }

@@ -8,8 +8,8 @@ Production-transition snapshot · 23 August 2026
 - Landing page `/`, thank-you page `/thank-you`, and 390/768/1440 live preview routes.
 - Approved local assets: official logo, main video/poster, graduation video/poster, nine session video/poster pairs, four instructor portraits, nine testimonial pairs, and sixteen organization logo pairs.
 - One synchronized Offline/Online landing price/form state.
-- Three visible required lead fields plus hidden selected `diploma` value.
-- Local validation, PII-free diagnostic events, attribution, duplicate-submit guard, server-side Supabase persistence, and persistence-qualified Lead token semantics.
+- Seven visible required enquiry fields plus hidden selected `diploma` value.
+- Shared client/server validation, normalized contact/profile data, PII-free diagnostic events, attribution, duplicate-submit guard, server-side Supabase persistence, Google Sheets sync, and persistence-qualified Lead token semantics.
 - One dynamic thank-you checkout card with both approved Shopify links.
 - Impact, outcomes, transparent greyscale marquee, shared curriculum disclosure, nine image testimonials, nine shared Stream video testimonials, free guide, graduation/session videos, nine-item skills matrix, four instructors, and sixteen FAQs.
 - Full landing-page PNGs at 390, 768, and 1440px in `artifacts/full-page-pngs/`.

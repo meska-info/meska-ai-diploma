@@ -21,6 +21,10 @@ export type TrackingParameters = Record<
 
 export const META_PIXEL_ID = "1982493002344234";
 
+export function isProductionTrackingHost() {
+  return typeof window !== "undefined" && window.location.hostname === "diploma.meska.ai";
+}
+
 type MetaPixelFunction = (
   command: "init" | "track" | "trackCustom",
   eventOrPixelId: string,
@@ -81,7 +85,11 @@ const standardMetaEvents = new Set<TrackingEventName>([
 ]);
 
 export function initializeMetaPixel() {
-  if (typeof window === "undefined" || window.__MESKA_META_PIXEL_INITIALIZED__) {
+  if (
+    typeof window === "undefined" ||
+    !isProductionTrackingHost() ||
+    window.__MESKA_META_PIXEL_INITIALIZED__
+  ) {
     return;
   }
 

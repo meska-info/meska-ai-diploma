@@ -11,6 +11,7 @@ import {
   OutcomesSection,
   SiteFooter,
   SiteHeader,
+  SkillsBusinessValueSection,
   StatsStrip,
   StickyMobileCTA,
   SyllabusSection,
@@ -105,6 +106,7 @@ export function LandingPage() {
       <OrganizationLogoRail />
       <SyllabusSection />
       <VideoTestimonialsSection />
+      <SkillsBusinessValueSection />
       <TestimonialCarousel />
 
       <SiteFooter />

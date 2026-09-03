@@ -42,7 +42,7 @@ pnpm test
 
 ## Routes
 
-- `/` — landing page, dynamic Offline/Online pricing, and a three-field free-guide form plus hidden selected format.
+- `/` — landing page, dynamic Offline/Online pricing, and a seven-field Diploma enquiry/qualification form plus hidden selected format.
 - `/thank-you` — qualified local thank-you state, format checkout, videos, skills matrix, instructors, and FAQ.
 - `/preview/mobile` — 390px live review frame.
 - `/preview/tablet` — 768px live review frame.
@@ -50,7 +50,7 @@ pnpm test
 
 ## Current experience
 
-The landing page uses the official Meska logo, relaxed build-focused hero copy, a Cloudflare Stream 16:9 overview video, one compact format-aware price card, one-line `5 interest-free payments via Sympl.` copy, a three-field free-guide form, impact metrics, independent outcome disclosures, a transparent greyscale sixteen-logo marquee, a shared nine-session curriculum disclosure, nine Cloudflare video testimonials, nine image testimonial cards, and a persistent free-guide CTA after the hero.
+The landing page uses the official Meska logo, outcome-led build-focused hero copy, a Cloudflare Stream 16:9 overview video, one compact format-aware price card, one-line `5 interest-free payments via Sympl.` copy, a seven-field Diploma enquiry form, impact metrics, independent outcome disclosures, a transparent greyscale sixteen-logo marquee, a shared nine-session curriculum disclosure, nine Cloudflare video testimonials, the skills-to-business-value matrix, nine image testimonial cards, and a persistent advisor CTA after the hero.
 
 The thank-you page begins with the Cloudflare-hosted free guide, followed by the graduation story, shared curriculum, one accessible unified checkout card, both approved Shopify checkout destinations, nine portrait session videos, a nine-item skills-to-business-value matrix, four official instructors, shared video testimonials, and sixteen FAQs. All below-fold videos are user-controlled; starting one pauses any other playing Stream player.
 

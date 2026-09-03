@@ -1,9 +1,7 @@
 import { after, NextResponse } from "next/server";
 import { syncLeadToGoogleSheets, type SheetLead } from "../../lib/googleSheets";
-import {
-  normalizeMobile,
-  triggerLeadAutomation,
-} from "../../lib/leadAutomation";
+import { validateLead } from "../../lib/leadValidation";
+import { triggerLeadAutomation } from "../../lib/leadAutomation";
 
 const allowedDiplomas = new Set(["offline", "online"]);
 const allowedAttributionKeys = [
@@ -37,8 +35,16 @@ export async function POST(request: Request) {
 
   const requestId = text(input.requestId, 100);
   const name = text(input.name, 120);
-  const email = text(input.email, 254).toLowerCase();
-  const mobile = normalizeMobile(text(input.mobile, 40));
+  const email = text(input.email, 254);
+  const mobile = text(input.mobile, 40);
+  const linkedinUrl = text(input.linkedinUrl, 300);
+  const yearsExperience = text(input.yearsExperience, 30);
+  const paymentPreference = text(input.paymentPreference, 30);
+  const programmePrice = text(input.programmePrice, 30);
+  const programmePriceValue = Number(input.programmePriceValue);
+  const startTiming = text(input.startTiming, 30);
+  const currentWave = text(input.currentWave, 30);
+  const currentWaveStartDate = text(input.currentWaveStartDate, 40);
   const diplomaSlug = text(input.diplomaSlug, 40);
   const sourceContext = text(input.sourceContext, 40);
   const leadMagnet = text(input.leadMagnet, 80);
@@ -48,12 +54,28 @@ export async function POST(request: Request) {
       ? (input.attribution as Record<string, unknown>)
       : {};
 
+  const leadValidation = validateLead({
+    fullName: name,
+    email,
+    mobile,
+    linkedinUrl,
+    yearsExperience,
+    paymentPreference,
+    startTiming,
+    diplomaSlug,
+  });
+  const expectedProgramme = diplomaSlug === "offline"
+    ? { price: "EGP 25,000", priceValue: 25000, wave: "Wave 15", startDate: "26 September 2026" }
+    : { price: "EGP 20,000", priceValue: 20000, wave: "Wave 11", startDate: "27 September 2026" };
+
   if (
     !requestId ||
-    !name ||
-    !mobile ||
-    !/^\S+@\S+\.\S+$/.test(email) ||
+    !leadValidation.valid ||
     !allowedDiplomas.has(diplomaSlug) ||
+    programmePrice !== expectedProgramme.price ||
+    programmePriceValue !== expectedProgramme.priceValue ||
+    currentWave !== expectedProgramme.wave ||
+    currentWaveStartDate !== expectedProgramme.startDate ||
     !["primary", "modal"].includes(sourceContext) ||
     leadMagnet !== "free-ai-agent-guide"
   ) {
@@ -102,9 +124,17 @@ export async function POST(request: Request) {
     },
     body: JSON.stringify({
       request_id: requestId,
-      name,
-      email,
-      mobile,
+      name: leadValidation.normalized.name,
+      email: leadValidation.normalized.email,
+      mobile: leadValidation.normalized.mobile,
+      linkedin_url: leadValidation.normalized.linkedinUrl,
+      years_experience: leadValidation.normalized.yearsExperience,
+      payment_preference: leadValidation.normalized.paymentPreference,
+      programme_price: programmePrice,
+      programme_price_value: programmePriceValue,
+      current_wave: currentWave,
+      current_wave_start_date: currentWaveStartDate,
+      start_timing: leadValidation.normalized.startTiming,
       diploma_slug: diplomaSlug,
       lead_source: leadMagnet,
       source_context: sourceContext,
@@ -155,39 +185,42 @@ export async function POST(request: Request) {
   }
 
   const persistedLead = persistedLeads[0];
-  if (persistedLead) {
-    after(async () => {
-      const jobs = [
-        {
-          name: "google_sheets",
-          run: () => syncLeadToGoogleSheets(persistedLead, vercelOidcToken),
-        },
-        {
-          name: "n8n",
-          run: () => triggerLeadAutomation(persistedLead),
-        },
-      ];
-
-      const results = await Promise.allSettled(jobs.map((job) => job.run()));
-
-      results.forEach((result, index) => {
-        if (result.status === "rejected") {
-          console.error(
-            "Lead background integration failed",
-            JSON.stringify({
-              step: jobs[index].name,
-              code:
-                result.reason instanceof Error
-                  ? result.reason.message
-                  : "unknown",
-              requestId: persistedLead.request_id,
-              diplomaSlug: persistedLead.diploma_slug,
-            }),
-          );
-        }
-      });
-    });
+  if (!persistedLead) {
+    return NextResponse.json(
+      { error: "Lead persistence could not be confirmed", code: "persistence_unconfirmed" },
+      { status: 502 },
+    );
   }
 
-  return NextResponse.json({ accepted: true }, { status: 201 });
+  after(async () => {
+    const jobs = [
+      {
+        name: "google_sheets",
+        run: () => syncLeadToGoogleSheets(persistedLead, vercelOidcToken),
+      },
+      {
+        name: "n8n",
+        run: () => triggerLeadAutomation(persistedLead),
+      },
+    ];
+
+    const results = await Promise.allSettled(jobs.map((job) => job.run()));
+
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        console.error(
+          "Lead background integration failed",
+          JSON.stringify({
+            step: jobs[index].name,
+            code:
+              result.reason instanceof Error ? result.reason.message : "unknown",
+            requestId: persistedLead.request_id,
+            diplomaSlug: persistedLead.diploma_slug,
+          }),
+        );
+      }
+    });
+  });
+
+  return NextResponse.json({ accepted: true, requestId: persistedLead.request_id }, { status: 201 });
 }

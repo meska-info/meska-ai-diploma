@@ -7,6 +7,14 @@ export type SheetLead = {
   name: string;
   email: string;
   mobile: string;
+  linkedin_url: string;
+  years_experience: string;
+  payment_preference: string;
+  programme_price: string;
+  programme_price_value: number;
+  current_wave: string;
+  current_wave_start_date: string;
+  start_timing: string;
   diploma_slug: DiplomaSlug;
   lead_source: string;
   source_context: string;
@@ -90,6 +98,30 @@ export async function syncLeadToGoogleSheets(
   const spreadsheetId = spreadsheetIdFor(lead.diploma_slug);
   const accessToken = await getGoogleAccessToken(vercelOidcToken);
   const headers = { Authorization: `Bearer ${accessToken}` };
+  const qualificationHeadersResponse = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!P1:W1")}?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        majorDimension: "ROWS",
+        values: [[
+          "linkedin_url",
+          "years_experience",
+          "payment_preference",
+          "programme_price",
+          "programme_price_value",
+          "current_wave",
+          "current_wave_start_date",
+          "start_timing",
+        ]],
+      }),
+      cache: "no-store",
+    },
+  );
+  if (!qualificationHeadersResponse.ok) {
+    throw new Error(`google_sheet_headers_${qualificationHeadersResponse.status}`);
+  }
   const requestIdsResponse = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!B:B")}?majorDimension=COLUMNS`,
     { cache: "no-store", headers },
@@ -105,7 +137,7 @@ export async function syncLeadToGoogleSheets(
 
   const attribution = lead.attribution ?? {};
   const appendResponse = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!A:N")}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!A:W")}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
     {
       method: "POST",
       headers: { ...headers, "Content-Type": "application/json" },
@@ -127,6 +159,15 @@ export async function syncLeadToGoogleSheets(
             attribution.utm_term ?? "",
             attribution.utm_content ?? "",
             attribution.fbclid ?? "",
+            "",
+            lead.linkedin_url,
+            lead.years_experience,
+            lead.payment_preference,
+            lead.programme_price,
+            lead.programme_price_value,
+            lead.current_wave,
+            lead.current_wave_start_date,
+            lead.start_timing,
           ],
         ],
       }),

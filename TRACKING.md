@@ -4,6 +4,8 @@ Meta Pixel ID: `1982493002344234`
 
 The Pixel is initialized once by `app/components/MetaPixel.tsx`. `PageView` is deduplicated by pathname for the current browser page lifecycle. All other events flow through `app/lib/tracking.ts`, which retains the local `window.__MESKA_EVENTS__` evidence log, filters PII-shaped parameter keys, and forwards events to Meta only after initialization.
 
+Meta forwarding is enabled only on the production hostname `diploma.meska.ai`. Vercel Preview and localhost sessions retain the PII-free diagnostic evidence log without sending synthetic `PageView`, `Lead`, or other test events to the live dataset.
+
 | Event | Trigger | Component/page | Meta call | Expected behavior |
 | --- | --- | --- | --- | --- |
 | `PageView` | Initial Pixel load and changed App Router pathname | `MetaPixel`, all routes | `track` | Once for each pathname navigation; never duplicated by rerender/script reload. |
@@ -13,7 +15,7 @@ The Pixel is initialized once by `app/components/MetaPixel.tsx`. `PageView` is d
 | `FormStart` | First focus within the interest form | `LeadCapture`, `/` | `trackCustom` | Once per mounted form; no field value. |
 | `FormError` | Validation or format synchronization failure | `LeadCapture`, `/` | `trackCustom` | Error type/count only; no field value. |
 | `FormSubmit` | Valid local submit intent before qualified transition | `LeadCapture`, `/` | `trackCustom` | Diagnostic only. It is not a Meta `Lead`. |
-| `Lead` | Persisted lead token consumed on thank-you page | `ThankYouLeadTracker`, `/thank-you` | `track` | Exactly one standard conversion per accepted Supabase lead event ID. Direct visits and failed persistence do not fire it. |
+| `Lead` | A persisted Diploma enquiry token is consumed after navigation | `ThankYouLeadTracker`, `/thank-you` | `track` | Exactly one standard conversion per server-confirmed Supabase enquiry event ID. Validation failures, API/persistence failures, repeated clicks, and direct visits do not fire it. |
 | `LeadThankYouView` | Thank-you route loads | `ThankYouLeadTracker`, `/thank-you` | `trackCustom` | Records whether qualified submission state existed; not a conversion. |
 | `FormatSelect` | Changed landing or checkout format by pointer/keyboard | `LeadCapture`, `CheckoutSection` | `trackCustom` | Only after a changed selection; includes previous/new variant and source. |
 | `CapabilitySelect` | Changed skills-matrix selection | `SkillsBusinessValueSection` | `trackCustom` | Only after a changed selection. |
