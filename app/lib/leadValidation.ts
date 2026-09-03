@@ -42,7 +42,30 @@ const disposableDomains = new Set([
   "10minutemail.com",
   "tempmail.com",
   "yopmail.com",
+  "sharklasers.com",
+  "throwawaymail.com",
+  "trashmail.com",
 ]);
+
+const consumerEmailDomains = new Set([
+  "gmail.com",
+  "googlemail.com",
+  "hotmail.com",
+  "outlook.com",
+  "live.com",
+  "yahoo.com",
+  "icloud.com",
+]);
+
+const keyboardRuns = [
+  "qwerty",
+  "asdfgh",
+  "zxcvbn",
+  "qazwsx",
+  "poiuyt",
+  "lkjhg",
+  "mnbvc",
+];
 
 function repeatedOrSequentialDigits(value: string) {
   const digits = value.replace(/\D/g, "");
@@ -52,13 +75,69 @@ function repeatedOrSequentialDigits(value: string) {
     );
 }
 
-function looksRandom(value: string) {
-  const compact = value.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
-  if (/^(.)\1{4,}$/u.test(compact)) return true;
-  if (compact.length < 10) return false;
-  if (!/^[a-z]+$/i.test(compact)) return false;
-  const vowelCount = (compact.match(/[aeiou]/gi) ?? []).length;
-  return vowelCount === 0;
+function isRepeatedPattern(value: string) {
+  for (let unitLength = 1; unitLength <= 3; unitLength += 1) {
+    if (value.length >= unitLength * 3) {
+      const unit = value.slice(0, unitLength);
+      if (unit.repeat(Math.ceil(value.length / unitLength)).slice(0, value.length) === value) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function asciiGarbageSignals(value: string) {
+  const compact = value.toLowerCase().replace(/[^a-z]/g, "");
+  if (!compact || compact.length < 4) return 0;
+
+  let score = 0;
+  if (/^(.)\1{3,}$/.test(compact) || isRepeatedPattern(compact)) score += 4;
+  if (
+    keyboardRuns.some(
+      (run) => compact.includes(run) || (run.includes(compact) && compact.length >= 5),
+    )
+  ) score += 4;
+  if (/^(?:abc|xyz)(?:abc|xyz|\d)*$/i.test(value.replace(/[^a-z\d]/gi, ""))) score += 4;
+
+  const vowels = (compact.match(/[aeiouy]/g) ?? []).length;
+  const maxConsonantRun = Math.max(
+    ...(compact.match(/[^aeiouy]+/g) ?? [""]).map((part) => part.length),
+  );
+  if (vowels === 0) score += compact.length >= 7 ? 4 : 2;
+  else if (compact.length >= 9 && vowels / compact.length < 0.16) score += 2;
+  if (maxConsonantRun >= 6) score += 2;
+  if (compact.length >= 6 && new Set(compact).size <= 2) score += 3;
+  return score;
+}
+
+function looksLikeGarbageName(value: string) {
+  const tokens = value.toLowerCase().split(/[\s.'’-]+/u).filter(Boolean);
+  if (
+    tokens.some((token) =>
+      /^(test|testing|synthetic|dummy|fake|example|placeholder)$/u.test(token),
+    )
+  ) return true;
+  return tokens.some((token) => /^[a-z]+$/i.test(token) && asciiGarbageSignals(token) >= 4);
+}
+
+function looksLikeGarbageEmailLocal(local: string, domain: string) {
+  const atoms = local.split(/[._+-]+/).filter(Boolean);
+  if (
+    /^(?:test(?:ing)?|fake|example|demo|sample|placeholder|no-?reply)(?:\d+)?$/i.test(local)
+  ) return true;
+  if (/^(?:asdf|qwerty|zxcv|abcabc|12345)(?:\d+)?$/i.test(local)) return true;
+  if (/^(.)\1{4,}$/u.test(local)) return true;
+
+  const signal = Math.max(0, ...atoms.map(asciiGarbageSignals));
+  if (signal >= 4) return true;
+  // A four-to-six-letter, vowel-free identifier on a mass-market mailbox is
+  // a strong fake-input signal. Keep this narrow so business acronyms and
+  // legitimate two/three-letter personal addresses remain valid.
+  return consumerEmailDomains.has(domain) &&
+    atoms.length === 1 &&
+    /^[a-z]{4,6}$/i.test(local) &&
+    !/[aeiouy]/i.test(local);
 }
 
 export function normalizePhone(value: string) {
@@ -102,8 +181,8 @@ export function validateLead(input: LeadInput) {
     !/\p{L}/u.test(name) ||
     /^\d+$/u.test(name) ||
     /[^\p{L}\p{M}\s.'’-]/u.test(name) ||
-    looksRandom(name)
-  ) errors.fullName = "Enter a valid name using letters, spaces, apostrophes, or hyphens.";
+    looksLikeGarbageName(name)
+  ) errors.fullName = "Enter your real name; random or repeated text isn’t accepted.";
 
   const emailMatch = email.match(/^([^\s@]+)@([a-z\d](?:[a-z\d-]{0,61}[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?)+)$/i);
   if (!email) errors.email = "Email address is required.";
@@ -111,9 +190,8 @@ export function validateLead(input: LeadInput) {
   else {
     const [local, domain] = [emailMatch[1], emailMatch[2]];
     if (
-      /^(test|testing|fake|example|asdf|qwerty|12345|admin|no-?reply)$/i.test(local) ||
       /^(\d)\1{4,}$/.test(local) ||
-      looksRandom(local) ||
+      looksLikeGarbageEmailLocal(local, domain) ||
       disposableDomains.has(domain)
     ) errors.email = "Enter a genuine work or personal email address.";
   }
