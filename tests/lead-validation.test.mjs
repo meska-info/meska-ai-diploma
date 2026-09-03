@@ -80,3 +80,14 @@ test("normalizes LinkedIn personal profiles", () => {
   const result = validateLead(base);
   assert.equal(result.normalized.linkedinUrl, "https://www.linkedin.com/in/ahmed-zaki-12345");
 });
+
+test("rejects the exact reported name and email together", () => {
+  const result = validateLead({
+    ...base,
+    fullName: "fdfdknfkn",
+    email: "dnfd@gmail.com",
+  });
+  assert.equal(result.valid, false);
+  assert.equal(result.errors.fullName, "Enter your real name; random or repeated text isn’t accepted.");
+  assert.equal(result.errors.email, "Enter a genuine work or personal email address.");
+});
