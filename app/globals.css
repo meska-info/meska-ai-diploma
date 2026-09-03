@@ -357,6 +357,18 @@ h3 {
   object-fit: contain;
 }
 
+.cloudflare-stream-player {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  background: #09071a;
+}
+
+.cloudflare-stream-player.is-portrait {
+  aspect-ratio: 9 / 16;
+}
+
 .price-panel {
   position: relative;
   isolation: isolate;
@@ -1060,6 +1072,28 @@ h3 {
 
 .sticky-mobile-cta .button {
   width: 100%;
+}
+
+.floating-checkout-cta {
+  position: fixed;
+  z-index: 25;
+  right: var(--space-4);
+  bottom: max(var(--space-4), env(safe-area-inset-bottom));
+  width: min(320px, calc(100vw - (var(--space-4) * 2)));
+  padding: 6px;
+  border: 1px solid rgba(0, 17, 28, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 48px rgba(21, 17, 48, 0.2);
+  backdrop-filter: blur(16px);
+}
+
+.floating-checkout-cta .button {
+  width: 100%;
+}
+
+.thank-you-page .footer-inner {
+  padding-bottom: calc(var(--space-10) + 76px + env(safe-area-inset-bottom));
 }
 
 /* Pending media used on the thank-you route */
@@ -1855,6 +1889,121 @@ h3 {
   }
 }
 
+/* September 2026 Diploma enquiry amendments */
+.hero h1 {
+  max-width: 1080px;
+  font-size: clamp(2.35rem, 7.7vw, 5.5rem);
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.hero h1 > span {
+  display: block;
+}
+
+.hero-subtitle {
+  text-wrap: balance;
+}
+
+.format-guidance {
+  margin: 0 0 calc(var(--space-2) * -1);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.application-form {
+  gap: var(--space-3);
+}
+
+.application-form .field-row {
+  gap: var(--space-3);
+}
+
+.application-form select {
+  padding-right: 36px;
+  text-overflow: ellipsis;
+}
+
+.field-error input,
+.field-error select,
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"] {
+  border-color: var(--error);
+  background: #fff8f7;
+}
+
+.snippets-section .section-heading.is-inverted .eyebrow {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+@media (min-width: 700px) {
+  .application-form .field-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .hero h1 {
+    font-size: clamp(2.15rem, 10.6vw, 2.85rem);
+    line-height: 1.02;
+  }
+
+  .application-form,
+  .price-panel {
+    padding: var(--space-4);
+  }
+
+  .application-form select {
+    font-size: 15px;
+  }
+}
+
+/* Phase 2 final cascade */
+.hero h1 {
+  max-width: 1040px;
+  font-size: clamp(2.75rem, 10.8vw, 6.4rem);
+  font-weight: 720;
+  letter-spacing: -0.052em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.hero h1 > span {
+  color: var(--blue-bright);
+  white-space: nowrap;
+}
+
+.hero-subtitle {
+  max-width: 760px;
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  line-height: 1.6;
+}
+
+.snippet-track {
+  touch-action: pan-y pinch-zoom;
+}
+
+.lead-dialog {
+  width: min(680px, calc(100vw - 24px));
+}
+
+.lead-dialog .lead-capture {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0;
+}
+
+.lead-dialog .price-panel {
+  display: none;
+}
+
+.lead-dialog .application-form {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* Interactive breakpoint review routes */
 .device-preview-page {
   min-height: 100dvh;
@@ -2376,6 +2525,92 @@ main {
   object-fit: contain;
 }
 
+.free-guide-section {
+  display: grid;
+  gap: var(--space-7);
+  align-items: center;
+}
+
+.free-guide-copy .section-heading {
+  margin-bottom: var(--space-4);
+}
+
+.free-guide-caption {
+  max-width: 58ch;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.free-guide-video-frame {
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--ink);
+  box-shadow: 0 24px 58px rgba(21, 17, 48, 0.16);
+}
+
+.video-testimonials-section {
+  overflow: hidden;
+}
+
+.video-testimonial-track {
+  display: grid;
+  grid-auto-columns: minmax(240px, 315px);
+  grid-auto-flow: column;
+  gap: var(--space-4);
+  padding: 2px 2px var(--space-5);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-color: var(--blue-bright) rgba(0, 17, 28, 0.12);
+  touch-action: pan-x pan-y pinch-zoom;
+}
+
+.video-testimonial-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--paper);
+  scroll-snap-align: start;
+}
+
+.video-testimonial-card p,
+.snippet-card p {
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.video-testimonial-card p {
+  margin: 0;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  font-weight: 700;
+}
+
+.video-testimonial-card p span,
+.snippet-card p span {
+  color: var(--blue-bright);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+
+.snippet-card .cloudflare-stream-player,
+.video-testimonial-card .cloudflare-stream-player {
+  touch-action: pan-y pinch-zoom;
+}
+
+@media (min-width: 900px) {
+  .free-guide-section,
+  .graduation-story {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+  }
+
+  .free-guide-video-frame {
+    justify-self: end;
+    width: min(100%, 680px);
+  }
+}
+
 .checkout-section {
   padding-top: var(--section-space);
 }
@@ -2506,7 +2741,95 @@ main {
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
   scrollbar-color: var(--blue-bright) rgba(255, 255, 255, 0.1);
-  touch-action: pan-x;
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Phase 2 lead-magnet refinements */
+.hero h1 {
+  max-width: 1040px;
+  font-size: clamp(2.75rem, 10.8vw, 6.4rem);
+  font-weight: 720;
+  letter-spacing: -0.052em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.hero h1 > span {
+  color: var(--blue-bright);
+  white-space: nowrap;
+}
+
+.hero-subtitle {
+  max-width: 760px;
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+  line-height: 1.6;
+}
+
+.application-form {
+  align-content: start;
+}
+
+.form-error {
+  text-align: center;
+}
+
+.form-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.price-details dd > span,
+.checkout-card dd > span {
+  color: inherit;
+  font-size: 0.9em;
+  font-weight: 500;
+  opacity: 0.76;
+}
+
+.lead-dialog {
+  width: min(680px, calc(100vw - 24px));
+}
+
+.lead-dialog .lead-capture {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0;
+}
+
+.lead-dialog .price-panel {
+  display: none;
+}
+
+.lead-dialog .application-form {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 699px) {
+  .lead-dialog {
+    width: 100%;
+    max-height: calc(100svh - 8px);
+    max-height: calc(100dvh - 8px);
+    height: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .lead-dialog .application-form {
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-4)
+      calc(var(--space-8) + env(safe-area-inset-bottom));
+  }
+
+  .floating-checkout-cta {
+    right: var(--space-3);
+    bottom: max(var(--space-3), env(safe-area-inset-bottom));
+    left: var(--space-3);
+    width: auto;
+  }
 }
 
 .snippet-card {
@@ -2912,6 +3235,11 @@ main {
 
 .logo-rail-track {
   padding-block: var(--space-2) var(--space-4);
+  animation-play-state: paused;
+}
+
+.logo-rail.logos-ready .logo-rail-track {
+  animation-play-state: running;
 }
 
 .logo-sequence {
@@ -3255,5 +3583,46 @@ main#top:not(.thank-you-page) .footer-inner {
   .skills-tabs button,
   .curriculum-disclosure > summary {
     transition: none;
+  }
+}
+
+/* Final Diploma enquiry cascade */
+.hero h1 {
+  max-width: 1080px;
+  font-size: clamp(2.35rem, 7.7vw, 5.5rem);
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.hero h1 > span {
+  display: block;
+}
+
+.format-guidance {
+  margin: 0 0 calc(var(--space-2) * -1);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.application-form,
+.application-form .field-row {
+  gap: var(--space-3);
+}
+
+.snippets-section .section-heading.is-inverted .eyebrow {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+@media (min-width: 700px) {
+  .application-form .field-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .hero h1 {
+    font-size: clamp(2.15rem, 10.6vw, 2.85rem);
+    line-height: 1.02;
   }
 }

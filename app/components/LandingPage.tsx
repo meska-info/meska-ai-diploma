@@ -6,19 +6,23 @@ import { captureAttribution, trackEvent } from "../lib/tracking";
 import {
   DiplomaVideo,
   LeadCapture,
+  LeadModal,
   OrganizationLogoRail,
   OutcomesSection,
   SiteFooter,
   SiteHeader,
+  SkillsBusinessValueSection,
   StatsStrip,
   StickyMobileCTA,
   SyllabusSection,
   TestimonialCarousel,
+  VideoTestimonialsSection,
 } from "./sections";
 
 export function LandingPage() {
   const [selectedId, setSelectedId] = useState<DiplomaId>("offline");
   const [showSticky, setShowSticky] = useState(false);
+  const [showLeadModal, setShowLeadModal] = useState(false);
 
   useEffect(() => {
     captureAttribution();
@@ -64,28 +68,6 @@ export function LandingPage() {
     };
   }, []);
 
-  function returnToLeadForm() {
-    const form = document.getElementById(
-      siteContent.trackingNames.primaryForm,
-    );
-    const firstControl = document.getElementById(
-      `${siteContent.trackingNames.primaryForm}-fullName`,
-    );
-    if (!form || !(firstControl instanceof HTMLElement)) return;
-
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    form.scrollIntoView({
-      behavior: reducedMotion ? "auto" : "smooth",
-      block: "start",
-    });
-    window.setTimeout(
-      () => firstControl.focus({ preventScroll: true }),
-      reducedMotion ? 0 : 420,
-    );
-  }
-
   return (
     <main id="top">
       <SiteHeader />
@@ -95,7 +77,10 @@ export function LandingPage() {
           <p className="eyebrow">
             <span aria-hidden="true" /> {siteContent.hero.eyebrow}
           </p>
-          <h1>{siteContent.hero.title}</h1>
+          <h1>
+            {siteContent.hero.titleBeforeAccent}{" "}
+            <span>{siteContent.hero.titleAccent}</span>
+          </h1>
           <p className="hero-subtitle">{siteContent.hero.subtitle}</p>
         </div>
 
@@ -120,10 +105,20 @@ export function LandingPage() {
       <OutcomesSection />
       <OrganizationLogoRail />
       <SyllabusSection />
+      <VideoTestimonialsSection />
+      <SkillsBusinessValueSection />
       <TestimonialCarousel />
 
       <SiteFooter />
-      {showSticky ? <StickyMobileCTA onActivate={returnToLeadForm} /> : null}
+      {showSticky ? (
+        <StickyMobileCTA onActivate={() => setShowLeadModal(true)} />
+      ) : null}
+      <LeadModal
+        onClose={() => setShowLeadModal(false)}
+        onSelectedIdChange={setSelectedId}
+        open={showLeadModal}
+        selectedId={selectedId}
+      />
     </main>
   );
 }

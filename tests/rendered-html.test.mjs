@@ -31,20 +31,29 @@ test("server-renders the diploma landing page", async () => {
   const html = await response.text();
   assert.match(html, /<html lang="en">/i);
   assert.match(html, /<title>AI Co-Pilot Diploma \| Meska AI<\/title>/i);
-  assert.match(html, /Meska AI Copilot Diploma/i);
-  assert.match(html, /Learn AI\. Apply it to real business\./i);
+  assert.match(html, /Meska AI Diploma/i);
+  assert.match(html, /Solve a real business bottleneck with AI/i);
+  assert.match(html, /Build the solution in 8 weeks/i);
   assert.match(
     html,
-    /Solve real business challenges alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts\./i,
+    /Bring a challenge from your work and learn by building alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts/i,
   );
   assert.match(html, /Why We Built the Diploma/i);
-  assert.match(html, /Interested\? Let’s Talk!/i);
-  assert.match(html, /No payment is required to submit your application\./i);
+  assert.match(html, /Interested in joining the AI Co-Pilot Diploma/i);
+  assert.match(html, /Enquiry only\. No payment is taken here\./i);
   assert.match(html, /name="fullName"/i);
   assert.match(html, /type="hidden" name="diploma" value="offline"/i);
   assert.doesNotMatch(html, /<select[^>]+name="diploma"/i);
   assert.match(html, /role="tablist" aria-label="Diploma format"/i);
-  assert.match(html, /Request Offline Diploma Details/i);
+  assert.match(html, /Check Eligibility &amp; Enquire/i);
+  assert.match(html, /name="linkedinUrl"/i);
+  assert.match(html, /name="yearsExperience"/i);
+  assert.match(html, /name="paymentPreference"/i);
+  assert.match(html, /name="startTiming"/i);
+  assert.match(html, /Wave 15/i);
+  assert.match(html, /26 September 2026/i);
+  assert.match(html, /Every Saturday from 11AM to 4PM/i);
+  assert.doesNotMatch(html, /name="job"|name="company"|name="website"/i);
   assert.match(html, /5 interest-free payments via Sympl\./i);
   assert.doesNotMatch(html, /class="price-benefits"|>Included</i);
   assert.doesNotMatch(html, /Request Diploma Details|View everything included/i);
@@ -52,8 +61,9 @@ test("server-renders the diploma landing page", async () => {
   assert.match(html, /Explore All Sessions/i);
   assert.match(
     html,
-    /\/media\/videos\/original\/meska-ai-diploma-main-video\.mp4/i,
+    /<video[^>]+autoplay=""[^>]+playsinline=""[^>]+src="\/media\/videos\/original\/meska-ai-diploma-main-video\.mp4"/i,
   );
+  assert.doesNotMatch(html, /<video[^>]+muted/i);
   assert.match(
     html,
     /Professionals from Egypt’s Leading Corporations Learn AI with Meska/i,
@@ -82,9 +92,10 @@ test("server-renders the thank-you comparison page", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Application Received \| Meska AI<\/title>/i);
-  assert.match(html, /Thank you — we’ve got your details\./i);
-  assert.match(html, /A Meska advisor will contact you soon\./i);
+  assert.match(html, /<title>Free AI Agent Guide \| Meska AI<\/title>/i);
+  assert.match(html, /Thank you — we’ve received your details/i);
+  assert.match(html, /Pre-diploma session/i);
+  assert.match(html, /See how we build AI Agents for real business problems/i);
   assert.match(html, /One outcome\. Two practical ways to get there\./i);
   assert.match(html, /Offline Diploma/i);
   assert.match(html, /<button[^>]+role="tab"[^>]*>Online<\/button>/i);
@@ -92,12 +103,11 @@ test("server-renders the thank-you comparison page", async () => {
   assert.equal((html.match(/class="checkout-card checkout-card-unified"/g) ?? []).length, 1);
   assert.match(html, /Continue with the [\s\S]{0,30}Offline Diploma/i);
   assert.match(html, /Step inside the diploma and see for yourself\./i);
-  assert.match(html, /From AI skills to measurable business value\./i);
-  assert.match(html, /AI foundations and tool selection/i);
-  assert.match(html, /aria-label="AI capabilities"[^>]+role="tablist"/i);
-  assert.equal((html.match(/<video\b/g) ?? []).length, 10);
-  assert.match(html, /\/media\/videos\/optimized\/graduation-wave\.mp4/i);
-  assert.match(html, /\/media\/videos\/optimized\/inside-diploma-session-09\.mp4/i);
+  assert.doesNotMatch(html, /From AI skills to measurable business value\./i);
+  assert.equal((html.match(/<iframe[^>]+cloudflare-stream-player/g) ?? []).length, 20);
+  assert.doesNotMatch(html, /<video\b/i);
+  assert.match(html, /Step inside the diploma and see for yourself\./i);
+  assert.match(html, /See how other professionals experienced the journey\./i);
   assert.match(html, /Omar El Monayar/i);
   assert.doesNotMatch(html, /Ahmed Mostafa/i);
   assert.match(html, /Clear answers before you decide/i);
@@ -112,6 +122,22 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   const content = readFileSync(new URL("../app/content.ts", import.meta.url), "utf8");
   const sections = readFileSync(
     new URL("../app/components/sections.tsx", import.meta.url),
+    "utf8",
+  );
+  const thankYouPage = readFileSync(
+    new URL("../app/components/ThankYouPage.tsx", import.meta.url),
+    "utf8",
+  );
+  const apiRoute = readFileSync(
+    new URL("../app/api/leads/route.ts", import.meta.url),
+    "utf8",
+  );
+  const streamVideo = readFileSync(
+    new URL("../app/components/CloudflareStreamVideo.tsx", import.meta.url),
+    "utf8",
+  );
+  const googleSheets = readFileSync(
+    new URL("../app/lib/googleSheets.ts", import.meta.url),
     "utf8",
   );
 
@@ -129,11 +155,12 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   );
   assert.equal((content.match(/inside_diploma_video_\d{2}/g) ?? []).length, 9);
   assert.equal((content.match(/leadDestination: null,/g) ?? []).length, 2);
-  assert.match(content, /Request Offline Diploma Details/);
-  assert.match(content, /Request Online Diploma Details/);
+  assert.equal((content.match(/Check Eligibility & Enquire/g) ?? []).length, 2);
+  assert.match(content, /26 September 2026/);
+  assert.match(content, /27 September 2026/);
   assert.equal((content.match(/5 interest-free payments via Sympl\./g) ?? []).length, 2);
-  assert.match(sections, /pauseOtherPageVideos\(event\.currentTarget\)/);
-  assert.match(sections, /pauseOtherPageVideos\(current\)/);
+  assert.match(sections, /CloudflareStreamVideo/);
+  assert.match(sections, /videoId=\{video\.streamId\}/);
   assert.match(sections, /trackEvent\(\s*"FormSubmit"/);
   assert.match(sections, /trackEvent\("CapabilitySelect"/);
   const tracking = readFileSync(
@@ -144,10 +171,47 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
     new URL("../app/components/MetaPixel.tsx", import.meta.url),
     "utf8",
   );
-  assert.match(tracking, /META_PIXEL_ID = "4138749493027663"/);
+  assert.match(tracking, /META_PIXEL_ID = "1982493002344234"/);
   assert.match(tracking, /"ViewContent",\s*"Lead",\s*"InitiateCheckout"/s);
   assert.match(tracking, /standardMetaEvents\.has\(event\) \? "track" : "trackCustom"/);
   assert.match(tracking, /pageviews\.at\(-1\) === pathname/);
+  assert.match(tracking, /export function readSessionValue/);
+  assert.match(tracking, /export function writeSessionValue/);
+  assert.match(sections, /window\.name = `meska-pending-lead:/);
+  assert.match(sections, /readSessionValue\("meska-pending-lead"\)/);
+  assert.match(sections, /name="companyWebsite"[\s\S]*readOnly[\s\S]*type="hidden"[\s\S]*value=""/);
+  assert.match(sections, /\[Meska lead\] Submission rejected/);
+  assert.doesNotMatch(apiRoute, /leadMagnet !== "free-ai-agent-guide" \|\|[\s\S]{0,40}honeypot/);
+  assert.match(apiRoute, /code: "honeypot_autofill_ignored"/);
+  assert.match(sections, /className="is-portrait"[\s\S]*loading="eager"/);
+  assert.match(sections, /image\.complete/);
+  assert.match(sections, /image\.addEventListener\("error", settle/);
+  assert.match(sections, /element\.muted = false/);
+  assert.match(sections, /element\.defaultMuted = false/);
+  assert.match(sections, /element\.volume = 1/);
+  assert.match(sections, /element\.play\(\)\.catch/);
+  assert.match(sections, /error instanceof DOMException/);
+  assert.match(sections, /document\.addEventListener\("pointerdown", playWithSound/);
+  assert.doesNotMatch(sections, /element\.muted = true/);
+  assert.match(streamVideo, /player\.muted = false/);
+  assert.match(streamVideo, /player\.volume = 1/);
+  assert.match(streamVideo, /player\.play\(\)\.catch/);
+  assert.match(streamVideo, /autoplay_with_sound_blocked/);
+  assert.doesNotMatch(streamVideo, /player\.muted = true/);
+  assert.doesNotMatch(streamVideo, /enableAudio/);
+  assert.match(apiRoute, /after\(async \(\) =>/);
+  assert.match(apiRoute, /syncLeadToGoogleSheets\(persistedLead, vercelOidcToken\)/);
+  assert.match(apiRoute, /x-vercel-oidc-token/);
+  assert.match(googleSheets, /GCP_SERVICE_ACCOUNT_EMAIL/);
+  assert.match(googleSheets, /sts\.googleapis\.com\/v1\/token/);
+  assert.match(googleSheets, /iamcredentials\.googleapis\.com/);
+  assert.match(googleSheets, /requestIds\.includes\(lead\.request_id\)/);
+  assert.match(googleSheets, /diploma === "offline"/);
+  assert.match(thankYouPage, /function FloatingCheckoutCTA/);
+  assert.match(thankYouPage, /new IntersectionObserver/);
+  assert.match(thankYouPage, /checkoutCard\.getBoundingClientRect\(\)\.top/);
+  assert.match(thankYouPage, /window\.scrollTo\(\{/);
+  assert.match(thankYouPage, /headerCtaVisible \|\| checkoutCardVisible/);
   assert.match(metaPixel, /id="meska-meta-pixel"/);
   assert.match(metaPixel, /connect\.facebook\.net\/en_US\/fbevents\.js/);
   assert.match(metaPixel, /initializeMetaPixel\(\)/);

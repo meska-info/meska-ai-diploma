@@ -13,14 +13,13 @@ import { diplomaList, DiplomaId, siteContent } from "../content";
 import {
   captureAttribution,
   createEventId,
+  readSessionValue,
+  removeSessionValue,
   trackEvent,
+  writeSessionValue,
 } from "../lib/tracking";
-
-function pauseOtherPageVideos(current: HTMLVideoElement) {
-  document.querySelectorAll<HTMLVideoElement>("video").forEach((video) => {
-    if (video !== current && !video.paused) video.pause();
-  });
-}
+import { experienceOptions, validateLead } from "../lib/leadValidation";
+import { CloudflareStreamVideo } from "./CloudflareStreamVideo";
 
 export function BrandMark() {
   const logo = siteContent.media.brandLogo;
@@ -139,32 +138,69 @@ export function VideoPlaceholder({
 
 export function DiplomaVideo() {
   const video = siteContent.media.mainVideo;
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const element = videoRef.current;
+    if (!element) return;
+
+    element.muted = false;
+    element.defaultMuted = false;
+    element.volume = 1;
+
+    let removeInteractionFallback: (() => void) | undefined;
+    void element.play().catch((error: unknown) => {
+      console.info(
+        "[Meska video] Audible autoplay blocked by the browser",
+        JSON.stringify({
+          code: "autoplay_with_sound_blocked",
+          error:
+            error instanceof DOMException
+              ? error.name
+              : error instanceof Error
+                ? error.name
+                : "unknown",
+        }),
+      );
+
+      const playWithSound = () => {
+        removeInteractionFallback?.();
+        element.muted = false;
+        element.defaultMuted = false;
+        element.volume = 1;
+        void element.play().catch(() => undefined);
+      };
+      document.addEventListener("pointerdown", playWithSound, {
+        capture: true,
+        once: true,
+      });
+      document.addEventListener("keydown", playWithSound, {
+        capture: true,
+        once: true,
+      });
+      removeInteractionFallback = () => {
+        document.removeEventListener("pointerdown", playWithSound, true);
+        document.removeEventListener("keydown", playWithSound, true);
+      };
+    });
+
+    return () => removeInteractionFallback?.();
+  }, []);
 
   return (
     <video
+      autoPlay
       className="diploma-video"
       controls
-      height={video.height}
       playsInline
       poster={video.poster}
-      preload="metadata"
-      width={video.width}
-      aria-label={video.title}
-    >
-      <source src={video.src} type="video/mp4" />
-      Your browser does not support embedded video.
-    </video>
+      preload="auto"
+      ref={videoRef}
+      src={video.src}
+      title={video.title}
+    />
   );
 }
-
-const fieldLabels: Record<string, string> = {
-  fullName: "Full name",
-  email: "Email address",
-  mobile: "Mobile number",
-  job: "Job title",
-  company: "Company",
-  website: "Company website",
-};
 
 type FormatSelectionSource = "pointer" | "keyboard";
 
@@ -244,6 +280,8 @@ export function LeadCapture({
 }) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [paymentPreference, setPaymentPreference] = useState("");
+  const [startTiming, setStartTiming] = useState("");
   const submittingRef = useRef(false);
   const started = useRef(false);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -297,6 +335,8 @@ export function LeadCapture({
   ) {
     if (nextId === selectedId) return;
     const previousId = selectedId;
+    setPaymentPreference("");
+    setStartTiming("");
     onSelectedIdChange(nextId);
     trackEvent("FormatSelect", {
       tracking_id: siteContent.trackingNames.landingFormatToggle,
@@ -307,39 +347,46 @@ export function LeadCapture({
     });
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submittingRef.current) return;
 
     const form = event.currentTarget;
-    const invalid = Array.from(
-      form.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
-        "input[required], select[required]",
-      ),
-    ).filter((field) => !field.checkValidity());
+    form
+      .querySelectorAll<HTMLInputElement>('input[type="text"], input[type="email"], input[type="tel"]')
+      .forEach((field) => {
+        if (field.name !== "companyWebsite") field.value = field.value.trim();
+      });
+    const formData = new FormData(form);
+    const validation = validateLead({
+      fullName: String(formData.get("fullName") ?? ""),
+      email: String(formData.get("email") ?? ""),
+      mobile: String(formData.get("mobile") ?? ""),
+      linkedinUrl: String(formData.get("linkedinUrl") ?? ""),
+      yearsExperience: String(formData.get("yearsExperience") ?? ""),
+      paymentPreference: String(formData.get("paymentPreference") ?? ""),
+      startTiming: String(formData.get("startTiming") ?? ""),
+      diplomaSlug: String(formData.get("diploma") ?? ""),
+    });
 
-    if (invalid.length) {
-      const nextErrors = Object.fromEntries(
-        invalid.map((field) => [
-          field.name,
-          field.validity.valueMissing
-            ? `${fieldLabels[field.name]} is required.`
-            : `Enter a valid ${fieldLabels[field.name].toLowerCase()}.`,
-        ]),
-      );
+    if (!validation.valid) {
+      const nextErrors = validation.errors;
       setErrors(nextErrors);
-      invalid[0].focus();
+      const firstInvalidName = Object.keys(nextErrors)[0];
+      const firstInvalid = form.elements.namedItem(firstInvalidName) as HTMLElement | null;
+      firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" });
+      firstInvalid?.focus({ preventScroll: true });
       trackEvent("FormError", {
         tracking_id: trackingId,
         form_location: location,
         error_type: "validation",
-        invalid_field_count: invalid.length,
+        invalid_field_count: Object.keys(nextErrors).length,
         variant: selectedId,
       });
       return;
     }
 
-    const submittedFormat = new FormData(form).get("diploma");
+    const submittedFormat = formData.get("diploma");
     if (submittedFormat !== selectedId) {
       trackEvent("FormError", {
         tracking_id: trackingId,
@@ -362,22 +409,81 @@ export function LeadCapture({
         variant: selectedId,
         wave: selected.wave,
         form_location: location,
-        lead_destination_status: selected.leadDestinationStatus,
+        lead_destination_status: "supabase",
         event_id: eventId,
       },
       { onceKey: `${eventId}-form-submit` },
     );
-    sessionStorage.setItem(
-      "meska-pending-lead",
-      JSON.stringify({
-        eventId,
+    try {
+      const response = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestId: eventId,
+          name: validation.normalized.name,
+          email: validation.normalized.email,
+          mobile: validation.normalized.mobile,
+          linkedinUrl: validation.normalized.linkedinUrl,
+          yearsExperience: validation.normalized.yearsExperience,
+          paymentPreference: validation.normalized.paymentPreference,
+          programmePrice: selected.price,
+          programmePriceValue: selected.priceValue,
+          startTiming: validation.normalized.startTiming,
+          currentWave: selected.wave,
+          currentWaveStartDate: selected.startDate,
+          diplomaSlug: selectedId,
+          sourceContext: location,
+          leadMagnet: "free-ai-agent-guide",
+          companyWebsite: formData.get("companyWebsite"),
+          attribution,
+        }),
+      });
+      if (!response.ok) {
+        let code = "unknown";
+        try {
+          const responseBody = (await response.json()) as { code?: unknown };
+          if (typeof responseBody.code === "string") code = responseBody.code;
+        } catch {
+          // Keep diagnostics useful even when an intermediary returns non-JSON.
+        }
+        console.warn(
+          "[Meska lead] Submission rejected",
+          JSON.stringify({ step: "api", status: response.status, code, location }),
+        );
+        throw new Error(`Lead persistence failed: ${response.status}:${code}`);
+      }
+    } catch (error) {
+      console.warn(
+        "[Meska lead] Submission failed",
+        JSON.stringify({
+          step: "request",
+          code: error instanceof TypeError ? "network" : "api",
+          location,
+        }),
+      );
+      submittingRef.current = false;
+      setSubmitting(false);
+      setErrors({ form: "We couldn’t save your details. Please try again." });
+      trackEvent("FormError", {
+        tracking_id: trackingId,
+        form_location: location,
+        error_type: "persistence",
         variant: selectedId,
-        wave: selected.wave,
-        formLocation: location,
-        leadDestinationStatus: selected.leadDestinationStatus,
-        attribution,
-      }),
-    );
+      });
+      return;
+    }
+
+    const pendingLead = JSON.stringify({
+      eventId,
+      variant: selectedId,
+      wave: selected.wave,
+      formLocation: location,
+      leadDestinationStatus: "persisted",
+      attribution,
+    });
+    if (!writeSessionValue("meska-pending-lead", pendingLead)) {
+      window.name = `meska-pending-lead:${pendingLead}`;
+    }
 
     const query = new URLSearchParams({ diploma: selectedId });
     Object.entries(attribution).forEach(([key, value]) => query.set(key, value));
@@ -393,6 +499,7 @@ export function LeadCapture({
     >
       {media}
       <div className="price-panel">
+        <p className="format-guidance">Choose how you want to join the diploma</p>
         <FormatToggle
           controlsId={`${trackingId}-price-content`}
           idPrefix={`${trackingId}-format-tab`}
@@ -420,7 +527,9 @@ export function LeadCapture({
           <dl className="price-details">
             <div>
               <dt>Starts</dt>
-              <dd>{selected.startDate}</dd>
+              <dd>
+                {selected.startDate}<br /><span>{selected.schedule}</span>
+              </dd>
             </div>
             <div>
               <dt>Format</dt>
@@ -445,17 +554,30 @@ export function LeadCapture({
         data-lead-destination={selected.leadDestination ?? "pending"}
       >
         <div className="form-heading">
+          <p className="form-step">{siteContent.form.eyebrow}</p>
           <h3>{siteContent.form.title}</h3>
           <p>{siteContent.form.disclosure}</p>
         </div>
         <input name="diploma" type="hidden" value={selectedId} />
+        <input
+          aria-hidden="true"
+          autoComplete="off"
+          name="companyWebsite"
+          readOnly
+          tabIndex={-1}
+          type="hidden"
+          value=""
+        />
 
         <FormField label="Full name" name="fullName" error={errors.fullName}>
           <input
+            aria-describedby={errors.fullName ? "fullName-error" : undefined}
+            aria-invalid={Boolean(errors.fullName)}
             id={`${trackingId}-fullName`}
             name="fullName"
             type="text"
             autoComplete="name"
+            enterKeyHint="next"
             required
             placeholder="Your full name"
           />
@@ -464,62 +586,98 @@ export function LeadCapture({
         <div className="field-row">
           <FormField label="Email address" name="email" error={errors.email}>
             <input
+              aria-describedby={errors.email ? "email-error" : undefined}
+              aria-invalid={Boolean(errors.email)}
               id={`${trackingId}-email`}
               name="email"
               type="email"
               autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              enterKeyHint="next"
+              inputMode="email"
               required
               placeholder="you@company.com"
             />
           </FormField>
           <FormField label="Mobile number" name="mobile" error={errors.mobile}>
             <input
+              aria-describedby={errors.mobile ? "mobile-error" : undefined}
+              aria-invalid={Boolean(errors.mobile)}
               id={`${trackingId}-mobile`}
               name="mobile"
               type="tel"
               autoComplete="tel"
+              enterKeyHint="send"
+              inputMode="tel"
               required
               placeholder="+20 1XX XXX XXXX"
             />
           </FormField>
         </div>
 
+        <FormField label="LinkedIn profile" name="linkedinUrl" error={errors.linkedinUrl}>
+          <input
+            aria-describedby={errors.linkedinUrl ? "linkedinUrl-error" : undefined}
+            aria-invalid={Boolean(errors.linkedinUrl)}
+            autoCapitalize="none"
+            autoComplete="url"
+            autoCorrect="off"
+            enterKeyHint="next"
+            id={`${trackingId}-linkedinUrl`}
+            inputMode="url"
+            name="linkedinUrl"
+            placeholder="linkedin.com/in/your-profile"
+            required
+            type="url"
+          />
+        </FormField>
+
         <div className="field-row">
-          <FormField label="Job title" name="job" error={errors.job}>
-            <input
-              id={`${trackingId}-job`}
-              name="job"
-              type="text"
-              autoComplete="organization-title"
+          <FormField label="Years of experience" name="yearsExperience" error={errors.yearsExperience}>
+            <select
+              aria-describedby={errors.yearsExperience ? "yearsExperience-error" : undefined}
+              aria-invalid={Boolean(errors.yearsExperience)}
+              defaultValue=""
+              id={`${trackingId}-yearsExperience`}
+              name="yearsExperience"
               required
-              placeholder="Your role"
-            />
+            >
+              <option disabled value="">Select experience</option>
+              {experienceOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+            </select>
           </FormField>
-          <FormField label="Company" name="company" error={errors.company}>
-            <input
-              id={`${trackingId}-company`}
-              name="company"
-              type="text"
-              autoComplete="organization"
+          <FormField label="Payment readiness" name="paymentPreference" error={errors.paymentPreference}>
+            <select
+              aria-describedby={errors.paymentPreference ? "paymentPreference-error" : undefined}
+              aria-invalid={Boolean(errors.paymentPreference)}
+              id={`${trackingId}-paymentPreference`}
+              name="paymentPreference"
+              onChange={(event) => setPaymentPreference(event.target.value)}
               required
-              placeholder="Company name"
-            />
+              value={paymentPreference}
+            >
+              <option disabled value="">Select payment option</option>
+              <option value="full">I’m willing to pay {selected.price} in full</option>
+              <option value="installments">I’m willing to pay {selected.price} in installments</option>
+            </select>
           </FormField>
         </div>
 
-        <FormField
-          label="Company website"
-          name="website"
-          error={errors.website}
-        >
-          <input
-            id={`${trackingId}-website`}
-            name="website"
-            type="url"
-            autoComplete="url"
+        <FormField label="When could you join?" name="startTiming" error={errors.startTiming}>
+          <select
+            aria-describedby={errors.startTiming ? "startTiming-error" : undefined}
+            aria-invalid={Boolean(errors.startTiming)}
+            id={`${trackingId}-startTiming`}
+            name="startTiming"
+            onChange={(event) => setStartTiming(event.target.value)}
             required
-            placeholder="https://company.com"
-          />
+            value={startTiming}
+          >
+            <option disabled value="">Select timing</option>
+            <option value="current_wave">I can join {selected.wave}, starting {selected.startDate.replace(" 2026", "")}</option>
+            <option value="later_wave">I’m interested, but would join a later wave</option>
+          </select>
         </FormField>
 
         <button
@@ -531,8 +689,8 @@ export function LeadCapture({
           {submitting ? "Redirecting…" : selected.formSubmitLabel}
           <span aria-hidden="true">↗</span>
         </button>
+        {errors.form ? <p className="error-message form-error" role="alert">{errors.form}</p> : null}
         <p className="form-reassurance">{siteContent.form.reassurance}</p>
-        <p className="prototype-note">{siteContent.form.prototypeNote}</p>
       </form>
     </div>
   );
@@ -589,8 +747,8 @@ export function OutcomesSection() {
     <section className="section shell" id="outcomes">
       <SectionHeading
         eyebrow="The shift"
-        title="Work differently after the diploma."
-        description="Move from experimenting with AI to using it with purpose — across your decisions, workflows, communication, and everyday responsibilities."
+        title="From describing business problems to building AI solutions."
+        description="Turn real bottlenecks into working AI-powered workflows, tools, and apps your business can use."
       />
       <div className="outcome-grid">
         {siteContent.outcomes.map((outcome) => (
@@ -608,7 +766,11 @@ export function OutcomesSection() {
   );
 }
 
-function OrganizationLogoSequence({ duplicate = false }: { duplicate?: boolean }) {
+function OrganizationLogoSequence({
+  duplicate = false,
+}: {
+  duplicate?: boolean;
+}) {
   return (
     <div className="logo-sequence" aria-hidden={duplicate || undefined}>
       {siteContent.media.organizationLogos.map((logo) => (
@@ -621,7 +783,7 @@ function OrganizationLogoSequence({ duplicate = false }: { duplicate?: boolean }
             alt={duplicate ? "" : logo.name}
             decoding="async"
             height={logo.height}
-            loading="lazy"
+            loading="eager"
             src={logo.src}
             width={logo.width}
           />
@@ -633,6 +795,38 @@ function OrganizationLogoSequence({ duplicate = false }: { duplicate?: boolean }
 
 export function OrganizationLogoRail() {
   const heading = siteContent.media.organizationSection;
+  const railRef = useRef<HTMLDivElement>(null);
+  const [logosReady, setLogosReady] = useState(false);
+
+  useEffect(() => {
+    const images = Array.from(
+      railRef.current?.querySelectorAll<HTMLImageElement>(
+        '.logo-sequence:not([aria-hidden="true"]) img',
+      ) ?? [],
+    );
+    if (!images.length) return;
+
+    const pending = new Set(images.filter((image) => !image.complete));
+    if (!pending.size) {
+      setLogosReady(true);
+      return;
+    }
+
+    const settle = (event: Event) => {
+      pending.delete(event.currentTarget as HTMLImageElement);
+      if (!pending.size) setLogosReady(true);
+    };
+    pending.forEach((image) => {
+      image.addEventListener("load", settle, { once: true });
+      image.addEventListener("error", settle, { once: true });
+    });
+    return () => {
+      pending.forEach((image) => {
+        image.removeEventListener("load", settle);
+        image.removeEventListener("error", settle);
+      });
+    };
+  }, []);
 
   return (
     <section className="logo-section shell" aria-labelledby="organization-logo-title">
@@ -642,8 +836,9 @@ export function OrganizationLogoRail() {
         description={heading.description}
       />
       <div
-        className="logo-rail"
+        className={`logo-rail ${logosReady ? "logos-ready" : ""}`}
         id="organization-logo-title"
+        ref={railRef}
         role="region"
         aria-label="Organizations represented by Meska AI learners"
         tabIndex={0}
@@ -657,10 +852,17 @@ export function OrganizationLogoRail() {
   );
 }
 
-export function SyllabusSection() {
+export function SyllabusSection({ description }: { description?: string } = {}) {
   return (
     <section className="section syllabus-section" id="curriculum">
       <div className="shell">
+        {description ? (
+          <SectionHeading
+            eyebrow="Your eight-week building journey"
+            title="A curriculum designed to move your build forward"
+            description={description}
+          />
+        ) : null}
         <details className="curriculum-disclosure">
           <summary aria-controls="curriculum-session-list">
             <span className="curriculum-summary-copy">
@@ -835,9 +1037,9 @@ export function LeadModal({
       <div className="dialog-toolbar">
         <div>
           <span>Meska AI</span>
-          <strong id="modal-title">Start Application</strong>
+          <strong id="modal-title">Diploma Enquiry</strong>
         </div>
-        <button type="button" onClick={onClose} aria-label="Close application form">
+        <button type="button" onClick={onClose} aria-label="Close diploma enquiry form">
           ×
         </button>
       </div>
@@ -889,12 +1091,9 @@ export function GraduationStory() {
         />
       </div>
       <div className="graduation-video-frame">
-        <video
-          aria-label={video.title}
-          controls
-          height={video.height}
-          onPlay={(event) => {
-            pauseOtherPageVideos(event.currentTarget);
+        <CloudflareStreamVideo
+          className="is-portrait"
+          onFirstPlay={() => {
             trackEvent(
               "VideoPlay",
               {
@@ -904,14 +1103,85 @@ export function GraduationStory() {
               { onceKey: siteContent.trackingNames.graduationVideo },
             );
           }}
-          playsInline
-          poster={video.poster}
-          preload="metadata"
-          width={video.width}
-        >
-          <source src={video.src} type="video/mp4" />
-          Your browser does not support embedded video.
-        </video>
+          title={video.title}
+          videoId={video.streamId}
+        />
+      </div>
+    </section>
+  );
+}
+
+export function FreeGuideSection() {
+  const video = siteContent.media.freeGuideVideo;
+
+  return (
+    <section className="section free-guide-section shell">
+      <div className="free-guide-copy">
+        <SectionHeading
+          eyebrow="Pre-diploma session"
+          title="See how we build AI Agents for real business problems."
+          description="Preview the practical, hands-on work you will experience inside the diploma."
+        />
+        <p className="free-guide-caption">
+          This session shows how a business challenge becomes a working AI Agent.
+        </p>
+      </div>
+      <div className="free-guide-video-frame">
+        <CloudflareStreamVideo
+          onFirstPlay={() =>
+            trackEvent(
+              "VideoPlay",
+              { tracking_id: video.id, media_location: "thank_you_free_guide" },
+              { onceKey: video.id },
+            )
+          }
+          title={video.title}
+          videoId={video.streamId}
+        />
+      </div>
+    </section>
+  );
+}
+
+export function VideoTestimonialsSection({
+  context = "landing",
+}: {
+  context?: "landing" | "thank_you";
+}) {
+  const videos = siteContent.media.videoTestimonials;
+
+  return (
+    <section className="section video-testimonials-section">
+      <div className="shell">
+        <SectionHeading
+          eyebrow="Learner stories"
+          title={context === "landing" ? "Hear what the diploma felt like from the people who joined it." : "See how other professionals experienced the journey."}
+          description="Real learners share their experience, progress, and the practical value they took back into their work."
+        />
+        <div className="video-testimonial-track" aria-label="Student video testimonials">
+          {videos.map((video, index) => (
+            <article className="video-testimonial-card" key={video.id}>
+              <CloudflareStreamVideo
+                className="is-portrait"
+                loading="eager"
+                onFirstPlay={() =>
+                  trackEvent(
+                    "VideoPlay",
+                    {
+                      tracking_id: video.id,
+                      media_location: `${context}_video_testimonials`,
+                      media_index: index + 1,
+                    },
+                    { onceKey: `${context}_${video.id}` },
+                  )
+                }
+                title={video.label}
+                videoId={video.streamId}
+              />
+              <p><span>{String(index + 1).padStart(2, "0")}</span>{video.label}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -998,7 +1268,9 @@ export function CheckoutSection() {
           <dl>
             <div>
               <dt>Starts</dt>
-              <dd>{selected.startDate}</dd>
+              <dd>
+                {selected.startDate}<br /><span>{selected.schedule}</span>
+              </dd>
             </div>
             <div>
               <dt>Format</dt>
@@ -1041,15 +1313,7 @@ export function CheckoutSection() {
 export function SnippetsCarousel() {
   const videos = siteContent.media.insideDiplomaVideos;
   const trackRef = useRef<HTMLDivElement>(null);
-  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
-  const playedIds = useRef(new Set<string>());
   const [activeIndex, setActiveIndex] = useState(0);
-
-  function pauseExcept(index: number) {
-    videoRefs.current.forEach((video, videoIndex) => {
-      if (video && videoIndex !== index && !video.paused) video.pause();
-    });
-  }
 
   function scrollToVideo(index: number) {
     const safeIndex = Math.max(0, Math.min(videos.length - 1, index));
@@ -1057,7 +1321,6 @@ export function SnippetsCarousel() {
     const card = track?.children.item(safeIndex) as HTMLElement | null;
     const firstCard = track?.children.item(0) as HTMLElement | null;
     if (!track || !card || !firstCard) return;
-    pauseExcept(safeIndex);
     track.scrollTo({
       left: card.offsetLeft - firstCard.offsetLeft,
       behavior: "smooth",
@@ -1081,31 +1344,13 @@ export function SnippetsCarousel() {
     ).index;
 
     if (nextIndex !== activeIndex) {
-      pauseExcept(nextIndex);
       setActiveIndex(nextIndex);
     }
   }
 
-  function handlePlay(index: number, current: HTMLVideoElement) {
-    pauseOtherPageVideos(current);
-    pauseExcept(index);
-    const video = videos[index];
-    if (playedIds.current.has(video.id)) return;
-    playedIds.current.add(video.id);
-    trackEvent(
-      "VideoPlay",
-      {
-        tracking_id: video.id,
-        media_location: "inside_diploma",
-        media_index: index + 1,
-      },
-      { onceKey: video.id },
-    );
-  }
-
   function handleCarouselKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-    if ((event.target as HTMLElement).tagName === "VIDEO") return;
+    if ((event.target as HTMLElement).tagName === "IFRAME") return;
     event.preventDefault();
     scrollToVideo(activeIndex + (event.key === "ArrowRight" ? 1 : -1));
   }
@@ -1154,22 +1399,22 @@ export function SnippetsCarousel() {
         >
           {videos.map((video, index) => (
             <article className="snippet-card" key={video.id}>
-              <video
-                aria-label={video.label}
-                controls
-                height={video.height}
-                onPlay={(event) => handlePlay(index, event.currentTarget)}
-                playsInline
-                poster={video.poster}
-                preload="metadata"
-                ref={(node) => {
-                  videoRefs.current[index] = node;
-                }}
-                width={video.width}
-              >
-                <source src={video.src} type="video/mp4" />
-                Your browser does not support embedded video.
-              </video>
+              <CloudflareStreamVideo
+                className="is-portrait"
+                onFirstPlay={() =>
+                  trackEvent(
+                    "VideoPlay",
+                    {
+                      tracking_id: video.id,
+                      media_location: "inside_diploma",
+                      media_index: index + 1,
+                    },
+                    { onceKey: video.id },
+                  )
+                }
+                title={video.label}
+                videoId={video.streamId}
+              />
               <p>
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 {video.label}
@@ -1200,7 +1445,7 @@ export function SkillsBusinessValueSection() {
       capability_id: items[nextIndex].id,
       previous_capability_id: previous.id,
       selection_source: source,
-      interaction_location: "thank_you_skills_matrix",
+      interaction_location: "landing_skills_matrix",
     });
   }
 
@@ -1373,7 +1618,7 @@ export function SiteFooter({ light = false }: { light?: boolean }) {
     <footer className={`site-footer ${light ? "site-footer-light" : ""}`}>
       <div className="shell footer-inner">
         <BrandMark />
-        <p>AI Co-Pilot Diploma · Local approval prototype</p>
+        <p>AI Co-Pilot Diploma · Created by Meska</p>
         <a href="#top">Back to top ↑</a>
       </div>
     </footer>
@@ -1382,16 +1627,27 @@ export function SiteFooter({ light = false }: { light?: boolean }) {
 
 export function ThankYouLeadTracker() {
   useEffect(() => {
-    const pendingRaw = sessionStorage.getItem("meska-pending-lead");
+    type PendingLead = {
+      eventId: string;
+      variant: DiplomaId;
+      wave: string;
+      formLocation: string;
+      leadDestinationStatus?: string;
+      attribution?: Record<string, string>;
+    };
+    const windowNamePrefix = "meska-pending-lead:";
+    const windowNamePending = window.name.startsWith(windowNamePrefix)
+      ? window.name.slice(windowNamePrefix.length)
+      : null;
+    const pendingRaw = readSessionValue("meska-pending-lead") ?? windowNamePending;
     if (pendingRaw) {
-      const pending = JSON.parse(pendingRaw) as {
-        eventId: string;
-        variant: DiplomaId;
-        wave: string;
-        formLocation: string;
-        leadDestinationStatus?: "pending";
-        attribution?: Record<string, string>;
-      };
+      let pending: PendingLead | null = null;
+      try {
+        pending = JSON.parse(pendingRaw) as PendingLead;
+      } catch {
+        pending = null;
+      }
+      if (pending) {
       trackEvent(
         "Lead",
         {
@@ -1411,8 +1667,10 @@ export function ThankYouLeadTracker() {
         },
         { onceKey: pending.eventId },
       );
-      sessionStorage.setItem("meska-last-lead", pendingRaw);
-      sessionStorage.removeItem("meska-pending-lead");
+      writeSessionValue("meska-last-lead", pendingRaw);
+      }
+      removeSessionValue("meska-pending-lead");
+      if (windowNamePending) window.name = "";
     }
 
     trackEvent(
