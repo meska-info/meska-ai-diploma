@@ -4,7 +4,10 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   buildVerifiedAdvisorMessages,
+  formatOfferExpiry,
+  isPendingOfferState,
   normalizeAiCloserContext,
+  redactSalesText,
   validateAiCloserEvent,
 } from "../app/lib/aiCloser.ts";
 import {
@@ -311,4 +314,99 @@ test("offer normalization never invents ready, coupon, percentage, or expiry", (
   assert.equal(validReady.offerState, "offer_ready");
   assert.equal(validReady.offer?.discountPercent, 12);
   assert.equal(validReady.offer?.discountCode, "VERIFIED12");
+});
+
+test("redacts contact details a visitor retypes in chat", () => {
+  const redacted = redactSalesText(
+    "email me at Sara.Ali+diploma@example.com or call 01001234567, see https://x.test/a",
+  );
+  assert.doesNotMatch(redacted, /example\.com/);
+  assert.doesNotMatch(redacted, /01001234567/);
+  assert.doesNotMatch(redacted, /https:/);
+  assert.match(redacted, /\[email\]/);
+  assert.match(redacted, /\[number\]/);
+  assert.match(redacted, /\[link\]/);
+
+  // Prices and wave numbers stay readable for the sales team.
+  assert.equal(redactSalesText("the diploma is 45000 EGP"), "the diploma is 45000 EGP");
+  assert.equal(redactSalesText(""), undefined);
+  assert.equal(redactSalesText(null), undefined);
+  assert.equal(redactSalesText("x".repeat(400)).length, 200);
+});
+
+test("offer expiry reaches the visitor as readable Cairo time, never raw ISO", () => {
+  const expiresAt = "2026-09-09T18:33:00.000Z";
+  const formatted = formatOfferExpiry(expiresAt);
+  assert.ok(formatted);
+  assert.doesNotMatch(formatted, /T\d{2}:\d{2}|Z$/);
+  assert.equal(formatOfferExpiry(undefined), undefined);
+  assert.equal(formatOfferExpiry("not-a-date"), undefined);
+
+  const ready = normalizeAiCloserContext(
+    {
+      schema_version: "1",
+      lead_verified: true,
+      first_name: "Sara",
+      diploma_slug: "offline",
+      offer_state: "offer_ready",
+      offer: { discount_percent: 10, discount_code: "MESKA-TEST", expires_at: expiresAt },
+      safe_message: "ready",
+    },
+    "offline",
+    Date.UTC(2026, 8, 8, 12),
+  );
+  const messages = buildVerifiedAdvisorMessages(ready).join(" ");
+  assert.match(messages, /10%/);
+  assert.match(messages, /MESKA-TEST/);
+  assert.doesNotMatch(messages, /2026-09-09T18:33/);
+});
+
+test("a pending offer keeps polling and never advertises a discount", () => {
+  const pending = normalizeAiCloserContext(
+    {
+      schema_version: "1",
+      lead_verified: true,
+      first_name: "Sara",
+      diploma_slug: "online",
+      offer_state: "offer_pending",
+      offer: null,
+      safe_message: "still being prepared",
+    },
+    "online",
+  );
+  assert.equal(isPendingOfferState(pending), true);
+  assert.doesNotMatch(buildVerifiedAdvisorMessages(pending).join(" "), /%|code/i);
+
+  // Terminal and unverified states must stop the poll loop.
+  assert.equal(isPendingOfferState(null), false);
+  assert.equal(
+    isPendingOfferState({ leadVerified: false, offerState: "offer_pending" }),
+    false,
+  );
+  assert.equal(
+    isPendingOfferState({ leadVerified: true, offerState: "unavailable" }),
+    false,
+  );
+});
+
+test("auto-open never stalls behind a slow or failed AI Closer", () => {
+  const advisor = readFileSync(
+    new URL("../app/components/DiplomaAdvisor.tsx", import.meta.url),
+    "utf8",
+  );
+
+  // The popup opens once personalization settles OR the deadline passes, so a
+  // missing secret, a stale session, or a slow n8n can no longer suppress it.
+  assert.match(advisor, /personalizationResolved \|\| autoOpenDeadlineReached/);
+  assert.match(advisor, /status === "unavailable"/);
+
+  // A verified offer is required for personalized copy, never for opening.
+  assert.doesNotMatch(
+    advisor,
+    /hasContext:\s*Boolean\(\s*\n?\s*identityReady/,
+  );
+
+  // Raw visitor text is masked before it leaves the browser.
+  assert.match(advisor, /summary: redactSalesText\(content\)/);
+  assert.doesNotMatch(advisor, /summary: content/);
 });

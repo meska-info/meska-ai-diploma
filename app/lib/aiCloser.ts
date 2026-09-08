@@ -5,6 +5,12 @@ export const AI_CLOSER_CONTEXT_ENDPOINT =
 export const AI_CLOSER_EVENT_ENDPOINT =
   "https://n8n-qrsy.srv1573769.hstgr.cloud/webhook/meska-diploma-ai-closer-event";
 
+// The Shopify offer is created asynchronously after the lead is stored, so the
+// first context read usually lands while `lead_offers` is still `pending`.
+export const AI_CLOSER_POLL_INTERVAL_MS = 3_000;
+export const AI_CLOSER_POLL_MAX_MS = 90_000;
+export const ADVISOR_AUTO_OPEN_DEADLINE_MS = 12_000;
+
 export const AI_CLOSER_EVENT_TYPES = [
   "chat_started",
   "chat_message",
@@ -77,6 +83,40 @@ function cleanText(value: unknown, maxLength: number) {
     .trim()
     .slice(0, maxLength);
   return cleaned || undefined;
+}
+
+export function redactSalesText(value: unknown, maxLength = 200) {
+  if (typeof value !== "string") return undefined;
+  const redacted = value
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "[email]")
+    .replace(/https?:\/\/\S+/gi, "[link]")
+    .replace(/\+?\d[\d\s().-]{6,}\d/g, (match) =>
+      (match.match(/\d/g) ?? []).length >= 8 ? "[number]" : match,
+    )
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+  return redacted || undefined;
+}
+
+export function formatOfferExpiry(expiresAt: string | undefined) {
+  if (!expiresAt) return undefined;
+  const expiryTime = new Date(expiresAt).getTime();
+  if (!Number.isFinite(expiryTime)) return undefined;
+  try {
+    return new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Africa/Cairo",
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(expiryTime));
+  } catch {
+    return undefined;
+  }
+}
+
+export function isPendingOfferState(context: SafeAiCloserContext | null) {
+  return context?.leadVerified === true && context.offerState === "offer_pending";
 }
 
 function unavailableContext(): SafeAiCloserContext {
@@ -201,13 +241,13 @@ export function buildVerifiedAdvisorMessages(context: SafeAiCloserContext) {
   const guidance = `I can help with the ${diplomaLabel}, schedule, payment options, and enrollment next steps.`;
 
   if (context.offerState === "offer_ready" && context.offer) {
-    const expiry = context.offer.expiresAt
-      ? ` It expires at ${context.offer.expiresAt}.`
-      : "";
+    const expiry = formatOfferExpiry(context.offer.expiresAt);
     return [
       greeting,
+      `Your private ${context.offer.discountPercent}% enrollment offer is ready — use code ${context.offer.discountCode}${
+        expiry ? `, valid until ${expiry} (Cairo time)` : ""
+      }.`,
       guidance,
-      `Your verified private offer is ${context.offer.discountPercent}% with code ${context.offer.discountCode}.${expiry}`,
     ];
   }
   return [greeting, guidance, context.safeMessage];

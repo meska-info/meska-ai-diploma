@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { siteContent } from "../content";
 import {
+  ADVISOR_AUTO_OPEN_DEADLINE_MS,
+  AI_CLOSER_POLL_INTERVAL_MS,
+  AI_CLOSER_POLL_MAX_MS,
   buildVerifiedAdvisorMessages,
+  isPendingOfferState,
   parseSafeAiCloserContext,
+  redactSalesText,
   type SafeAiCloserContext,
 } from "../lib/aiCloser";
 import {
+  buildAdvisorInitialMessages,
   CHATBASE_STATUS_EVENT,
   type ChatbaseUserMessageEvent,
   type ChatbaseStatus,
@@ -29,6 +35,8 @@ type AdvisorIdentity = {
 };
 
 const USER_MESSAGE_STARTED_KEY = "meska_chatbase_user_message_started_v1";
+const IDENTIFY_POLL_INTERVAL_MS = 100;
+const IDENTIFY_MAX_ATTEMPTS = 50;
 
 function parseAdvisorIdentity(value: unknown): AdvisorIdentity | null {
   if (!value || typeof value !== "object") return null;
@@ -65,11 +73,13 @@ export function DiplomaAdvisor() {
   const [identityReady, setIdentityReady] = useState(false);
   const [verifiedContext, setVerifiedContext] =
     useState<SafeAiCloserContext | null>(null);
-  const [verifiedContextLoaded, setVerifiedContextLoaded] = useState(false);
-  const [widgetPrepared, setWidgetPrepared] = useState(false);
+  // Personalization is "settled" once the verified offer is known, or once we
+  // know it will never arrive. The auto-open must never wait on it forever.
+  const [personalizationSettled, setPersonalizationSettled] = useState(false);
+  const [autoOpenDeadlineReached, setAutoOpenDeadlineReached] = useState(false);
   const openedThisMount = useRef(false);
   const identifiedToken = useRef<string | null>(null);
-  const preparedToken = useRef<string | null>(null);
+  const preparedMessages = useRef<string | null>(null);
   const userMessageStarted = useRef(false);
 
   useEffect(() => {
@@ -99,6 +109,14 @@ export function DiplomaAdvisor() {
   }, []);
 
   useEffect(() => {
+    const timer = window.setTimeout(
+      () => setAutoOpenDeadlineReached(true),
+      ADVISOR_AUTO_OPEN_DEADLINE_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     if (!contextResolved || !browserContext) return;
     const controller = new AbortController();
     void fetch("/api/chatbase-session", {
@@ -115,18 +133,24 @@ export function DiplomaAdvisor() {
           !resolvedIdentity ||
           resolvedIdentity.diplomaSlug !== browserContext.diplomaSlug
         ) {
+          setPersonalizationSettled(true);
           return;
         }
         setIdentity(resolvedIdentity);
       })
       .catch(() => {
         // A missing or stale secure session keeps the generic advisor usable.
+        setPersonalizationSettled(true);
       });
     return () => controller.abort();
   }, [browserContext, contextResolved]);
 
   useEffect(() => {
-    if (status !== "ready" || !identity || identifiedToken.current === identity.token) {
+    if (
+      status !== "ready" ||
+      !identity ||
+      identifiedToken.current === identity.token
+    ) {
       return;
     }
     let active = true;
@@ -136,13 +160,21 @@ export function DiplomaAdvisor() {
       if (!active) return;
       if (!isChatbaseInitialized()) {
         attempts += 1;
-        if (attempts < 50) {
-          timer = window.setTimeout(identifyWhenInitialized, 100);
+        if (attempts < IDENTIFY_MAX_ATTEMPTS) {
+          timer = window.setTimeout(
+            identifyWhenInitialized,
+            IDENTIFY_POLL_INTERVAL_MS,
+          );
+        } else {
+          setPersonalizationSettled(true);
         }
         return;
       }
       const chatbase = getChatbaseApi();
-      if (!chatbase) return;
+      if (!chatbase) {
+        setPersonalizationSettled(true);
+        return;
+      }
       try {
         chatbase("identify", {
           token: identity.token,
@@ -152,6 +184,7 @@ export function DiplomaAdvisor() {
         setIdentityReady(true);
       } catch {
         // Identification failure must never break the Thank You page.
+        setPersonalizationSettled(true);
       }
     };
     identifyWhenInitialized();
@@ -161,54 +194,79 @@ export function DiplomaAdvisor() {
     };
   }, [identity, status]);
 
+  // The Shopify offer is created asynchronously right after the lead is stored,
+  // so the first read usually returns `offer_pending`. Keep polling until the
+  // offer reaches a terminal state so the auto-open can carry the real code.
   useEffect(() => {
     if (!identityReady || !identity) return;
     const controller = new AbortController();
-    void fetch("/api/ai-closer/context", {
-      cache: "no-store",
-      credentials: "same-origin",
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.ok) return null;
-        return parseSafeAiCloserContext(
-          await response.json(),
-          identity.diplomaSlug,
-        );
-      })
-      .then((context) => {
-        if (!context) return;
-        setVerifiedContext(context);
-        setVerifiedContextLoaded(true);
-      })
-      .catch(() => {
-        // The verified identity remains valid; only personalized context is skipped.
-      });
-    return () => controller.abort();
+    const startedAt = Date.now();
+    let cancelled = false;
+    let timer = 0;
+
+    const load = async (): Promise<void> => {
+      if (cancelled) return;
+      let context: SafeAiCloserContext | null = null;
+      try {
+        const response = await fetch("/api/ai-closer/context", {
+          cache: "no-store",
+          credentials: "same-origin",
+          signal: controller.signal,
+        });
+        if (response.ok) {
+          context = parseSafeAiCloserContext(
+            await response.json(),
+            identity.diplomaSlug,
+          );
+        }
+      } catch {
+        // The verified identity stays valid; only personalization is skipped.
+      }
+      if (cancelled) return;
+      if (context) setVerifiedContext(context);
+      if (
+        isPendingOfferState(context) &&
+        Date.now() - startedAt + AI_CLOSER_POLL_INTERVAL_MS <=
+          AI_CLOSER_POLL_MAX_MS
+      ) {
+        timer = window.setTimeout(() => {
+          void load();
+        }, AI_CLOSER_POLL_INTERVAL_MS);
+        return;
+      }
+      setPersonalizationSettled(true);
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+      controller.abort();
+      window.clearTimeout(timer);
+    };
   }, [identity, identityReady]);
 
-  useEffect(() => {
-    if (
-      !identityReady ||
-      !identity ||
-      !verifiedContextLoaded ||
-      !verifiedContext?.leadVerified ||
-      preparedToken.current === identity.token
-    ) {
-      return;
+  const initialMessages = useMemo(() => {
+    if (verifiedContext?.leadVerified) {
+      return buildVerifiedAdvisorMessages(verifiedContext);
     }
+    return browserContext ? buildAdvisorInitialMessages(browserContext) : null;
+  }, [browserContext, verifiedContext]);
+
+  // Declared before the auto-open effect so the widget always carries the best
+  // available copy by the time it is opened.
+  useEffect(() => {
+    if (status !== "ready" || !initialMessages) return;
+    const signature = initialMessages.join(" ");
+    if (preparedMessages.current === signature) return;
     const chatbase = getChatbaseApi();
     if (!chatbase) return;
     try {
-      chatbase.setOptions({
-        initialMessages: buildVerifiedAdvisorMessages(verifiedContext),
-      });
-      preparedToken.current = identity.token;
-      queueMicrotask(() => setWidgetPrepared(true));
+      chatbase.setOptions({ initialMessages });
+      preparedMessages.current = signature;
     } catch {
       // Keep the normal launcher available without personalized context.
     }
-  }, [identity, identityReady, verifiedContext, verifiedContextLoaded]);
+  }, [initialMessages, status]);
 
   useEffect(() => {
     if (!identityReady) return;
@@ -223,7 +281,11 @@ export function DiplomaAdvisor() {
 
     const handleUserMessage = (event: ChatbaseUserMessageEvent) => {
       const content = event?.data?.content;
-      if (event?.type !== "user-message" || typeof content !== "string" || !content.trim()) {
+      if (
+        event?.type !== "user-message" ||
+        typeof content !== "string" ||
+        !content.trim()
+      ) {
         return;
       }
       const eventType = userMessageStarted.current
@@ -243,7 +305,9 @@ export function DiplomaAdvisor() {
           event: eventType,
           eventId: createChatEventId(),
           occurredAt: new Date().toISOString(),
-          summary: content,
+          // Contact details a visitor retypes in chat are masked before they
+          // ever leave the browser.
+          summary: redactSalesText(content),
         }),
       }).catch(() => {
         // Sales-event delivery must not interrupt the conversation.
@@ -264,18 +328,25 @@ export function DiplomaAdvisor() {
     };
   }, [identityReady]);
 
+  // Nothing to personalize, or a widget that never loaded, counts as settled
+  // too: the auto-open must not stall waiting on data that cannot arrive.
+  const personalizationResolved =
+    personalizationSettled ||
+    status === "unavailable" ||
+    (contextResolved && !browserContext);
+
   useEffect(() => {
-    if (!contextResolved || !shouldAutoOpenAdvisor({
-      status,
-      hasContext: Boolean(
-        identityReady &&
-          verifiedContextLoaded &&
-          verifiedContext?.leadVerified &&
-          widgetPrepared,
-      ),
-      openedThisMount: openedThisMount.current,
-      storedOpenState: getAdvisorOpenState(),
-    })) {
+    if (!contextResolved) return;
+    if (
+      !shouldAutoOpenAdvisor({
+        status,
+        hasContext:
+          Boolean(browserContext) &&
+          (personalizationResolved || autoOpenDeadlineReached),
+        openedThisMount: openedThisMount.current,
+        storedOpenState: getAdvisorOpenState(),
+      })
+    ) {
       return;
     }
 
@@ -289,12 +360,11 @@ export function DiplomaAdvisor() {
       setChatbaseStatus("unavailable");
     }
   }, [
+    autoOpenDeadlineReached,
+    browserContext,
     contextResolved,
-    identityReady,
+    personalizationResolved,
     status,
-    verifiedContext,
-    verifiedContextLoaded,
-    widgetPrepared,
   ]);
 
   const openAdvisor = () => {
@@ -313,12 +383,16 @@ export function DiplomaAdvisor() {
     }
   };
 
-  const advisorProfile = identityReady ? identity : null;
-  const diplomaLabel = advisorProfile
-    ? siteContent.diplomas[advisorProfile.diplomaSlug].label
+  const verifiedProfile = identityReady ? identity : null;
+  const advisorDiplomaSlug =
+    verifiedProfile?.diplomaSlug ?? browserContext?.diplomaSlug ?? null;
+  const advisorFirstName =
+    verifiedProfile?.firstName ?? browserContext?.firstName ?? null;
+  const diplomaLabel = advisorDiplomaSlug
+    ? siteContent.diplomas[advisorDiplomaSlug].label
     : null;
-  const title = advisorProfile?.firstName
-    ? `${advisorProfile.firstName}, let’s talk through your next step.`
+  const title = advisorFirstName
+    ? `${advisorFirstName}, let’s talk through your next step.`
     : "Talk through your next step with a Meska advisor.";
   const statusCopy =
     status === "ready"
