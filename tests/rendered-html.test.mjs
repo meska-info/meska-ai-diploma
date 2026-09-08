@@ -86,6 +86,8 @@ test("server-renders the diploma landing page", async () => {
   assert.doesNotMatch(html, /One form\. One clear next step\./i);
   assert.doesNotMatch(html, /final_interest_form/i);
   assert.doesNotMatch(html, /hero-art|Course details/i);
+  assert.doesNotMatch(html, /www\.chatbase\.co\/embed\.min\.js/i);
+  assert.doesNotMatch(html, /lui2mOdc0S4TJNx3RrGqi/i);
 });
 
 test("server-renders the thank-you comparison page", async () => {
@@ -115,7 +117,6 @@ test("server-renders the thank-you comparison page", async () => {
   assert.match(html, /Clear answers before you decide/i);
   assert.match(html, /Talk through your next step with a Meska advisor/i);
   assert.match(html, /Open advisor/i);
-  assert.match(html, /lui2mOdc0S4TJNx3RrGqi/i);
   assert.match(html, /Sessions are primarily delivered in Arabic/i);
   assert.match(html, /accepted only before 25% of the diploma has been completed/i);
   assert.match(html, /approximately 15 hours per week/i);
@@ -139,6 +140,10 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   );
   const chatbaseWidget = readFileSync(
     new URL("../app/components/ChatbaseWidget.tsx", import.meta.url),
+    "utf8",
+  );
+  const chatbase = readFileSync(
+    new URL("../app/lib/chatbase.ts", import.meta.url),
     "utf8",
   );
   const layout = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
@@ -239,12 +244,17 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(metaPixel, /connect\.facebook\.net\/en_US\/fbevents\.js/);
   assert.match(metaPixel, /initializeMetaPixel\(\)/);
   assert.match(metaPixel, /trackMetaPageView\(pathname\)/);
-  assert.equal((layout.match(/https:\/\/www\.chatbase\.co\/embed\.min\.js/g) ?? []).length, 1);
-  assert.equal((layout.match(/lui2mOdc0S4TJNx3RrGqi/g) ?? []).length, 1);
-  assert.match(layout, /document\.body\.appendChild\(script\)/);
-  assert.match(layout, /<script dangerouslySetInnerHTML=\{\{ __html: chatbaseEmbedScript \}\} \/>/);
+  assert.match(layout, /<ChatbaseWidget \/>/);
+  assert.doesNotMatch(layout, /chatbase\.co|lui2mOdc0S4TJNx3RrGqi|dangerouslySetInnerHTML/);
+  assert.equal((chatbase.match(/https:\/\/www\.chatbase\.co\/embed\.min\.js/g) ?? []).length, 2);
+  assert.equal((chatbase.match(/lui2mOdc0S4TJNx3RrGqi/g) ?? []).length, 2);
+  assert.match(chatbaseWidget, /usePathname\(\)/);
+  assert.match(chatbaseWidget, /if \(!isChatbaseRoute\(pathname\)\)/);
   assert.match(chatbaseWidget, /new MutationObserver\(observeEmbedScript\)/);
-  assert.doesNotMatch(chatbaseWidget, /createElement\("script"\)|appendChild/);
+  assert.match(chatbaseWidget, /bootstrapScript\.textContent = CHATBASE_EMBED_SCRIPT/);
+  assert.match(chatbaseWidget, /document\.body\.appendChild\(bootstrapScript\)/);
+  assert.match(chatbaseWidget, /document\.getElementById\(CHATBASE_AGENT_ID\)\?\.remove\(\)/);
+  assert.match(chatbaseWidget, /delete window\.chatbase/);
   assert.match(diplomaAdvisor, /chatbase\.open\(\)/);
   assert.match(diplomaAdvisor, /markAdvisorOpenState\("automatic"\)/);
   assert.match(diplomaAdvisor, /markAdvisorOpenState\("manual"\)/);

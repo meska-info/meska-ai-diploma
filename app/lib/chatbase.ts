@@ -2,6 +2,8 @@ import type { DiplomaId } from "../content";
 
 export const CHATBASE_AGENT_ID = "lui2mOdc0S4TJNx3RrGqi";
 export const CHATBASE_SCRIPT_SRC = "https://www.chatbase.co/embed.min.js";
+export const CHATBASE_ROUTE_PATHNAME = "/thank-you";
+export const CHATBASE_EMBED_SCRIPT = `(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="lui2mOdc0S4TJNx3RrGqi";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();`;
 export const CHATBASE_STATUS_EVENT = "meska:chatbase-status";
 export const DIPLOMA_ADVISOR_CONTEXT_KEY = "meska_diploma_offer";
 export const DIPLOMA_ADVISOR_AUTO_OPEN_KEY =
@@ -165,6 +167,10 @@ export function shouldAutoOpenAdvisor({
     !openedThisMount &&
     !storedOpenState
   );
+}
+
+export function isChatbaseRoute(pathname: string) {
+  return pathname === CHATBASE_ROUTE_PATHNAME;
 }
 
 export function isChatbaseInitialized() {
