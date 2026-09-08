@@ -22,6 +22,7 @@ import {
 import {
   buildAiCloserEventPayload,
   buildAiCloserHeaders,
+  isSameOriginRequest,
   resolveAiCloserWebhookSecret,
 } from "../app/lib/aiCloserServer.ts";
 
@@ -409,4 +410,47 @@ test("auto-open never stalls behind a slow or failed AI Closer", () => {
   // Raw visitor text is masked before it leaves the browser.
   assert.match(advisor, /summary: redactSalesText\(content\)/);
   assert.doesNotMatch(advisor, /summary: content/);
+});
+
+test("the sales-event CSRF gate accepts the real page and rejects attackers", () => {
+  const req = (headers) =>
+    new Request("http://internal.local/api/ai-closer/event", {
+      method: "POST",
+      headers,
+    });
+
+  // The browser's own signal wins. Regression: comparing Origin against
+  // `new URL(request.url).origin` rejected every event behind a custom domain,
+  // because Next reconstructs that host rather than echoing the requested one.
+  assert.equal(
+    isSameOriginRequest(
+      req({ "sec-fetch-site": "same-origin", origin: "https://diploma.meska.ai", host: "diploma.meska.ai" }),
+    ),
+    true,
+  );
+  assert.equal(
+    isSameOriginRequest(
+      req({ "sec-fetch-site": "cross-site", origin: "https://evil.test", host: "diploma.meska.ai" }),
+    ),
+    false,
+  );
+  assert.equal(isSameOriginRequest(req({ "sec-fetch-site": "same-site" })), false);
+
+  // Older browsers send no Sec-Fetch-Site: fall back to Origin vs Host.
+  assert.equal(
+    isSameOriginRequest(req({ origin: "https://diploma.meska.ai", host: "diploma.meska.ai" })),
+    true,
+  );
+  assert.equal(
+    isSameOriginRequest(req({ origin: "https://evil.test", host: "diploma.meska.ai" })),
+    false,
+  );
+
+  // Fail closed when there is nothing to compare, or Origin is unparseable.
+  assert.equal(isSameOriginRequest(req({ host: "diploma.meska.ai" })), false);
+  assert.equal(isSameOriginRequest(req({ origin: "https://diploma.meska.ai" })), false);
+  assert.equal(
+    isSameOriginRequest(req({ origin: "not a url", host: "diploma.meska.ai" })),
+    false,
+  );
 });

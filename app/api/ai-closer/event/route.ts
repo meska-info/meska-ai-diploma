@@ -7,6 +7,7 @@ import {
 import {
   buildAiCloserEventPayload,
   buildAiCloserHeaders,
+  isSameOriginRequest,
   resolveAiCloserWebhookSecret,
 } from "../../../lib/aiCloserServer";
 import { resolveDiplomaSessionFromRequest } from "../../../lib/diplomaSession";
@@ -19,17 +20,8 @@ const REQUEST_TIMEOUT_MS = 8_000;
 const MAX_REQUEST_BYTES = 16_000;
 const MAX_RESPONSE_BYTES = 20_000;
 
-function isSameOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-  const fetchSite = request.headers.get("sec-fetch-site");
-  return (
-    origin === new URL(request.url).origin &&
-    (!fetchSite || fetchSite === "same-origin")
-  );
-}
-
 export async function POST(request: Request) {
-  if (!isSameOrigin(request)) {
+  if (!isSameOriginRequest(request)) {
     return NextResponse.json(
       { error: "Invalid request" },
       { status: 403, headers: RESPONSE_HEADERS },
