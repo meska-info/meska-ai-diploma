@@ -13,6 +13,11 @@ const ADVISOR_CONTEXT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 export type ChatbaseStatus = "loading" | "ready" | "unavailable";
 
+export type ChatbaseUserMessageEvent = {
+  type: "user-message";
+  data: { content: string };
+};
+
 export type DiplomaAdvisorContext = {
   leadId: string;
   firstName?: string;
@@ -25,6 +30,14 @@ export type ChatbaseApi = ((...args: unknown[]) => unknown) & {
   open: (options?: { message?: string; hideMessage?: boolean }) => void;
   close: () => void;
   setOptions: (options: { initialMessages?: string[] }) => void;
+  addEventListener: (
+    event: "user-message",
+    handler: (event: ChatbaseUserMessageEvent) => void,
+  ) => void;
+  removeEventListener: (
+    event: "user-message",
+    handler: (event: ChatbaseUserMessageEvent) => void,
+  ) => void;
 };
 
 declare global {

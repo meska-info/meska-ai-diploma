@@ -2,6 +2,11 @@ import { after, NextResponse } from "next/server";
 import { syncLeadToGoogleSheets, type SheetLead } from "../../lib/googleSheets";
 import { validateLead } from "../../lib/leadValidation";
 import { triggerLeadAutomation } from "../../lib/leadAutomation";
+import {
+  createDiplomaSessionToken,
+  DIPLOMA_SESSION_COOKIE,
+  DIPLOMA_SESSION_MAX_AGE_SECONDS,
+} from "../../lib/diplomaSession";
 
 const allowedDiplomas = new Set(["offline", "online"]);
 const allowedAttributionKeys = [
@@ -222,5 +227,36 @@ export async function POST(request: Request) {
     });
   });
 
-  return NextResponse.json({ accepted: true, requestId: persistedLead.request_id }, { status: 201 });
+  const leadResponse = NextResponse.json(
+    { accepted: true, requestId: persistedLead.request_id },
+    { status: 201 },
+  );
+  const sessionSecret = process.env.MESKA_CHATBASE_SESSION_SECRET;
+  if (sessionSecret) {
+    try {
+      leadResponse.cookies.set({
+        name: DIPLOMA_SESSION_COOKIE,
+        value: createDiplomaSessionToken(
+          {
+            requestId: persistedLead.request_id,
+            firstName: persistedLead.name,
+            diplomaSlug: persistedLead.diploma_slug,
+          },
+          sessionSecret,
+        ),
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: DIPLOMA_SESSION_MAX_AGE_SECONDS,
+      });
+    } catch {
+      console.warn(
+        "Diploma advisor session unavailable",
+        JSON.stringify({ step: "chatbase_session", code: "session_signing_failed" }),
+      );
+    }
+  }
+
+  return leadResponse;
 }
