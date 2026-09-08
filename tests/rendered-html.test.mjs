@@ -113,6 +113,9 @@ test("server-renders the thank-you comparison page", async () => {
   assert.match(html, /Omar El Monayar/i);
   assert.doesNotMatch(html, /Ahmed Mostafa/i);
   assert.match(html, /Clear answers before you decide/i);
+  assert.match(html, /Talk through your next step with a Meska advisor/i);
+  assert.match(html, /Open advisor/i);
+  assert.match(html, /lui2mOdc0S4TJNx3RrGqi/i);
   assert.match(html, /Sessions are primarily delivered in Arabic/i);
   assert.match(html, /accepted only before 25% of the diploma has been completed/i);
   assert.match(html, /approximately 15 hours per week/i);
@@ -130,6 +133,15 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
     new URL("../app/components/ThankYouPage.tsx", import.meta.url),
     "utf8",
   );
+  const diplomaAdvisor = readFileSync(
+    new URL("../app/components/DiplomaAdvisor.tsx", import.meta.url),
+    "utf8",
+  );
+  const chatbaseWidget = readFileSync(
+    new URL("../app/components/ChatbaseWidget.tsx", import.meta.url),
+    "utf8",
+  );
+  const layout = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
   const apiRoute = readFileSync(
     new URL("../app/api/leads/route.ts", import.meta.url),
     "utf8",
@@ -227,6 +239,22 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(metaPixel, /connect\.facebook\.net\/en_US\/fbevents\.js/);
   assert.match(metaPixel, /initializeMetaPixel\(\)/);
   assert.match(metaPixel, /trackMetaPageView\(pathname\)/);
+  assert.equal((layout.match(/https:\/\/www\.chatbase\.co\/embed\.min\.js/g) ?? []).length, 1);
+  assert.equal((layout.match(/lui2mOdc0S4TJNx3RrGqi/g) ?? []).length, 1);
+  assert.match(layout, /document\.body\.appendChild\(script\)/);
+  assert.match(layout, /<script dangerouslySetInnerHTML=\{\{ __html: chatbaseEmbedScript \}\} \/>/);
+  assert.match(chatbaseWidget, /new MutationObserver\(observeEmbedScript\)/);
+  assert.doesNotMatch(chatbaseWidget, /createElement\("script"\)|appendChild/);
+  assert.match(diplomaAdvisor, /chatbase\.open\(\)/);
+  assert.match(diplomaAdvisor, /markAdvisorOpenState\("automatic"\)/);
+  assert.match(diplomaAdvisor, /markAdvisorOpenState\("manual"\)/);
+  assert.doesNotMatch(diplomaAdvisor, /trackEvent|fbq|LeadThankYouView/);
+  assert.match(
+    css,
+    /@media \(min-width: 960px\)[\s\S]*?\.thank-advisor-wrapper\s*\{[\s\S]*?position:\s*sticky;/i,
+  );
+  assert.match(css, /\.diploma-advisor\s*\{[\s\S]*?min-width:\s*0;[\s\S]*?overflow:\s*hidden;/i);
+  assert.match(css, /html\[data-chatbase-status="ready"\] \.floating-checkout-cta/);
   assert.match(sections, /name="diploma" type="hidden" value=\{selectedId\}/);
   assert.doesNotMatch(sections, /className="price-benefits"/);
   assert.doesNotMatch(sections, /<select[\s\S]{0,200}name="diploma"/);
