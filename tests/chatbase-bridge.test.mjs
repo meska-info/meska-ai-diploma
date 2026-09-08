@@ -454,3 +454,22 @@ test("the sales-event CSRF gate accepts the real page and rejects attackers", ()
     false,
   );
 });
+
+test("the verified offer does not depend on the Chatbase identify call", () => {
+  const advisor = readFileSync(
+    new URL("../app/components/DiplomaAdvisor.tsx", import.meta.url),
+    "utf8",
+  );
+
+  // The offer is authorized by the signed MESKA session cookie. Gating the
+  // context fetch on `identityReady` meant an unsupported or slow widget call
+  // silently cost the visitor their discount.
+  const contextFetch = advisor.slice(advisor.indexOf('/api/ai-closer/context'));
+  const contextDeps = contextFetch.slice(contextFetch.indexOf("}, ["));
+  assert.match(contextDeps.slice(0, 40), /\}, \[identity\]/);
+
+  // The user-message listener stays gated behind a successful identify, so no
+  // conversation is ever associated with an unverified lead.
+  const listener = advisor.slice(advisor.indexOf("addEventListener(\"user-message\""));
+  assert.match(listener.slice(listener.indexOf("}, [")), /\}, \[identityReady\]/);
+});

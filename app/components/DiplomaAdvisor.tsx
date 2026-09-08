@@ -194,11 +194,15 @@ export function DiplomaAdvisor() {
     };
   }, [identity, status]);
 
+  // The offer is authorized by the signed MESKA session cookie, not by Chatbase,
+  // so this must not wait on `identify` succeeding — otherwise an unsupported or
+  // slow widget call silently costs the visitor their discount.
+  //
   // The Shopify offer is created asynchronously right after the lead is stored,
   // so the first read usually returns `offer_pending`. Keep polling until the
   // offer reaches a terminal state so the auto-open can carry the real code.
   useEffect(() => {
-    if (!identityReady || !identity) return;
+    if (!identity) return;
     const controller = new AbortController();
     const startedAt = Date.now();
     let cancelled = false;
@@ -243,7 +247,7 @@ export function DiplomaAdvisor() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [identity, identityReady]);
+  }, [identity]);
 
   const initialMessages = useMemo(() => {
     if (verifiedContext?.leadVerified) {
@@ -383,7 +387,7 @@ export function DiplomaAdvisor() {
     }
   };
 
-  const verifiedProfile = identityReady ? identity : null;
+  const verifiedProfile = identity;
   const advisorDiplomaSlug =
     verifiedProfile?.diplomaSlug ?? browserContext?.diplomaSlug ?? null;
   const advisorFirstName =
