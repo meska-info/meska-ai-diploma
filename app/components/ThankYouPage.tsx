@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { trackEvent } from "../lib/tracking";
+import { DiplomaAdvisor } from "./DiplomaAdvisor";
 
 import {
   CheckoutSection,
@@ -99,10 +100,22 @@ export function ThankYouPage() {
       <SiteHeader ctaHref="#checkout" ctaLabel="Choose Diploma" />
 
       <section className="thank-confirmation shell" aria-labelledby="thank-confirmation-title">
-        <div className="thank-confirmation-copy">
-          <p className="eyebrow"><span aria-hidden="true" /> Enquiry received</p>
-          <h1 id="thank-confirmation-title">Thank you — we’ve received your details.</h1>
-          <p>A Meska advisor will review your information and contact you shortly.</p>
+        <div className="thank-confirmation-main">
+          <div className="thank-confirmation-copy">
+            <p className="eyebrow"><span aria-hidden="true" /> Enquiry received</p>
+            <h1 id="thank-confirmation-title">Thank you — we’ve received your details.</h1>
+            <p>A Meska advisor will review your information and contact you shortly.</p>
+          </div>
+          <nav className="thank-next-steps" aria-label="Thank-you page next steps">
+            <p>While you wait</p>
+            <div>
+              <a href="#curriculum">Review the curriculum <span aria-hidden="true">↓</span></a>
+              <a href="#checkout">Compare diploma formats <span aria-hidden="true">↓</span></a>
+            </div>
+          </nav>
+        </div>
+        <div className="thank-advisor-wrapper">
+          <DiplomaAdvisor />
         </div>
       </section>
       <FreeGuideSection />

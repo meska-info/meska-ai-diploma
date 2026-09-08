@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { diplomaList, DiplomaId, siteContent } from "../content";
+import { serializeDiplomaAdvisorContext } from "../lib/chatbase";
 import {
   captureAttribution,
   createEventId,
@@ -484,6 +485,15 @@ export function LeadCapture({
     if (!writeSessionValue("meska-pending-lead", pendingLead)) {
       window.name = `meska-pending-lead:${pendingLead}`;
     }
+    const firstName = validation.normalized.name.split(/\s+/u)[0];
+    writeSessionValue(
+      "meska_diploma_offer",
+      serializeDiplomaAdvisorContext({
+        leadId: eventId,
+        firstName,
+        diplomaSlug: selectedId,
+      }),
+    );
 
     const query = new URLSearchParams({ diploma: selectedId });
     Object.entries(attribution).forEach(([key, value]) => query.set(key, value));
