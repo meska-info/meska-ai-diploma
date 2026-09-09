@@ -76,3 +76,7 @@ Thumbs.db
 Desktop.ini
 /.idea/
 /.vscode/
+
+# n8n workflow backups: these carry live Shopify, Supabase service_role,
+# CEQUENS and webhook secrets, so they stay local and are never committed.
+/n8n/backup/
