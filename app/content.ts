@@ -66,7 +66,7 @@ export const siteContent = {
       priceValue: 25000,
       currency: "EGP",
       checkoutUrl:
-        "https://aionline.meska.ai/checkouts/cn/hWNFhIiwrMjiccpLk4S6LHMp/en-eg?_r=AQABXK4iXZTRdGRlwSOl9-iRgmnxVhsceC_1stXdBBLG7M8",
+        "https://aionline.meska.ai/checkouts/cn/hWNGyckPatph4juJJXihqzRr/en-eg?_r=AQABeObEs68DJzXtO9qUbleknomBL5ZYMbwTUS90dcn-YUI",
       leadDestination: null,
       leadDestinationStatus: "pending",
       formSubmitLabel: "Submit Enquiry",
