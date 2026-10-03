@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
+import { siteContent } from "../app/content.ts";
+import { buildVerifiedAdvisorMessages } from "../app/lib/aiCloser.ts";
 import {
-  buildAdvisorInitialMessages,
+  configureAdvisorWelcome,
   CHATBASE_AGENT_ID,
   CHATBASE_EMBED_SCRIPT,
   CHATBASE_SCRIPT_SRC,
@@ -99,18 +102,156 @@ test("rejects expired or malformed advisor context without blocking the page", (
   assert.equal(resolveDiplomaAdvisorContext(malformedStorage, now), null);
 });
 
-test("builds truthful initial messages without raw contact details or offers", () => {
-  const messages = buildAdvisorInitialMessages({
-    leadId: "lead-123",
+test("recaps the selected Diploma without asserting discount validity or delivery", () => {
+  const messages = buildVerifiedAdvisorMessages(null, {
     firstName: "Mariam",
     diplomaSlug: "online",
-    storedAt: Date.UTC(2026, 8, 8, 12),
+    currentOffer: siteContent.diplomas.online,
   });
   const copy = messages.join(" ");
 
   assert.match(copy, /Mariam/);
-  assert.match(copy, /Online Diploma/);
-  assert.doesNotMatch(copy, /lead-123|discount|coupon|expires/i);
+  assert.match(copy, /AI Copilot Diploma — Online/);
+  for (const topic of ["prompting", "AI tools", "assistants", "automation", "agents", "content", "8-week", "mentored group project", "lifetime LMS"]) {
+    assert.ok(copy.includes(topic), topic);
+  }
+  assert.match(copy, /Full tuition: EGP 20,000/);
+  assert.match(copy, /Check WhatsApp.*10% code/);
+  assert.match(copy, /validity needs confirmation/);
+  assert.doesNotMatch(copy, /sent|delivered|valid until|https?:|lead-123|Claude/);
+  assert.ok(copy.endsWith("If you have any other questions, ask me here."));
+  assert.equal(messages.length, 2);
+});
+
+const readyContext = {
+  schemaVersion: "1",
+  leadVerified: true,
+  firstName: "Mariam",
+  diplomaSlug: "online",
+  offerState: "offer_ready",
+  offer: {
+    discountPercent: 10,
+    discountCode: "PRIVATE-NEVER-DISPLAY",
+    startsAt: "2026-10-04T12:00:00Z",
+    expiresAt: "2026-10-05T12:00:00Z",
+  },
+  safeMessage: "ready",
+};
+
+test("uses only matching content prices and verified discounts, without exposing codes", () => {
+  for (const [slug, full, discounted] of [["online", "20,000", "18,000"], ["offline", "25,000", "22,500"]]) {
+    const copy = buildVerifiedAdvisorMessages(
+      { ...readyContext, diplomaSlug: slug },
+      { currentOffer: siteContent.diplomas[slug] },
+    ).join(" ");
+    assert.ok(copy.includes(`full tuition: EGP ${full}`));
+    assert.ok(copy.includes(`With a valid code: EGP ${discounted}`));
+    assert.match(copy, /5 Oct 2026, 15:00 \(Cairo time\)/);
+    assert.doesNotMatch(copy, /PRIVATE-NEVER-DISPLAY|https?:|12 hours|24 hours/);
+  }
+  const mismatch = buildVerifiedAdvisorMessages(readyContext, {
+    currentOffer: siteContent.diplomas.offline,
+  }).join(" ");
+  assert.doesNotMatch(mismatch, /EGP/);
+});
+
+test("expired and unknown discounts never advertise discounted tuition", () => {
+  for (const offerState of ["expired", "offer_pending", "unavailable"]) {
+    const copy = buildVerifiedAdvisorMessages(
+      { ...readyContext, offerState },
+      { currentOffer: siteContent.diplomas.online },
+    ).join(" ");
+    assert.match(copy, /Full tuition: EGP 20,000/);
+    assert.doesNotMatch(copy, /18,000|With a valid code|It expires|PRIVATE-NEVER-DISPLAY/);
+    if (offerState === "expired") assert.match(copy, /window has ended/);
+  }
+  const unverified = buildVerifiedAdvisorMessages(
+    { ...readyContext, leadVerified: false },
+  ).join(" ");
+  assert.doesNotMatch(unverified, /Mariam|— Online|EGP|It expires/);
+});
+
+test("missing format or offer cannot invent tuition or checkout", () => {
+  for (const options of [{}, { diplomaSlug: "online" }, { currentOffer: siteContent.diplomas.online }]) {
+    const copy = buildVerifiedAdvisorMessages(null, options).join(" ");
+    assert.match(copy, /^Hi 👋/);
+    assert.doesNotMatch(copy, /EGP|https?:|What's your name|Online or Offline/);
+    assert.match(copy, /enrollment availability must be confirmed/);
+  }
+  const noSession = buildVerifiedAdvisorMessages(null, {
+    applicationReceived: false,
+  }).join(" ");
+  assert.doesNotMatch(noSession, /received your application|EGP|https?:/);
+  assert.match(noSession, /If you have a personal 10% code/);
+});
+
+test("discount readiness and a graduation date cannot establish enrollment eligibility", () => {
+  for (const extra of [
+    { join_until: "2026-09-01", offer_validity_date: "2027-01-10" },
+    { paymentFailure: true },
+    { enrollmentEligible: true },
+  ]) {
+    const copy = buildVerifiedAdvisorMessages(
+      { ...readyContext, ...extra },
+      { currentOffer: { ...siteContent.diplomas.online, ...extra } },
+    ).join(" ");
+    // These fields are not exposed by the existing trusted context contract.
+    assert.doesNotMatch(copy, /https?:|try again|pay now/i);
+  }
+});
+
+test("both languages fit the Chatbase limit, including the maximum first name", () => {
+  for (const language of ["en", "ar"]) {
+    for (const diplomaSlug of ["online", "offline"]) {
+      for (const offerState of ["offer_ready", "expired", "offer_pending", "unavailable"]) {
+        const messages = buildVerifiedAdvisorMessages(
+          { ...readyContext, firstName: "م".repeat(60), diplomaSlug, offerState },
+          { currentOffer: siteContent.diplomas[diplomaSlug], language },
+        );
+        assert.equal(messages.length, 2);
+        assert.ok(messages.reduce((sum, message) => sum + message.length, 0) <= 1000);
+        assert.ok(messages.at(-1).endsWith(language === "ar"
+          ? "لو عندك أي استفسار تاني، اسألني هنا."
+          : "If you have any other questions, ask me here."));
+      }
+    }
+  }
+  assert.match(buildVerifiedAdvisorMessages(null, { language: "ar" })[0], /^أهلًا 👋/);
+});
+
+test("welcome configuration is once per widget and existing lead identity", () => {
+  const calls = [];
+  const widget = Object.assign(() => {}, { setOptions: (options) => calls.push(options) });
+  configureAdvisorWelcome(widget, "lead-one", ["First recap"]);
+  for (let i = 0; i < 5; i++) configureAdvisorWelcome(widget, "lead-one", ["Updated price or render"]);
+  assert.deepEqual(calls, [{ initialMessages: ["First recap"], suggestedMessages: [] }]);
+  configureAdvisorWelcome(widget, "lead-two", ["Another application"]);
+  assert.equal(calls.length, 2);
+  const refreshedWidget = Object.assign(() => {}, { setOptions: (options) => calls.push(options) });
+  configureAdvisorWelcome(refreshedWidget, "lead-one", ["Runtime override after refresh"]);
+  assert.equal(calls.length, 3);
+});
+
+test("configuration failures do not mark a widget as configured", () => {
+  let attempts = 0;
+  const widget = Object.assign(() => {}, { setOptions: () => {
+    attempts++;
+    if (attempts === 1) throw new Error("not ready");
+  } });
+  assert.throws(() => configureAdvisorWelcome(widget, "lead-one", ["Recap"]));
+  configureAdvisorWelcome(widget, "lead-one", ["Recap"]);
+  configureAdvisorWelcome(widget, "lead-one", ["Recap"]);
+  assert.equal(attempts, 2);
+});
+
+test("the welcome path waits for settled data and widget initialization without a reset", () => {
+  const source = readFileSync(new URL("../app/components/DiplomaAdvisor.tsx", import.meta.url), "utf8");
+  const welcome = source.slice(source.indexOf("// Declared before the auto-open effect"), source.indexOf("if (!identityReady) return;"));
+  assert.match(welcome, /!personalizationSettled/);
+  assert.match(welcome, /!isChatbaseInitialized\(\)/);
+  assert.match(welcome, /configureAdvisorWelcome\(chatbase, browserContext\?\.leadId \?\? null, initialMessages\)/);
+  assert.doesNotMatch(source, /resetChat|resetOptions|setInitialMessages|open\(\{/);
+  assert.equal((source.match(/configureAdvisorWelcome\(chatbase/g) ?? []).length, 1);
 });
 
 test("allows one automatic open only when the widget and lead context are ready", () => {
