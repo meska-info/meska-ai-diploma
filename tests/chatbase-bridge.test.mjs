@@ -280,7 +280,7 @@ test("offer normalization never invents ready, coupon, percentage, or expiry", (
   );
   assert.equal(pending.offerState, "offer_pending");
   assert.equal(pending.offer, null);
-  assert.doesNotMatch(buildVerifiedAdvisorMessages(pending).join(" "), /coupon|%/i);
+  assert.match(buildVerifiedAdvisorMessages(pending).join(" "), /validity needs confirmation/);
 
   const invalidReady = normalizeAiCloserContext(
     {
@@ -358,11 +358,11 @@ test("offer expiry reaches the visitor as readable Cairo time, never raw ISO", (
   );
   const messages = buildVerifiedAdvisorMessages(ready).join(" ");
   assert.match(messages, /10%/);
-  assert.match(messages, /MESKA-TEST/);
+  assert.doesNotMatch(messages, /MESKA-TEST/);
   assert.doesNotMatch(messages, /2026-09-09T18:33/);
 });
 
-test("a pending offer keeps polling and never advertises a discount", () => {
+test("a pending offer keeps polling without asserting code validity", () => {
   const pending = normalizeAiCloserContext(
     {
       schema_version: "1",
@@ -376,7 +376,8 @@ test("a pending offer keeps polling and never advertises a discount", () => {
     "online",
   );
   assert.equal(isPendingOfferState(pending), true);
-  assert.doesNotMatch(buildVerifiedAdvisorMessages(pending).join(" "), /%|code/i);
+  assert.match(buildVerifiedAdvisorMessages(pending).join(" "), /validity needs confirmation/);
+  assert.doesNotMatch(buildVerifiedAdvisorMessages(pending).join(" "), /With a valid code|It expires/);
 
   // Terminal and unverified states must stop the poll loop.
   assert.equal(isPendingOfferState(null), false);

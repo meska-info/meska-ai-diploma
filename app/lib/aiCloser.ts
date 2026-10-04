@@ -1,4 +1,4 @@
-import type { DiplomaId } from "../content";
+import type { Diploma, DiplomaId } from "../content";
 
 export const AI_CLOSER_CONTEXT_ENDPOINT =
   "https://n8n-qrsy.srv1573769.hstgr.cloud/webhook/meska-diploma-ai-closer-context";
@@ -232,25 +232,81 @@ export function normalizeAiCloserContext(
   };
 }
 
-export function buildVerifiedAdvisorMessages(context: SafeAiCloserContext) {
-  const diplomaLabel =
-    context.diplomaSlug === "online" ? "Online Diploma" : "Offline Diploma";
-  const greeting = context.firstName
-    ? `Hi ${context.firstName} — your enquiry is in.`
-    : `Your enquiry for the ${diplomaLabel} is in.`;
-  const guidance = `I can help with the ${diplomaLabel}, schedule, payment options, and enrollment next steps.`;
+export function buildVerifiedAdvisorMessages(
+  context: SafeAiCloserContext | null,
+  {
+    firstName,
+    diplomaSlug,
+    currentOffer,
+    language = "en",
+    applicationReceived = true,
+  }: {
+    firstName?: string;
+    diplomaSlug?: DiplomaId;
+    currentOffer?: Pick<Diploma, "id" | "priceValue" | "currency">;
+    language?: "en" | "ar";
+    applicationReceived?: boolean;
+  } = {},
+) {
+  const verified = context?.leadVerified ? context : null;
+  const name = cleanText(verified?.firstName ?? firstName, 60);
+  const slug = verified?.diplomaSlug ?? diplomaSlug;
+  const format = slug === "online" ? "Online" : slug === "offline" ? "Offline" : "";
+  const label = `AI Copilot Diploma${format ? ` — ${format}` : ""}`;
+  const arabic = language === "ar";
+  const greeting = arabic
+    ? `أهلًا${name ? ` يا ${name}` : ""} 👋${applicationReceived ? " طلبك وصلنا." : ""} MESKA شركة مصرية متخصصة في تعليم الـAI بشكل عملي للمهنيين.`
+    : `Hi${name ? ` ${name}` : ""} 👋${applicationReceived ? " We've received your application." : ""} MESKA is an Egyptian company focused on practical AI training for professionals.`;
+  const recap = arabic
+    ? `في ${label} هتتعلم prompting، اختيار أدوات AI، بناء assistants، automation وagents، وصناعة المحتوى بالـAI. البرنامج عملي على مدار 8 أسابيع، مع مشروع جماعي بإشراف mentor، وتسجيلات وموارد LMS مدى الحياة.`
+    : `In the ${label}, you'll learn prompting, how to choose AI tools, build assistants, automation and agents, and create content with AI. The practical 8-week program includes a mentored group project and lifetime LMS recordings and resources.`;
 
-  if (context.offerState === "offer_ready" && context.offer) {
-    const expiry = formatOfferExpiry(context.offer.expiresAt);
-    return [
-      greeting,
-      `Your private ${context.offer.discountPercent}% enrollment offer is ready — use code ${context.offer.discountCode}${
-        expiry ? `, valid until ${expiry} (Cairo time)` : ""
-      }.`,
-      guidance,
-    ];
-  }
-  return [greeting, guidance, context.safeMessage];
+  const expiry = formatOfferExpiry(verified?.offer?.expiresAt);
+  const percent = verified?.offer?.discountPercent;
+  const activeDiscount =
+    verified?.offerState === "offer_ready" &&
+    Boolean(expiry) &&
+    typeof percent === "number" &&
+    Number.isFinite(percent) &&
+    percent > 0 && percent <= 100;
+  const expired = verified?.offerState === "expired";
+  const discount = expired
+    ? arabic ? "نافذة كود خصمك الشخصي انتهت." : "Your personal discount window has ended."
+    : activeDiscount
+      ? arabic
+        ? `راجع WhatsApp لكود خصمك الشخصي ${percent}%. ينتهي في ${expiry} بتوقيت القاهرة.`
+        : `Check WhatsApp for your personal ${percent}% code. It expires on ${expiry} (Cairo time).`
+      : arabic
+        ? `${applicationReceived ? "راجع WhatsApp لكود خصمك الشخصي 10%." : "لو عندك كود خصم شخصي 10%، راجع WhatsApp."} صلاحية الكود محتاجة تأكيد.`
+        : `${applicationReceived ? "Check WhatsApp for your personal 10% code." : "If you have a personal 10% code, check WhatsApp."} Its validity needs confirmation.`;
+
+  const fullPrice = currentOffer && currentOffer.id === slug &&
+    currentOffer.currency === "EGP" &&
+    Number.isFinite(currentOffer.priceValue) && currentOffer.priceValue > 0
+      ? currentOffer.priceValue : null;
+  const money = (value: number) => `EGP ${new Intl.NumberFormat("en-GB", {
+    maximumFractionDigits: 2,
+  }).format(value)}`;
+  const price = fullPrice === null ? "" : activeDiscount
+    ? arabic
+      ? `السعر بكود ساري: ${money(fullPrice * (1 - percent! / 100))}؛ السعر الكامل: ${money(fullPrice)}.`
+      : `With a valid code: ${money(fullPrice * (1 - percent! / 100))}; full tuition: ${money(fullPrice)}.`
+    : arabic ? `السعر الكامل: ${money(fullPrice)}.` : `Full tuition: ${money(fullPrice)}.`;
+
+  // Neither the existing verified context nor siteContent exposes join_until,
+  // enrollment eligibility, or payment status. A discount expiry is not an
+  // enrollment cutoff; do not advertise checkout without that evidence.
+  const availability = arabic
+    ? "قبل الدفع، لازم الصيغة المختارة وإتاحة الانضمام الحالية يكونوا مؤكدين."
+    : "Your selected format and current enrollment availability must be confirmed before payment.";
+  const closing = arabic
+    ? "لو عندك أي استفسار تاني، اسألني هنا."
+    : "If you have any other questions, ask me here.";
+
+  return [
+    `${greeting}\n\n${recap}`,
+    [discount, price, availability, closing].filter(Boolean).join("\n\n"),
+  ];
 }
 
 export function parseSafeAiCloserContext(

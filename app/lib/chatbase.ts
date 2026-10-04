@@ -29,7 +29,10 @@ export type ChatbaseApi = ((...args: unknown[]) => unknown) & {
   q?: unknown[][];
   open: (options?: { message?: string; hideMessage?: boolean }) => void;
   close: () => void;
-  setOptions: (options: { initialMessages?: string[] }) => void;
+  setOptions: (options: {
+    initialMessages?: string[];
+    suggestedMessages?: string[];
+  }) => void;
   addEventListener: (
     event: "user-message",
     handler: (event: ChatbaseUserMessageEvent) => void,
@@ -152,15 +155,18 @@ export function resolveDiplomaAdvisorContext(
   } satisfies DiplomaAdvisorContext;
 }
 
-export function buildAdvisorInitialMessages(context: DiplomaAdvisorContext) {
-  const diplomaLabel =
-    context.diplomaSlug === "online" ? "Online Diploma" : "Offline Diploma";
-  return [
-    context.firstName
-      ? `Hi ${context.firstName} — your enquiry is in.`
-      : `Your enquiry for the ${diplomaLabel} is in.`,
-    `I can help with the ${diplomaLabel}, schedule, payment options, and enrollment next steps.`,
-  ];
+const configuredWelcomes = new WeakMap<ChatbaseApi, Set<string | null>>();
+
+export function configureAdvisorWelcome(
+  chatbase: ChatbaseApi,
+  leadId: string | null,
+  initialMessages: string[],
+) {
+  if (configuredWelcomes.get(chatbase)?.has(leadId)) return;
+  chatbase.setOptions({ initialMessages, suggestedMessages: [] });
+  const configuredLeads = configuredWelcomes.get(chatbase) ?? new Set<string | null>();
+  configuredLeads.add(leadId);
+  configuredWelcomes.set(chatbase, configuredLeads);
 }
 
 export function shouldAutoOpenAdvisor({

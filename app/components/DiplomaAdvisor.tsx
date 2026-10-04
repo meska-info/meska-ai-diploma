@@ -13,7 +13,7 @@ import {
   type SafeAiCloserContext,
 } from "../lib/aiCloser";
 import {
-  buildAdvisorInitialMessages,
+  configureAdvisorWelcome,
   CHATBASE_STATUS_EVENT,
   type ChatbaseUserMessageEvent,
   type ChatbaseStatus,
@@ -79,7 +79,6 @@ export function DiplomaAdvisor() {
   const [autoOpenDeadlineReached, setAutoOpenDeadlineReached] = useState(false);
   const openedThisMount = useRef(false);
   const identifiedToken = useRef<string | null>(null);
-  const preparedMessages = useRef<string | null>(null);
   const userMessageStarted = useRef(false);
 
   useEffect(() => {
@@ -200,7 +199,7 @@ export function DiplomaAdvisor() {
   //
   // The Shopify offer is created asynchronously right after the lead is stored,
   // so the first read usually returns `offer_pending`. Keep polling until the
-  // offer reaches a terminal state so the auto-open can carry the real code.
+  // offer reaches a terminal state so the welcome can use verified offer details.
   useEffect(() => {
     if (!identity) return;
     const controller = new AbortController();
@@ -250,27 +249,47 @@ export function DiplomaAdvisor() {
   }, [identity]);
 
   const initialMessages = useMemo(() => {
-    if (verifiedContext?.leadVerified) {
-      return buildVerifiedAdvisorMessages(verifiedContext);
-    }
-    return browserContext ? buildAdvisorInitialMessages(browserContext) : null;
-  }, [browserContext, verifiedContext]);
+    const diplomaSlug = identity?.diplomaSlug ?? browserContext?.diplomaSlug;
+    return buildVerifiedAdvisorMessages(verifiedContext, {
+      firstName: identity?.firstName ?? browserContext?.firstName,
+      diplomaSlug,
+      currentOffer: diplomaSlug ? siteContent.diplomas[diplomaSlug] : undefined,
+      applicationReceived: Boolean(browserContext),
+      language: typeof document !== "undefined" &&
+        document.documentElement.lang.toLowerCase().startsWith("ar")
+        ? "ar" : "en",
+    });
+  }, [browserContext, identity, verifiedContext]);
 
   // Declared before the auto-open effect so the widget always carries the best
   // available copy by the time it is opened.
   useEffect(() => {
-    if (status !== "ready" || !initialMessages) return;
-    const signature = initialMessages.join(" ");
-    if (preparedMessages.current === signature) return;
-    const chatbase = getChatbaseApi();
-    if (!chatbase) return;
-    try {
-      chatbase.setOptions({ initialMessages });
-      preparedMessages.current = signature;
-    } catch {
-      // Keep the normal launcher available without personalized context.
-    }
-  }, [initialMessages, status]);
+    if (
+      status !== "ready" || !contextResolved ||
+      (browserContext && !personalizationSettled)
+    ) return;
+    let active = true;
+    let timer = 0;
+    const configureWhenInitialized = () => {
+      if (!active) return;
+      if (!isChatbaseInitialized()) {
+        timer = window.setTimeout(configureWhenInitialized, IDENTIFY_POLL_INTERVAL_MS);
+        return;
+      }
+      const chatbase = getChatbaseApi();
+      if (!chatbase) return;
+      try {
+        configureAdvisorWelcome(chatbase, browserContext?.leadId ?? null, initialMessages);
+      } catch {
+        // Keep the normal launcher available without personalized context.
+      }
+    };
+    configureWhenInitialized();
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [browserContext, contextResolved, initialMessages, personalizationSettled, status]);
 
   useEffect(() => {
     if (!identityReady) return;
