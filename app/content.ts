@@ -66,7 +66,7 @@ export const siteContent = {
       priceValue: 25000,
       currency: "EGP",
       checkoutUrl:
-        "https://aionline.meska.ai/checkouts/cn/hWNGyckPatph4juJJXihqzRr/en-eg?_r=AQABeObEs68DJzXtO9qUbleknomBL5ZYMbwTUS90dcn-YUI",
+        "https://aionline.meska.ai/cart/41453348880430:1",
       leadDestination: null,
       leadDestinationStatus: "pending",
       formSubmitLabel: "Submit Enquiry",
@@ -96,7 +96,7 @@ export const siteContent = {
       priceValue: 20000,
       currency: "EGP",
       checkoutUrl:
-        "https://aionline.meska.ai/checkouts/cn/hWNFBXhbOuMmtlvxCWKSs35n/en-eg?_r=AQABZ-KT_ZesRudxZE6egaaE1qln6lpcrLJajz-FxH7Dbfw&cart_link_id=Qtc6lE74&channel=buy_button",
+        "https://aionline.meska.ai/cart/41309075341358:1",
       leadDestination: null,
       leadDestinationStatus: "pending",
       formSubmitLabel: "Submit Enquiry",
