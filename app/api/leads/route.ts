@@ -70,8 +70,8 @@ export async function POST(request: Request) {
     diplomaSlug,
   });
   const expectedProgramme = diplomaSlug === "offline"
-    ? { price: "EGP 25,000", priceValue: 25000, wave: "Wave 15", startDate: "26 September 2026" }
-    : { price: "EGP 20,000", priceValue: 20000, wave: "Wave 11", startDate: "27 September 2026" };
+    ? { price: "EGP 25,000", priceValue: 25000, wave: "Wave 16", startDate: "7 November 2026" }
+    : { price: "EGP 20,000", priceValue: 20000, wave: "Wave 12", startDate: "8 November 2026" };
 
   if (
     !requestId ||
