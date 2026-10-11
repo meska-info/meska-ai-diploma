@@ -15,7 +15,7 @@ The pre-change discovery report is committed at `docs/enrollment/DISCOVERY_REPOR
 ## Database and Sheet
 
 - Applied `supabase/migrations/202610110001_copilot_team_enrollment.sql` through the authenticated project SQL editor; Supabase returned `Success. No rows returned.`
-- Sheet synchronization is repository-owned. It now upserts by lead UUID and retries transient failures. The verified Microsoft Copilot Diploma Leads schema stays unchanged at A:V and receives the 20 exact enrollment headers at W:AP; legacy diploma workbooks retain A:W plus X:AQ. `GOOGLE_SHEETS_COPILOT_ID` targets the existing workbook without changing legacy diploma routing.
+- Sheet synchronization is repository-owned. It now upserts by lead UUID, converges concurrent POST/PATCH jobs onto the latest Supabase row, consolidates duplicates, and retries transient failures. The verified Microsoft Copilot Diploma Leads schema stays unchanged at A:V and receives the 20 exact enrollment headers at W:AP; legacy diploma workbooks retain A:W plus X:AQ. `GOOGLE_SHEETS_COPILOT_ID` targets the existing workbook without changing legacy diploma routing.
 - Existing Preview Supabase settings were preserved. The existing Production Google identity and Sheet IDs were copied to this branch's Preview scope so integration behavior can be tested without committing secrets.
 
 ## Tracking review

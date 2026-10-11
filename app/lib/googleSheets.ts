@@ -371,10 +371,12 @@ async function ensureEnrollmentColumns(
       headers: { ...headers, "Content-Type": "application/json" },
       body: JSON.stringify({
         requests: [{
-          appendDimension: {
-            sheetId: properties.sheetId,
-            dimension: "COLUMNS",
-            length,
+          updateSheetProperties: {
+            properties: {
+              sheetId: properties.sheetId,
+              gridProperties: { columnCount: properties.columnCount + length },
+            },
+            fields: "gridProperties.columnCount",
           },
         }],
       }),
@@ -423,6 +425,7 @@ function sheetPlanForLead(lead: SheetLead) {
     const lastColumn = sheetColumn(baseColumnCount + ENROLLMENT_SHEET_HEADERS.length);
     return {
       baseColumnCount,
+      baseLastColumn: sheetColumn(baseColumnCount),
       existingHeaders: [] as readonly string[],
       keyColumn: "C",
       lastColumn,
@@ -432,6 +435,7 @@ function sheetPlanForLead(lead: SheetLead) {
   const baseColumnCount = LEGACY_BASE_COLUMN_COUNT;
   return {
     baseColumnCount,
+    baseLastColumn: sheetColumn(baseColumnCount),
     existingHeaders: LEGACY_QUALIFICATION_HEADERS,
     keyColumn: "A",
     lastColumn: sheetColumn(baseColumnCount + ENROLLMENT_SHEET_HEADERS.length),
@@ -439,14 +443,112 @@ function sheetPlanForLead(lead: SheetLead) {
   };
 }
 
+async function latestLeadForSync(lead: SheetLead) {
+  if (lead.lead_source !== "copilot-course") return lead;
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) return lead;
+  const response = await fetch(
+    `${supabaseUrl.replace(/\/$/, "")}/rest/v1/leads?id=eq.${encodeURIComponent(lead.id)}&select=*`,
+    {
+      cache: "no-store",
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+      },
+    },
+  );
+  if (!response.ok) return lead;
+  const rows = await response.json() as SheetLead[];
+  return rows[0] ?? lead;
+}
+
+async function readLeadIds(
+  spreadsheetId: string,
+  title: string,
+  keyColumn: string,
+  headers: Record<string, string>,
+) {
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(title, `${keyColumn}:${keyColumn}`))}?majorDimension=COLUMNS`,
+    { cache: "no-store", headers },
+  );
+  if (!response.ok) throw new Error(`google_sheet_read_${response.status}`);
+  const body = (await response.json()) as { values?: unknown[][] };
+  return body.values?.[0] ?? [];
+}
+
+async function appendSheetRow(
+  spreadsheetId: string,
+  title: string,
+  baseLastColumn: string,
+  row: unknown[],
+  headers: Record<string, string>,
+) {
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(title, `A:${baseLastColumn}`))}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+    {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ majorDimension: "ROWS", values: [row] }),
+      cache: "no-store",
+    },
+  );
+  if (!response.ok) throw new Error(`google_sheet_append_${response.status}`);
+}
+
+async function updateSheetRow(
+  spreadsheetId: string,
+  title: string,
+  lastColumn: string,
+  rowNumber: number,
+  row: unknown[],
+  headers: Record<string, string>,
+) {
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(title, `A${rowNumber}:${lastColumn}${rowNumber}`))}?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ majorDimension: "ROWS", values: [row] }),
+      cache: "no-store",
+    },
+  );
+  if (!response.ok) throw new Error(`google_sheet_update_${response.status}`);
+}
+
+async function clearDuplicateRows(
+  spreadsheetId: string,
+  title: string,
+  lastColumn: string,
+  duplicateIndexes: number[],
+  headers: Record<string, string>,
+) {
+  if (!duplicateIndexes.length) return;
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values:batchClear`,
+    {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ranges: duplicateIndexes.map((index) =>
+          sheetA1Range(title, `A${index + 1}:${lastColumn}${index + 1}`)),
+      }),
+      cache: "no-store",
+    },
+  );
+  if (!response.ok) throw new Error(`google_sheet_duplicates_${response.status}`);
+}
+
 export async function syncLeadToGoogleSheets(lead: SheetLead, vercelOidcToken: string | null | undefined) {
   if (!vercelOidcToken) throw new Error("vercel_oidc_token_missing");
   return retry(async () => {
-    const spreadsheetId = spreadsheetIdFor(lead);
+    const currentLead = await latestLeadForSync(lead);
+    const spreadsheetId = spreadsheetIdFor(currentLead);
     const accessToken = await getGoogleAccessToken(vercelOidcToken);
     const headers = { Authorization: `Bearer ${accessToken}` };
     const properties = await getSheetProperties(spreadsheetId, headers);
-    const plan = sheetPlanForLead(lead);
+    const plan = sheetPlanForLead(currentLead);
     await ensureEnrollmentColumns(
       spreadsheetId,
       properties,
@@ -460,38 +562,36 @@ export async function syncLeadToGoogleSheets(lead: SheetLead, vercelOidcToken: s
       plan.existingHeaders,
       plan.baseColumnCount,
     );
-    const leadIdsResponse = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `${plan.keyColumn}:${plan.keyColumn}`))}?majorDimension=COLUMNS`,
-      { cache: "no-store", headers },
-    );
-    if (!leadIdsResponse.ok) throw new Error(`google_sheet_read_${leadIdsResponse.status}`);
-    const leadIdsBody = (await leadIdsResponse.json()) as { values?: unknown[][] };
-    const leadIds = leadIdsBody.values?.[0] ?? [];
-    const existingIndex = leadIds.findIndex((value) => value === lead.id);
-    const row = plan.row;
-    if (existingIndex >= 0) {
-      const rowNumber = existingIndex + 1;
-      const updateResponse = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `A${rowNumber}:${plan.lastColumn}${rowNumber}`))}?valueInputOption=RAW`,
-        {
-          method: "PUT",
-          headers: { ...headers, "Content-Type": "application/json" },
-          body: JSON.stringify({ majorDimension: "ROWS", values: [row] }),
-          cache: "no-store",
-        },
+    let leadIds = await readLeadIds(spreadsheetId, properties.title, plan.keyColumn, headers);
+    let matchingIndexes = leadIds.flatMap((value, index) => value === currentLead.id ? [index] : []);
+    if (!matchingIndexes.length) {
+      await appendSheetRow(
+        spreadsheetId,
+        properties.title,
+        plan.baseLastColumn,
+        plan.row,
+        headers,
       );
-      if (!updateResponse.ok) throw new Error(`google_sheet_update_${updateResponse.status}`);
-      return;
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      leadIds = await readLeadIds(spreadsheetId, properties.title, plan.keyColumn, headers);
+      matchingIndexes = leadIds.flatMap((value, index) => value === currentLead.id ? [index] : []);
     }
-    const appendResponse = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `A:${plan.lastColumn}`))}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
-      {
-        method: "POST",
-        headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ majorDimension: "ROWS", values: [row] }),
-        cache: "no-store",
-      },
+    const canonicalIndex = matchingIndexes[0];
+    if (canonicalIndex === undefined) throw new Error("google_sheet_row_unconfirmed");
+    await updateSheetRow(
+      spreadsheetId,
+      properties.title,
+      plan.lastColumn,
+      canonicalIndex + 1,
+      plan.row,
+      headers,
     );
-    if (!appendResponse.ok) throw new Error(`google_sheet_append_${appendResponse.status}`);
+    await clearDuplicateRows(
+      spreadsheetId,
+      properties.title,
+      plan.lastColumn,
+      matchingIndexes.slice(1),
+      headers,
+    );
   });
 }
