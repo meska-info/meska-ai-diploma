@@ -8,6 +8,7 @@ import {
   updateEnrollmentSession,
 } from "../../lib/enrollmentSession";
 import { EnrollmentRequestError, patchEnrollment } from "../../lib/enrollmentApi";
+import { validateCompanyName } from "../../lib/leadValidation";
 import {
   BASE_PRICE,
   formatEGP,
@@ -138,8 +139,9 @@ export function EnrollmentPanel({ leadId }: { leadId?: string }) {
 
   function saveCompany() {
     const trimmed = companyName.trim().replace(/\s+/g, " ");
-    if (trimmed.length < 2 || !/\p{L}/u.test(trimmed)) {
-      setCompanyError("Please enter your real company name.");
+    const error = validateCompanyName(trimmed);
+    if (error) {
+      setCompanyError(error);
       return;
     }
     setCompanyNeeded(false);
@@ -258,6 +260,7 @@ export function EnrollmentPanel({ leadId }: { leadId?: string }) {
             </div>
           ) : (
             <PaymentPathPicker
+              key={personal ? "personal" : "generic"}
               licenceRequired={Boolean(noLicence)}
               onSessionExpired={expireSession}
               personal={personal}

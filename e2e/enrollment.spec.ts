@@ -224,6 +224,11 @@ test("personal team enrollment supports roster, tier changes, invoice, share, co
   await expect(page.locator(".enrollment-pay-button")).toHaveAttribute("aria-disabled", "true");
   await page.getByLabel("I understand a Microsoft 365 Copilot licence is required.").check();
   await expect(page.locator(".enrollment-pay-button")).toHaveAttribute("aria-disabled", "false");
+
+  await setPersonalSession(page, { paymentPreference: "enterprise" });
+  await expect(page.getByRole("radio", { name: /Company invoice/ }))
+    .toHaveAttribute("aria-checked", "true");
+  await expect(page.getByRole("button", { name: /Request invoice/ })).toBeVisible();
 });
 
 test("generic, URL edge, responsive overflow and no-JavaScript modes remain safe", async ({ page, browser }) => {
