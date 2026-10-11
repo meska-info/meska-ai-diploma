@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Copilot Team Enrollment</title>
+<style>
+/* Layout: prototype of two pages (landing form → enrollment page) sharing one state; tokens mirror copilot.meska.ai. Spec: copilot-team-enrollment-spec.md v3 */
+:root{
+  --ink:#151130; --muted:#626477; --blue:#021f94; --accent:#f54f1b; --blue-pale:#ebeefa;
+  --paper:#f5f2f3; --card:#ffffff; --field:#f1eff2; --line:#d6d1d6; --success:#087d52; --error:#bd1e37; --warn:#9a5b00; --warn-bg:#fff4e0;
+  --on-ink:#f5f2f3; --btn-fg:#ffffff;
+  --font:Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono:ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ink:#ecebf5; --muted:#a3a4b8; --blue:#8ea2ff; --accent:#ff7a4d; --blue-pale:#1d2350;
+  --paper:#0f0e1a; --card:#181729; --field:#232238; --line:#34324b; --success:#3fcf95; --error:#ff6b80; --warn:#ffc266; --warn-bg:#2d2414;
+  --on-ink:#0f0e1a; --btn-fg:#0f0e1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --ink:#ecebf5; --muted:#a3a4b8; --blue:#8ea2ff; --accent:#ff7a4d; --blue-pale:#1d2350;
+  --paper:#0f0e1a; --card:#181729; --field:#232238; --line:#34324b; --success:#3fcf95; --error:#ff6b80; --warn:#ffc266; --warn-bg:#2d2414;
+  --on-ink:#0f0e1a; --btn-fg:#0f0e1a; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--font)}
+.wrap{max-width:1220px;margin:0 auto;padding-inline:16px;padding-block:36px 96px;display:grid;gap:40px}
+h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.02em}
+h1{font-size:clamp(26px,4vw,38px);font-weight:800}
+h2{font-size:22px;font-weight:800}
+h3{font-size:15px;font-weight:700}
+p{margin:0}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+.lead{color:var(--muted);max-width:72ch}
+.mini{font-size:12.5px;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+code{font-family:var(--mono);font-size:12px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--blue-pale);color:var(--blue)}
+
+/* scenario bar */
+.scen{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.scen button{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:6px 12px;cursor:pointer}
+.scen button:hover{border-color:var(--blue)}
+
+.pages{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.browser{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--paper);min-width:0}
+.chrome{display:flex;gap:8px;align-items:center;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--line);min-width:0}
+.chrome i{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
+.addr{flex:1;min-width:0;background:var(--field);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.pg{padding:16px;display:grid;gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;display:grid;gap:16px;min-width:0}
+
+/* calculator */
+.calc{background:var(--ink);color:var(--on-ink);border-radius:18px;padding:20px;display:grid;gap:12px}
+.calc .eyebrow{color:var(--accent)}
+.calc .big{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.calc .sub{font-size:13px;opacity:.78}
+.calc-row{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+.calc .stepper{border-color:color-mix(in srgb,var(--on-ink) 30%,transparent);background:transparent}
+.calc .stepper button{background:transparent;color:var(--on-ink)}
+.calc .stepper output{color:var(--on-ink)}
+.range{width:100%;accent-color:var(--accent);height:24px}
+.ticks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tick{border:1px solid color-mix(in srgb,var(--on-ink) 25%,transparent);border-radius:8px;padding:7px 9px;font-size:12px;display:grid}
+.tick b{font-size:12.5px}
+.tick.on{border-color:var(--accent);background:color-mix(in srgb,var(--on-ink) 12%,transparent)}
+.nudge{font-size:13px;font-weight:600;color:var(--accent)}
+.btn-calc{justify-self:start;border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:700;background:var(--accent);color:#fff;cursor:pointer}
+
+/* form */
+.ftitle{font-size:24px;font-weight:800;letter-spacing:-.03em}
+.types{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.type{border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:12px 14px;text-align:left;font:inherit;color:var(--ink);cursor:pointer;display:grid;gap:2px;min-height:64px}
+.type[aria-checked="true"]{border-color:var(--blue);background:var(--blue-pale)}
+.type b{font-size:15px}
+.type span{font-size:13px;color:var(--muted)}
+.intro{font-size:13.5px;color:var(--muted)}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+.field{display:grid;gap:5px;min-width:0;align-content:start}
+.field.full{grid-column:1/-1}
+.field label{font-size:12.5px;font-weight:600}
+.field label .req{color:var(--accent)}
+.field input,.field select{width:100%;background:var(--field);border:1.5px solid transparent;border-radius:9px;padding:11px 12px;font:inherit;font-size:16px;color:var(--ink);min-height:44px}
+.field .help{font-size:12px;color:var(--muted)}
+.field .err{font-size:12.5px;color:var(--error);font-weight:600}
+.field.bad input,.field.bad select{border-color:var(--error)}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.stepper button{width:44px;height:44px;border:0;background:var(--field);font-size:18px;cursor:pointer;color:var(--ink)}
+.stepper button:disabled{opacity:.35;cursor:not-allowed}
+.stepper output{min-width:48px;text-align:center;font-weight:800;font-size:17px}
+.seatline{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13.5px}
+.check input{width:18px;height:18px;margin-top:2px;accent-color:var(--blue)}
+.note{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.btn{border:0;border-radius:11px;padding:14px 18px;font:inherit;font-weight:700;cursor:pointer;background:var(--blue);color:var(--btn-fg);text-align:center;min-height:48px;width:100%}
+.btn.alt{background:var(--accent);color:#fff}
+.btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--line);width:auto;min-height:40px;padding:8px 12px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.next{font-size:12.5px;color:var(--muted)}
+.next b{color:var(--ink)}
+.formerr{color:var(--error);font-weight:600;font-size:13px}
+:is(button,input,select,a):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* page 2 */
+.p2title{font-size:24px;font-weight:800;letter-spacing:-.03em}
+.callout{border-radius:12px;padding:12px 14px;font-size:13.5px;display:grid;gap:8px}
+.callout.info{background:var(--blue-pale);color:var(--ink)}
+.callout.warn{background:var(--warn-bg);color:var(--ink);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+.callout.warn b{color:var(--warn)}
+.summary{display:grid;gap:6px;font-size:14px}
+.summary div{display:flex;justify-content:space-between;gap:12px}
+.summary .save{color:var(--success);font-weight:700}
+.summary .tot{font-size:21px;font-weight:800;border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
+.strike{text-decoration:line-through;color:var(--muted)}
+.status{font-size:12px;color:var(--success);font-weight:600;min-height:16px}
+.dots{display:flex;gap:4px;flex-wrap:wrap}
+.dots i{width:14px;height:14px;border-radius:4px;background:var(--line)}
+.dots i.f{background:var(--success)}
+.roster{display:grid;gap:8px}
+.rrow{display:grid;grid-template-columns:30px 1fr 1fr;gap:8px;align-items:start}
+.rrow .n{font-size:12px;color:var(--muted);padding-top:12px;text-align:center}
+.rrow input{width:100%;background:var(--field);border:1.5px solid transparent;border-radius:8px;padding:10px;font:inherit;font-size:16px;color:var(--ink);min-width:0}
+.rrow.me input{background:var(--blue-pale)}
+.rrow.over{opacity:.5}
+.rrow .rerr{grid-column:2/-1;font-size:12px;color:var(--error);font-weight:600}
+.rrow.bad input{border-color:var(--error)}
+.pays{display:grid;gap:8px}
+.pay{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;border:1.5px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;background:var(--card);text-align:left;font:inherit;color:var(--ink)}
+.pay[aria-checked="true"]{border-color:var(--blue);background:var(--blue-pale)}
+.pay .rad{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);margin-top:2px}
+.pay[aria-checked="true"] .rad{border:5px solid var(--blue)}
+.pay b{display:block;font-size:14px}
+.pay span{font-size:12.5px;color:var(--muted)}
+.linkbox{display:flex;gap:8px}
+.linkbox input{flex:1;min-width:0;background:var(--field);border:0;border-radius:8px;padding:10px;font-family:var(--mono);font-size:12px;color:var(--ink)}
+.success{background:color-mix(in srgb,var(--success) 14%,transparent);border-radius:12px;padding:14px;font-weight:600;font-size:14px}
+.p2grid{display:grid;gap:16px}
+.sticky{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:none;justify-content:space-between;align-items:center;gap:12px;margin:0 -16px -16px}
+.sticky .btn{width:auto}
+.log{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;font-family:var(--mono);font-size:11.5px;max-height:220px;overflow:auto;display:grid;gap:3px}
+.log div{white-space:pre-wrap;word-break:break-word}
+.log .ev{color:var(--blue)}
+.log .db{color:var(--success)}
+
+@media (max-width:1000px){.pages{grid-template-columns:1fr}}
+@media (max-width:560px){
+  .fields{grid-template-columns:1fr}
+  .types,.ticks{grid-template-columns:1fr}
+  .rrow{grid-template-columns:24px 1fr}
+  .rrow input:nth-of-type(2){grid-column:2}
+  .sticky{display:flex}
+}
+@media (prefers-reduced-motion:no-preference){.type,.pay,.btn{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <span class="eyebrow">Microsoft Copilot Course · Cohort 01 · Prototype v3</span>
+    <h1>Individual and team enrollment</h1>
+    <p class="lead">A clickable reference for <code>copilot-team-enrollment-spec.md</code>. Both pages share one state, just like the real site. The form runs the same validation rules as the spec, including the work-email rule. The log under the pages shows the Meta events and Supabase writes each action would trigger. The spec is authoritative wherever this prototype simplifies.</p>
+    <div class="scen" aria-label="Load a scenario">
+      <span class="mini">Load a scenario:</span>
+      <button type="button" data-s="ind">Individual · pay in full</button>
+      <button type="button" data-s="team3">Team of 3 · Sympl</button>
+      <button type="button" data-s="ent">Team of 6 · enterprise</button>
+      <button type="button" data-s="later">Next cohort</button>
+      <button type="button" data-s="nolic">No Copilot licence</button>
+      <button type="button" data-s="gmail">Gmail rejected</button>
+      <button type="button" data-s="reset">Empty form</button>
+    </div>
+  </header>
+
+  <div class="pages">
+    <!-- PAGE 1 -->
+    <div class="browser">
+      <div class="chrome"><i></i><i></i><i></i><span class="addr" id="addr1">copilot.meska.ai/#apply</span></div>
+      <div class="pg">
+        <div class="calc" aria-live="polite">
+          <span class="eyebrow">Cohort 01 · Price your enrollment</span>
+          <div class="calc-row">
+            <div><div class="big num" id="cTotal"></div><div class="sub num" id="cSub"></div></div>
+            <div class="stepper"><button type="button" id="cMinus" aria-label="Remove a seat">−</button><output id="cSeats" class="num"></output><button type="button" id="cPlus" aria-label="Add a seat">+</button></div>
+          </div>
+          <input type="range" id="cRange" class="range" min="1" max="20" aria-label="Seats">
+          <div class="ticks"><div class="tick" data-t="individual"><b>1 seat</b>EGP 30,000</div><div class="tick" data-t="team20"><b>2–4 seats</b>EGP 24,000 / seat</div><div class="tick" data-t="team25"><b>5+ seats</b>EGP 22,500 / seat</div></div>
+          <div class="nudge" id="cNudge"></div>
+          <button type="button" class="btn-calc" id="cCta"></button>
+        </div>
+
+        <form class="panel" id="leadForm" novalidate>
+          <div style="display:grid;gap:4px"><span class="eyebrow">Interested in joining?</span><div class="ftitle">Talk to a Meska Advisor</div></div>
+          <div class="types" role="radiogroup" aria-label="Who's enrolling?">
+            <button type="button" class="type" role="radio" id="tMe"><b>Just me</b><span>EGP 30,000</span></button>
+            <button type="button" class="type" role="radio" id="tTeam"><b>My team</b><span id="tTeamSub"></span></button>
+          </div>
+          <p class="intro" id="intro"></p>
+          <div class="fields" id="fields"></div>
+          <input type="text" name="companyWebsite" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">
+          <p class="note" id="accuracy"></p>
+          <p class="formerr" id="formErr" hidden></p>
+          <button type="submit" class="btn" id="submit"></button>
+          <p class="next" id="nextStep"></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="browser">
+      <div class="chrome"><i></i><i></i><i></i><span class="addr" id="addr2">copilot.meska.ai/thank-you?diploma=online</span></div>
+      <div class="pg" id="p2">
+        <div class="panel" id="p2empty"><span class="eyebrow">Page 2</span><p class="lead">Submit the form on Page 1, or load a scenario above, to see the enrollment page.</p></div>
+        <div class="p2grid" id="p2body" hidden>
+          <div class="panel">
+            <div style="display:grid;gap:4px">
+              <span class="eyebrow">Your enrollment · Cohort 01 starts Wed 4 Nov</span>
+              <div class="p2title" id="p2title"></div>
+              <p class="mini" id="p2sub"></p>
+            </div>
+            <div id="callouts" style="display:grid;gap:8px"></div>
+            <div class="seatline">
+              <div class="stepper"><button type="button" id="sMinus" aria-label="Remove a seat">−</button><output id="sSeats" class="num"></output><button type="button" id="sPlus" aria-label="Add a seat">+</button></div>
+              <span class="mini" id="sHint"></span>
+            </div>
+            <div class="status" id="saveStatus" aria-live="polite"></div>
+            <div class="summary num" id="sum"></div>
+            <div id="rosterWrap" style="display:grid;gap:10px">
+              <div class="seatline"><div class="dots" id="dots"></div><span class="mini" id="rosterTxt"></span><button type="button" class="btn ghost" id="rosterToggle">Add participants</button></div>
+              <div id="roster" hidden style="display:grid;gap:10px">
+                <div class="roster" id="rows"></div>
+                <p class="mini">Optional now. You can send the list after payment too.</p>
+                <button type="button" class="btn ghost" id="rosterSave">Save participants</button>
+              </div>
+            </div>
+          </div>
+          <div class="panel" id="payPanel">
+            <h3>How would you like to pay?</h3>
+            <div class="pays" role="radiogroup" aria-label="Payment path">
+              <button type="button" class="pay" role="radio" data-k="now"><i class="rad"></i><div><b>Pay online now</b><span id="payNowDesc"></span></div></button>
+              <button type="button" class="pay" role="radio" data-k="invoice"><i class="rad"></i><div><b>Company invoice</b><span id="invDesc"></span></div></button>
+              <button type="button" class="pay" role="radio" data-k="send"><i class="rad"></i><div><b>Send to my manager to pay</b><span>Share this exact order and payment link with whoever approves it.</span></div></button>
+            </div>
+            <div id="sympl" class="callout info" hidden>Choose <b>Sympl</b> at checkout to split the payment with 0% interest.</div>
+            <div class="field" id="mgrField" hidden><label for="mgr">Manager or finance email (optional)</label><input id="mgr" type="email" placeholder="finance@yourcompany.com"></div>
+            <label class="check" id="ackRow" hidden><input type="checkbox" id="ack"> I understand a Microsoft 365 Copilot licence is required.</label>
+            <button type="button" class="btn alt" id="payCta"></button>
+            <div id="shareBox" hidden style="display:grid;gap:6px"><div class="linkbox"><input id="shareLink" readonly aria-label="Payment link"><button type="button" class="btn ghost" id="copyBtn">Copy</button></div><p class="mini" id="shareMsg"></p></div>
+            <div id="invDone" class="success" hidden></div>
+            <p class="mini">You will be able to review your order before completing payment through Meska's secure checkout.</p>
+            <div class="sticky" id="sticky"><span class="num" id="stickyTotal" style="font-weight:800"></span><button type="button" class="btn alt" id="stickyCta">Pay</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section style="display:grid;gap:10px">
+    <h2>What the system records</h2>
+    <p class="lead">Meta events (blue) and Supabase writes (green) for each action, which the Google Sheet row mirrors.</p>
+    <div class="log" id="log" aria-live="polite"></div>
+  </section>
+</div>
+
+<script>
+/* ---------- pricing (spec §4) ---------- */
+const BASE=30000, VARIANT="42776902369326", MAX=20;
+const clampSeats=n=>{n=Math.floor(Number(n));return !isFinite(n)||n<1?1:Math.min(MAX,n)};
+const rate=n=>n>=5?.25:n>=2?.20:0;
+const tierKey=n=>n>=5?"team25":n>=2?"team20":"individual";
+const per=n=>BASE*(1-rate(n)), total=n=>per(n)*n, saved=n=>BASE*n-total(n);
+const fmt=n=>"EGP "+Math.round(n).toLocaleString("en-US");
+function nextTier(n){if(n>=5)return null;if(n===1)return{need:1,newPer:24000,extra:6000};return{need:5-n,newPer:22500,extra:n*1500}}
+const permalink=(n,lead)=>`https://aionline.meska.ai/cart/${VARIANT}:${clampSeats(n)}?attributes%5Blead_id%5D=${lead||""}&ref=copilot-lp`;
+
+/* ---------- validation (spec §3.2 + §6, simplified port) ---------- */
+const PLACEHOLDER=new Set(["demo","dummy","example","fake","placeholder","sample","synthetic","test","testing"]);
+const DISPOSABLE=new Set(["mailinator.com","guerrillamail.com","10minutemail.com","tempmail.com","yopmail.com","sharklasers.com","throwawaymail.com","trashmail.com"]);
+const PERSONAL=new Set(["gmail.com","googlemail.com","hotmail.com","outlook.com","live.com","msn.com","yahoo.com","ymail.com","rocketmail.com","icloud.com","me.com","mac.com","aol.com","proton.me","protonmail.com","pm.me","gmx.com","gmx.net","mail.com","yandex.com","yandex.ru","zoho.com","zohomail.com","hey.com","fastmail.com","tutanota.com","inbox.com","mail.ru","qq.com","163.com","126.com"]);
+const PERSONAL_RE=/^(gmail|googlemail|hotmail|outlook|live|yahoo|ymail|aol|gmx|yandex|icloud)\.[a-z.]{2,6}$/;
+const KEYB=["qwerty","asdfgh","zxcvbn","qazwsx","poiuyt","lkjhg","mnbvc","asdf","qwer","zxcv"];
+const gib=w=>{const t=w.toLowerCase().replace(/[^a-z]/g,"");if(t.length<4)return false;if(/^(.)\1{3,}$/.test(t)||KEYB.some(k=>t.includes(k)))return true;const v=(t.match(/[aeiouy]/g)||[]).length;return t.length>=6&&v/t.length<0.15};
+const normMobile=m=>{const t=m.trim().replace(/[\s().-]/g,"");return /^01[0125]\d{8}$/.test(t)?"+20"+t.slice(1):/^0020/.test(t)?"+"+t.slice(2):t};
+const normLinkedin=v=>{let t=v.trim();if(!t)return"";if(!/^[a-z][a-z\d+.-]*:\/\//i.test(t))t="https://"+t;try{const u=new URL(t);u.protocol="https:";u.hash="";u.search="";if(u.hostname==="linkedin.com")u.hostname="www.linkedin.com";return u.toString().replace(/\/$/,"")}catch{return v.trim()}};
+function vName(v){const r=v.trim().replace(/\s+/g," ");if(!r)return"Full name is required.";const letters=(r.match(/\p{L}/gu)||[]).length;const words=r.toLowerCase().split(/[\s.'’–-]+/u).filter(Boolean);
+  if(letters<3||r.length>120||/^\d+$/.test(r)||/[^\p{L}\p{M}\s.'’–-]/u.test(r)||words.some(w=>PLACEHOLDER.has(w))||words.some(gib))return"Please enter your real full name.";return""}
+function vEmail(v,work=true){const a=v.trim().toLowerCase();if(!a)return"Email address is required.";const m=a.match(/^([^\s@]+)@([a-z\d](?:[a-z\d-]{0,61}[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?)+)$/i);
+  if(!m||!/\.[a-z]{2,}$/i.test(m[2]))return"Please enter a valid email address you actively use.";const[,local,dom]=m;
+  if(DISPOSABLE.has(dom)||PLACEHOLDER.has(local.replace(/[._+-]?\d+$/,""))||/^(no-?reply)$/.test(local)||/^(\d)\1{4,}$/.test(local)||/^(asdf|qwerty|zxcv|12345)/.test(local)||gib(local))return"Please enter a valid email address you actively use.";
+  if(work&&(PERSONAL.has(dom)||PERSONAL_RE.test(dom)))return"Please use your work email (e.g. name@yourcompany.com). Personal addresses like Gmail, Outlook or Yahoo aren't accepted.";return""}
+function vMobile(v){if(!v.trim())return"Mobile number is required.";const n=normMobile(v),d=n.replace(/\D/g,"");const ok=/^\+201[0125]\d{8}$/.test(n)||/^\+[1-9]\d{7,14}$/.test(n);
+  if(!ok||/(\d)\1{6,}/.test(d)||["0123456789","1234567890","9876543210"].some(s=>d.length>=8&&s.includes(d))||d.length<8||d.length>15)return"Enter a valid mobile number, including country code if outside Egypt.";return""}
+function vLinkedin(v){if(!v.trim())return"LinkedIn profile is required.";try{const u=new URL(normLinkedin(v));if(u.protocol==="https:"&&u.hostname==="www.linkedin.com"&&/^\/in\/[a-z\d%_-]{2,}\/?$/i.test(u.pathname))return""}catch{}return"Enter your LinkedIn profile URL, e.g. linkedin.com/in/your-name."}
+function vOrg(v,kind){const r=v.trim().replace(/\s+/g," ");const L=kind==="company"?{req:"Company name is required.",bad:"Please enter your real company name.",max:120}:{req:"Job title is required.",bad:"Please enter your real job title.",max:80};
+  if(!r)return L.req;const words=r.toLowerCase().split(/[\s&.,'’()\/+-]+/).filter(Boolean);
+  if(r.length<2||r.length>L.max||!/\p{L}/u.test(r)||/^\d+$/.test(r)||/[^\p{L}\p{M}\d\s&.,'’()\/+-]/u.test(r)||words.some(w=>PLACEHOLDER.has(w))||words.some(gib))return L.bad;return""}
+const vSel=(v,allowed,msg)=>allowed.includes(v)?"":msg;
+
+/* ---------- field definitions (spec §5) ---------- */
+const OPT={
+  exp:[["","Select experience"],["0–2 years","0–2 years"],["3–6 years","3–6 years"],["7–10 years","7–10 years"],["10+ years","10+ years"]],
+  payInd:[["","Select payment option"],["full","Pay in full"],["installments","0% interest installments via Sympl"]],
+  payTeam:[["","Select payment option"],["full","Pay in full"],["installments","0% interest installments via Sympl"],["enterprise","Enterprise arrangement (invoice, purchase order or custom payment terms)"]],
+  licInd:[["","Select an answer"],["yes","Yes, through my company"],["no","No, not yet"],["unsure","I'm not sure"]],
+  licTeam:[["","Select an answer"],["all","Yes, for everyone joining"],["some","Yes, for some of the team"],["none","No, not yet"],["unsure","We're not sure"]],
+  ready:[["","Select a cohort"],["upcoming","Upcoming cohort · Cohort 01, starts Wed 4 Nov 2026"],["later","The next cohort"]]
+};
+const FIELDS={
+  individual:[
+    {n:"fullName",l:"Full name",t:"text",ph:"Your full name",ac:"name",v:x=>vName(x)},
+    {n:"mobile",l:"Mobile number",t:"tel",ph:"+20 1XX XXX XXXX",ac:"tel",v:vMobile},
+    {n:"email",l:"Work email",t:"email",ph:"you@yourcompany.com",ac:"email",help:"Use your company email address.",v:x=>vEmail(x)},
+    {n:"companyName",l:"Company",t:"text",ph:"Company you work for",ac:"organization",v:x=>vOrg(x,"company")},
+    {n:"jobTitle",l:"Job title",t:"text",ph:"e.g. Operations Manager",ac:"organization-title",v:x=>vOrg(x,"title")},
+    {n:"linkedinUrl",l:"LinkedIn profile",t:"url",ph:"linkedin.com/in/your-name",v:vLinkedin},
+    {n:"yearsExperience",l:"Years of experience",sel:"exp",v:x=>vSel(x,["0–2 years","3–6 years","7–10 years","10+ years"],"Select your years of experience.")},
+    {n:"paymentPreference",l:"How would you like to pay?",sel:"payInd",v:x=>vSel(x,["full","installments"],"Select your preferred payment option.")},
+    {n:"copilotLicence",l:"Do you have a Microsoft 365 Copilot licence?",sel:"licInd",v:x=>vSel(x,["yes","no","unsure"],"Tell us whether you have a Copilot licence.")},
+    {n:"joiningReadiness",l:"When would you like to join?",sel:"ready",full:true,v:x=>vSel(x,["upcoming","later"],"Select when you would like to join.")}
+  ],
+  team:[
+    {n:"companyName",l:"Company",t:"text",ph:"Company name",ac:"organization",v:x=>vOrg(x,"company")},
+    {n:"jobTitle",l:"Your job title",t:"text",ph:"e.g. L&D Manager",ac:"organization-title",v:x=>vOrg(x,"title")},
+    {n:"fullName",l:"Your full name",t:"text",ph:"Your full name",ac:"name",v:x=>vName(x)},
+    {n:"email",l:"Work email",t:"email",ph:"you@yourcompany.com",ac:"email",v:x=>vEmail(x)},
+    {n:"mobile",l:"Mobile number",t:"tel",ph:"+20 1XX XXX XXXX",ac:"tel",v:vMobile},
+    {n:"linkedinUrl",l:"LinkedIn profile",t:"url",ph:"linkedin.com/in/your-name",v:vLinkedin},
+    {n:"seats",l:"Number of seats",seats:true,full:true},
+    {n:"paymentPreference",l:"How would your company like to pay?",sel:"payTeam",full:true,v:x=>vSel(x,["full","installments","enterprise"],"Select your preferred payment option.")},
+    {n:"joiningReadiness",l:"When would your team like to join?",sel:"ready",v:x=>vSel(x,["upcoming","later"],"Select when you would like to join.")},
+    {n:"copilotLicence",l:"Does your company have Microsoft 365 Copilot licences?",sel:"licTeam",v:x=>vSel(x,["all","some","none","unsure"],"Tell us about your company's Copilot licences.")},
+    {n:"submitterIsParticipant",l:"I'm one of the participants",check:true,full:true,help:"Untick if you're enrolling your team but not attending yourself."}
+  ]
+};
+const COPY={
+  individual:{intro:"Tell us about yourself so an advisor can confirm your Copilot access and hold your seat in the cohort. It takes about a minute.",acc:"Please use your real details. We use them for your enrollment, certificate and onboarding messages.",next:"<b>Next:</b> you'll see your enrollment summary and can pay online or talk to an advisor first. Nothing is charged yet."},
+  team:{intro:"Tell us about your company and team. We use this to confirm Copilot access, apply team pricing and prepare onboarding for everyone.",acc:"Please use your real work details. The company name appears on your invoice and certificates.",next:"<b>Next:</b> confirm seats, add participants (optional) and choose how to pay. Nothing is charged yet."}
+};
+
+/* ---------- state ---------- */
+const blank=()=>({fullName:"",mobile:"",email:"",companyName:"",jobTitle:"",linkedinUrl:"",yearsExperience:"",paymentPreference:"",copilotLicence:"",joiningReadiness:"",submitterIsParticipant:true});
+let S={seats:1,type:"individual",v:blank(),errors:{},touched:{},lead:null,p2:{participants:[],path:"now",ack:false,invoiced:false,rosterOpen:false},firedTiers:new Set()};
+const $=id=>document.getElementById(id);
+const log=(kind,msg)=>{const d=document.createElement("div");d.className=kind;d.textContent=(kind==="ev"?"fbq · ":"supabase · ")+msg;$("log").prepend(d)};
+
+/* ---------- page 1 render ---------- */
+function setSeats(n,src){const prev=S.seats;S.seats=clampSeats(n);
+  if(S.seats>1&&S.type==="individual")switchType("team",true);else if(S.seats===1&&S.type==="team"&&src!=="p2")switchType("individual",true);
+  const t=tierKey(S.seats);if(t!=="individual"&&!S.firedTiers.has(t)&&tierKey(prev)!==t){S.firedTiers.add(t);log("ev",`TierUnlocked {tier:"${t}", seats:${S.seats}, location:"${src||"calculator"}"}`)}
+  render()}
+function switchType(t,silent){if(S.type===t)return;
+  const map=t==="team"?{yes:"all",no:"none",unsure:"unsure"}:{all:"yes",some:"yes",none:"no",unsure:"unsure"};
+  S.v.copilotLicence=map[S.v.copilotLicence]||"";if(t==="individual"&&S.v.paymentPreference==="enterprise")S.v.paymentPreference="";
+  S.type=t;S.errors={};if(t==="team"&&S.seats<2)S.seats=2;if(t==="individual")S.seats=1;
+  if(!silent)log("ev",`EnrollmentTypeSelected {enrollment_type:"${t}", seats:${S.seats}, form_location:"primary"}`);
+  buildFields();}
+
+function buildFields(){const wrap=$("fields");wrap.innerHTML="";
+  FIELDS[S.type].forEach(f=>{const d=document.createElement("div");d.className="field"+(f.full?" full":"");d.dataset.n=f.n;
+    if(f.seats){d.innerHTML=`<label>${f.l} <span class="req">*</span></label><div class="seatline"><div class="stepper"><button type="button" data-step="-1" aria-label="Remove a seat">−</button><output class="num" id="fSeats"></output><button type="button" data-step="1" aria-label="Add a seat">+</button></div><span class="mini num" id="fSeatLine"></span></div><span class="help" id="fSeatNudge"></span>`;}
+    else if(f.check){d.innerHTML=`<label class="check"><input type="checkbox" id="f_${f.n}" ${S.v[f.n]?"checked":""}> ${f.l}</label><span class="help">${f.help}</span>`;}
+    else if(f.sel){d.innerHTML=`<label for="f_${f.n}">${f.l} <span class="req">*</span></label><select id="f_${f.n}" aria-describedby="e_${f.n}">${OPT[f.sel].map(([v,t])=>`<option value="${v}">${t}</option>`).join("")}</select><span class="err" id="e_${f.n}"></span>`;}
+    else{d.innerHTML=`<label for="f_${f.n}">${f.l} <span class="req">*</span></label><input id="f_${f.n}" type="${f.t}" placeholder="${f.ph}" ${f.ac?`autocomplete="${f.ac}"`:""} aria-describedby="e_${f.n}">${f.help?`<span class="help">${f.help}</span>`:""}<span class="err" id="e_${f.n}"></span>`;}
+    wrap.appendChild(d);
+    const el=$("f_"+f.n);
+    if(el&&!f.check){el.value=S.v[f.n]||"";
+      el.addEventListener("input",()=>{S.v[f.n]=el.value;if(S.touched[f.n])validateField(f)});
+      el.addEventListener("change",()=>{S.v[f.n]=el.value;if(S.touched[f.n])validateField(f)});
+      el.addEventListener("blur",()=>{if(f.n==="mobile"&&!vMobile(el.value)){el.value=S.v.mobile=normMobile(el.value)}if(f.n==="linkedinUrl"&&!vLinkedin(el.value)){el.value=S.v.linkedinUrl=normLinkedin(el.value)}if(S.touched[f.n])validateField(f)});}
+    if(el&&f.check)el.addEventListener("change",()=>{S.v[f.n]=el.checked});
+  });
+  wrap.querySelectorAll("[data-step]").forEach(b=>b.onclick=()=>setSeats(S.seats+ +b.dataset.step,"form"));
+  render();}
+function validateField(f){if(!f.v)return"";const msg=f.v(S.v[f.n]||"");S.errors[f.n]=msg;const box=document.querySelector(`.field[data-n="${f.n}"]`);if(box){box.classList.toggle("bad",!!msg);const e=$("e_"+f.n);if(e)e.textContent=msg}return msg}
+
+function render(){const n=S.seats,team=S.type==="team";
+  $("cTotal").textContent=fmt(total(n));
+  $("cSub").textContent=n===1?"1 seat · individual price":`${n} seats × ${fmt(per(n))} · you save ${fmt(saved(n))}`;
+  $("cSeats").textContent=n;$("cRange").value=n;$("cMinus").disabled=n<=1;$("cPlus").disabled=n>=MAX;
+  document.querySelectorAll(".tick").forEach(t=>t.classList.toggle("on",t.dataset.t===tierKey(n)));
+  const nt=nextTier(n);
+  $("cNudge").textContent=n===1?"Bringing a colleague? 2 seats drop to EGP 24,000 each.":nt?`Add ${nt.need} more seat${nt.need>1?"s":""} and every seat drops to EGP 22,500 (saves another ${fmt(nt.extra)} on your current seats).`:n>=MAX?"Larger group? Talk to an advisor for a custom quote.":"Best rate unlocked: 25% off every seat.";
+  $("cCta").textContent=n===1?"Enroll ↘":`Enroll my team of ${n} ↘`;
+  $("tMe").setAttribute("aria-checked",!team);$("tTeam").setAttribute("aria-checked",team);
+  $("tTeamSub").textContent=team?`${n} seats · ${fmt(total(n))}`:"From EGP 24,000 / seat";
+  $("intro").textContent=COPY[S.type].intro;$("accuracy").textContent=COPY[S.type].acc;$("nextStep").innerHTML=COPY[S.type].next;
+  $("submit").textContent=team?`Continue with ${n} seats →`:"Submit my interest ↗";
+  if($("fSeats")){$("fSeats").textContent=n;$("fSeatLine").textContent=`${n} × ${fmt(per(n))} = ${fmt(total(n))}`;$("fSeatNudge").textContent=nt&&n>1?`Add ${nt.need} more for EGP 22,500 per seat.`:n>=5?"25% off every seat.":"";
+    const [mi,pl]=document.querySelectorAll("#fields [data-step]");if(mi){mi.disabled=n<=2;pl.disabled=n>=MAX}}
+  $("addr1").textContent=`copilot.meska.ai/?seats=${n}#apply`;
+  if(S.lead)renderP2();}
+
+/* ---------- submit ---------- */
+$("leadForm").addEventListener("submit",e=>{e.preventDefault();$("formErr").hidden=true;
+  let first=null,bad=[];FIELDS[S.type].forEach(f=>{S.touched[f.n]=true;const m=validateField(f);if(m){bad.push(f.n);if(!first)first=f}});
+  if(S.type==="team"&&(S.seats<2||S.seats>20)){bad.push("seats")}
+  if($("hp").value){log("db","honeypot filled → handled exactly as today (no lead)");return}
+  if(bad.length){log("ev",`FormError {error_type:"validation", invalid_field_count:${bad.length}, error_fields:"${bad.join(",")}", enrollment_type:"${S.type}", seats:${S.seats}}`);const el=$("f_"+first.n);el&&el.scrollIntoView({behavior:"smooth",block:"center"});el&&el.focus({preventScroll:true});return}
+  const btn=$("submit");btn.disabled=true;btn.textContent="Saving…";
+  setTimeout(()=>{const n=S.seats,lead="cl_"+Math.random().toString(36).slice(2,8);
+    log("ev",`FormSubmit {tracking_id:"copilot_primary_form_submit", enrollment_type:"${S.type}", seats:${n}, value:${total(n)}, currency:"EGP", tier:"${tierKey(n)}", payment_preference:"${S.v.paymentPreference}", joining_readiness:"${S.v.joiningReadiness}", copilot_licence:"${S.v.copilotLicence}"}`);
+    log("db",`INSERT lead ${lead} {enrollment_type:"${S.type}", seats:${n}, quoted_total:${total(n)}, company_name:"${S.v.companyName}", copilot_licence:"${S.v.copilotLicence}", status:"lead"} → Sheet row appended`);
+    S.lead={id:lead};S.p2={participants:S.type==="team"&&S.v.submitterIsParticipant?[{name:S.v.fullName,email:S.v.email.toLowerCase(),me:true}]:[],path:S.v.paymentPreference==="enterprise"?"invoice":"now",ack:false,invoiced:false,rosterOpen:false};
+    btn.disabled=false;log("ev",`EnrollmentPageView {mode:"personal", seats:${n}, value:${total(n)}, enrollment_type:"${S.type}", joining_readiness:"${S.v.joiningReadiness}"}`);
+    render();$("p2body").scrollIntoView({behavior:"smooth",block:"start"});},450);
+});
+
+/* ---------- page 2 ---------- */
+let saveT;
+function persist(fields,desc){clearTimeout(saveT);$("saveStatus").textContent="Saving…";saveT=setTimeout(()=>{$("saveStatus").textContent="Saved";log("db",`PATCH ${S.lead.id} ${desc} → Sheet row updated`);setTimeout(()=>{$("saveStatus").textContent=""},2000)},600)}
+function renderP2(){const n=S.seats,team=S.type==="team",v=S.v,p=S.p2,first=v.fullName.trim().split(/\s+/)[0]||"";
+  $("p2empty").hidden=true;$("p2body").hidden=false;
+  $("addr2").textContent=`copilot.meska.ai/thank-you?diploma=online&seats=${n}&lead=${S.lead.id}`;
+  $("p2title").textContent=team?`${first}, here's the plan for ${v.companyName}'s team of ${n}`:`${first}, your seat is ready`;
+  $("p2sub").textContent=team?"You can still change the number of seats. The total below is exactly what you'll pay at checkout.":"Coming with colleagues? Add seats and the team rate applies automatically.";
+  // callouts
+  const c=[];const later=v.joiningReadiness==="later";
+  if(later)c.push(`<div class="callout info"><span>You chose the next cohort. We've saved your details and an advisor will contact you when dates are confirmed. Want to join Cohort 01 instead?</span><button type="button" class="btn ghost" id="switchCohort">Switch to Cohort 01</button></div>`);
+  const noLic=["no","none"].includes(v.copilotLicence);
+  if(noLic)c.push(`<div class="callout warn"><span><b>Copilot licence needed.</b> The course builds run inside Microsoft 365 Copilot, so a licence is needed by the first session (Mon 9 Nov). An advisor will contact you to help. You can still reserve now.</span></div>`);
+  if(v.copilotLicence==="some")c.push(`<div class="callout info">Participants without a licence will need one by Mon 9 Nov. An advisor will help you plan this.</div>`);
+  if(v.copilotLicence==="unsure")c.push(`<div class="callout info">Not sure about licences? An advisor will check with you before the cohort starts.</div>`);
+  $("callouts").innerHTML=c.join("");if($("switchCohort"))$("switchCohort").onclick=()=>{v.joiningReadiness="upcoming";log("ev",`CohortSwitched {seats:${n}, enrollment_type:"${S.type}"}`);persist({},`{joining_readiness:"upcoming"}`);buildFields()};
+  // stepper + summary
+  $("sSeats").textContent=n;$("sMinus").disabled=n<=1;$("sPlus").disabled=n>=MAX;
+  const nt=nextTier(n);$("sHint").textContent=n===1?"1 more seat for 20% off":nt?`${nt.need} more for 25% off`:n>=MAX?"Larger group? Talk to an advisor":"25% off every seat";
+  $("sum").innerHTML=(n>1?`<div><span>${n} × EGP 30,000</span><span class="strike">${fmt(BASE*n)}</span></div><div><span>Team pricing · ${rate(n)*100}% off every seat</span><span class="save">−${fmt(saved(n))}</span></div><div><span>Per seat</span><span>${fmt(per(n))}</span></div>`:`<div><span>1 × Microsoft Copilot Course</span><span>${fmt(BASE)}</span></div>`)+`<div class="tot"><span>Total</span><span>${fmt(total(n))}</span></div>`;
+  // roster
+  $("rosterWrap").hidden=!team;
+  if(team){const filled=p.participants.filter(x=>x.name&&x.email).slice(0,n).length;
+    $("dots").innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<filled?"f":""}"></i>`).join("");
+    $("rosterTxt").textContent=`${filled} of ${n} participants added`;$("rosterToggle").textContent=p.rosterOpen?"Hide participants":filled?"Edit participants":"Add participants";$("roster").hidden=!p.rosterOpen;
+    if(p.rosterOpen)renderRows();}
+  // payment
+  $("payPanel").hidden=false;
+  const pays=document.querySelectorAll(".pay");pays.forEach(b=>{b.setAttribute("aria-checked",b.dataset.k===p.path)});
+  document.querySelector('.pays').hidden=later;$("payNowDesc").textContent=`Card, Sympl 0% interest installments, Geidea or Instapay. Your seat${n>1?"s are":" is"} confirmed right away.`;
+  $("invDesc").textContent=v.paymentPreference==="enterprise"?"Enterprise arrangement: we'll prepare an invoice or work with your purchase order and terms.":"Our team sends an invoice in your company's name with the rate locked in, usually within 1 working day. Purchase orders and custom terms welcome.";
+  $("sympl").hidden=later||!(v.paymentPreference==="installments"&&p.path==="now");
+  $("mgrField").hidden=later||p.path!=="send";
+  $("ackRow").hidden=later||!noLic||p.path!=="now";$("ack").checked=p.ack;
+  const cta=$("payCta");cta.hidden=later||p.invoiced&&p.path==="invoice";
+  cta.textContent=later?"":p.path==="now"?`Pay ${fmt(total(n))} securely ↗`:p.path==="invoice"?`Request invoice for ${fmt(total(n))}`:"Share payment link";
+  cta.disabled=p.path==="now"&&noLic&&!p.ack;
+  $("shareBox").hidden=later||p.path!=="send";$("shareLink").value=permalink(n,S.lead.id);
+  $("invDone").hidden=!(p.invoiced&&p.path==="invoice");$("invDone").textContent=`Request received. We'll email ${v.email} within 1 working day.`;
+  if(later){$("payPanel").querySelector("h3").textContent="Next step";if(!$("advisorNote")){const a=document.createElement("p");a.id="advisorNote";a.className="lead";a.textContent="An advisor will contact you about the next cohort. No payment is needed now.";$("payPanel").insertBefore(a,$("sympl"))}}else{$("payPanel").querySelector("h3").textContent="How would you like to pay?";$("advisorNote")&&$("advisorNote").remove()}
+  $("stickyTotal").textContent=fmt(total(n));$("stickyCta").textContent=p.path==="now"?"Pay":p.path==="invoice"?"Request invoice":"Share link";$("sticky").style.visibility=later?"hidden":"visible";
+}
+function renderRows(){const n=S.seats,p=S.p2;const rows=[];const count=Math.max(n,p.participants.length);
+  for(let i=0;i<count;i++){const r=p.participants[i]||{name:"",email:""};const over=i>=n;
+    rows.push(`<div class="rrow ${r.me?"me":""} ${over?"over":""}" data-i="${i}"><span class="n">${r.me?"You":i+1}</span><input data-k="name" placeholder="Full name" value="${r.name||""}" ${r.me?"readonly":""} aria-label="Participant ${i+1} name"><input data-k="email" type="email" placeholder="name@company.com" value="${r.email||""}" ${r.me?"readonly":""} aria-label="Participant ${i+1} email">${over?`<span class="rerr">Over seat limit</span>`:`<span class="rerr"></span>`}</div>`)}
+  $("rows").innerHTML=rows.join("");
+  $("rows").querySelectorAll("input").forEach(inp=>inp.addEventListener("input",()=>{const i=+inp.closest(".rrow").dataset.i;p.participants[i]=p.participants[i]||{name:"",email:""};p.participants[i][inp.dataset.k]=inp.value}));}
+
+$("rosterToggle").onclick=()=>{S.p2.rosterOpen=!S.p2.rosterOpen;renderP2()};
+$("rosterSave").onclick=()=>{const p=S.p2,seen=new Set();let ok=true,valid=[];
+  $("rows").querySelectorAll(".rrow").forEach(row=>{const i=+row.dataset.i,r=p.participants[i]||{};const err=row.querySelector(".rerr");if(i>=S.seats||r.me){if(r.me){valid.push(r);seen.add(r.email)}return}
+    let m="";if(r.name||r.email){m=vName(r.name||"")||vEmail(r.email||"");const e=(r.email||"").toLowerCase();if(!m&&seen.has(e))m="This email is already on the list.";if(!m){seen.add(e);valid.push({name:r.name.trim(),email:e})}}
+    row.classList.toggle("bad",!!m);err.textContent=m;if(m)ok=false});
+  if(!ok)return;log("ev",`ParticipantsSaved {seats:${S.seats}, participants_count:${valid.length}}`);persist({},`{participants:[${valid.length}], participants_count:${valid.length}}`);renderP2()};
+$("sMinus").onclick=()=>{if(S.type==="team"&&S.seats===2){if(!S._confirm1){S._confirm1=true;$("saveStatus").textContent="Tap − again to switch to an individual enrollment (team pricing no longer applies).";return}S._confirm1=false;S.type="individual";buildFields()}
+  setSeats(S.seats-1,"p2");persist({},`{seats:${S.seats}, quoted_total:${total(S.seats)}, enrollment_type:"${S.type}"}`);log("ev",`SeatCalculatorChange {seats:${S.seats}, tier:"${tierKey(S.seats)}", value:${total(S.seats)}, location:"enroll"}`)};
+$("sPlus").onclick=()=>{if(S.type==="individual"){S.type="team";if(!S.v.companyName)S.v.companyName="(ask inline)";const m={yes:"all",no:"none",unsure:"unsure"};S.v.copilotLicence=m[S.v.copilotLicence]||S.v.copilotLicence;buildFields()}
+  setSeats(S.seats+1,"p2");persist({},`{seats:${S.seats}, quoted_total:${total(S.seats)}, enrollment_type:"${S.type}"}`);log("ev",`SeatCalculatorChange {seats:${S.seats}, tier:"${tierKey(S.seats)}", value:${total(S.seats)}, location:"enroll"}`)};
+document.querySelectorAll(".pay").forEach(b=>b.onclick=()=>{S.p2.path=b.dataset.k;log("ev",`PaymentPathSelected {payment_path:"${b.dataset.k}", seats:${S.seats}, value:${total(S.seats)}}`);renderP2()});
+$("ack").onchange=e=>{S.p2.ack=e.target.checked;persist({},`{licence_acknowledged:${e.target.checked}}`);renderP2()};
+function doPay(){const n=S.seats,p=S.p2;
+  if(p.path==="now"){log("db",`PATCH ${S.lead.id} {payment_path:"now", status:"checkout_started", checkout_started_at:now} → Sheet row updated`);log("ev",`InitiateCheckout {tracking_id:"copilot_enrollment", value:${total(n)}, currency:"EGP", num_items:${n}, content_ids:["${VARIANT}"], tier:"${tierKey(n)}", lead_id:"${S.lead.id}"}`);log("db",`→ redirect ${permalink(n,S.lead.id)}`)}
+  if(p.path==="invoice"){p.invoiced=true;log("db",`PATCH ${S.lead.id} {payment_path:"invoice", status:"invoice_requested", invoice_requested_at:now} → Sheet row updated`);log("ev",`InvoiceRequested {seats:${n}, value:${total(n)}, currency:"EGP"}`)}
+  if(p.path==="send"){const m=$("mgr").value;if(m&&vEmail(m,false)){$("shareMsg").textContent=vEmail(m,false);return}
+    log("db",`PATCH ${S.lead.id} {payment_path:"send", payer_email:"${m}", status:"payment_link_shared"} → Sheet row updated`);
+    const url=permalink(n,S.lead.id);const done=method=>{$("shareMsg").textContent=method==="share"?"Shared.":"Link copied. Paste it in an email or WhatsApp to your manager.";log("ev",`PaymentLinkShared {seats:${n}, value:${total(n)}, method:"${method}"}`)};
+    try{navigator.clipboard.writeText(url).then(()=>done("copy"),()=>{$("shareLink").select();done("copy")})}catch{$("shareLink").select();done("copy")}}
+  renderP2()}
+$("payCta").onclick=doPay;$("stickyCta").onclick=doPay;
+$("copyBtn").onclick=()=>{const u=$("shareLink").value;try{navigator.clipboard.writeText(u).then(()=>{$("shareMsg").textContent="Link copied."},()=>{$("shareLink").select()})}catch{$("shareLink").select()}};
+
+/* ---------- page 1 controls ---------- */
+$("cRange").addEventListener("input",e=>setSeats(e.target.value,"calculator"));
+$("cMinus").onclick=()=>setSeats(S.seats-1,"calculator");$("cPlus").onclick=()=>setSeats(S.seats+1,"calculator");
+$("tMe").onclick=()=>{switchType("individual");render()};$("tTeam").onclick=()=>{switchType("team");render()};
+$("cCta").onclick=()=>{$("leadForm").scrollIntoView({behavior:"smooth",block:"start"});const firstEmpty=FIELDS[S.type].find(f=>!f.seats&&!f.check&&!S.v[f.n]);firstEmpty&&$("f_"+firstEmpty.n)&&$("f_"+firstEmpty.n).focus({preventScroll:true})};
+
+/* ---------- scenarios (example data, clearly fictional) ---------- */
+const base={fullName:"Mona Adel",mobile:"01012345678",email:"mona.adel@orascom.com",companyName:"Orascom Construction",jobTitle:"L&D Manager",linkedinUrl:"linkedin.com/in/mona-adel",submitterIsParticipant:true};
+const SC={
+  ind:()=>({type:"individual",seats:1,v:{...base,companyName:"Banque Misr",email:"mona.adel@banquemisr.com",jobTitle:"Operations Manager",yearsExperience:"7–10 years",paymentPreference:"full",copilotLicence:"yes",joiningReadiness:"upcoming"}}),
+  team3:()=>({type:"team",seats:3,v:{...base,paymentPreference:"installments",copilotLicence:"all",joiningReadiness:"upcoming"}}),
+  ent:()=>({type:"team",seats:6,v:{...base,companyName:"SODIC",email:"mona.adel@sodic.com",paymentPreference:"enterprise",copilotLicence:"some",joiningReadiness:"upcoming"}}),
+  later:()=>({type:"individual",seats:1,v:{...base,yearsExperience:"3–6 years",paymentPreference:"full",copilotLicence:"yes",joiningReadiness:"later"}}),
+  nolic:()=>({type:"team",seats:2,v:{...base,paymentPreference:"full",copilotLicence:"none",joiningReadiness:"upcoming"}}),
+  gmail:()=>({type:"individual",seats:1,v:{...base,email:"mona.adel@gmail.com",yearsExperience:"3–6 years",paymentPreference:"full",copilotLicence:"yes",joiningReadiness:"upcoming"},noSubmit:true}),
+  reset:()=>({type:"individual",seats:1,v:blank(),noSubmit:true,clear:true})
+};
+document.querySelectorAll(".scen [data-s]").forEach(b=>b.onclick=()=>{const s=SC[b.dataset.s]();S.type=s.type;S.seats=s.seats;S.v={...blank(),...s.v};S.errors={};S.touched={};
+  if(s.clear){S.lead=null;$("p2body").hidden=true;$("p2empty").hidden=false;$("log").innerHTML="";}
+  buildFields();if(!s.noSubmit){$("leadForm").requestSubmit()}else if(b.dataset.s==="gmail"){$("leadForm").requestSubmit()}});
+
+buildFields();
+SC.team3&&(()=>{const s=SC.team3();S.type=s.type;S.seats=s.seats;S.v={...blank(),...s.v};buildFields();$("leadForm").requestSubmit()})();
+</script>
+</body>
+</html>
