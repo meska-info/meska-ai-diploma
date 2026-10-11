@@ -223,7 +223,9 @@ async function getGoogleAccessToken(vercelOidcToken: string) {
 }
 
 function spreadsheetIdFor(diploma: DiplomaSlug) {
-  const id = diploma === "offline" ? process.env.GOOGLE_SHEETS_OFFLINE_ID : process.env.GOOGLE_SHEETS_ONLINE_ID;
+  const id = diploma === "offline"
+    ? process.env.GOOGLE_SHEETS_OFFLINE_ID
+    : process.env.GOOGLE_SHEETS_COPILOT_ID ?? process.env.GOOGLE_SHEETS_ONLINE_ID;
   if (!id) throw new Error(`google_sheet_${diploma}_missing`);
   return id;
 }

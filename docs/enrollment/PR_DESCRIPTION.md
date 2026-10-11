@@ -15,7 +15,7 @@ The pre-change discovery report is committed at `docs/enrollment/DISCOVERY_REPOR
 ## Database and Sheet
 
 - Applied `supabase/migrations/202610110001_copilot_team_enrollment.sql` through the authenticated project SQL editor; Supabase returned `Success. No rows returned.`
-- Sheet synchronization is repository-owned. It now upserts by lead UUID, adds only missing X:AQ headers and retries transient failures.
+- Sheet synchronization is repository-owned. It now upserts by lead UUID, expands a legacy A:W grid, adds only missing X:AQ headers and retries transient failures. `GOOGLE_SHEETS_COPILOT_ID` targets the existing Microsoft Copilot Diploma Leads workbook.
 - Existing Preview Supabase settings were preserved. The existing Production Google identity and Sheet IDs were copied to this branch's Preview scope so integration behavior can be tested without committing secrets.
 
 ## Tracking review

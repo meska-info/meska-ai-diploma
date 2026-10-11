@@ -57,7 +57,7 @@ The landing page uses the official Meska logo, outcome-led build-focused hero co
 
 The thank-you page now begins with the Copilot enrollment panel. A matching sessionStorage lead/edit token unlocks personalization, roster editing, licence/cohort callouts, invoice, and manager-sharing paths; an untrusted or cross-device URL stays generic and exposes only the server-rendered Pay path. Every Pay link uses Shopify variant `42776902369326` and the current seat quantity. The redundant “Ready to discuss the course?” return-to-form section is absent. The retained advisor, free guide, curriculum, graduation material, videos, instructors, testimonials, and FAQs follow the enrollment panel.
 
-The form and API share validation; price is always recomputed server-side. Supabase stores only the edit-token hash, the browser keeps the raw token in sessionStorage, and URLs carry only the lead UUID plus allowed attribution. Google Sheets keeps the existing A:W layout, appends the 20 enrollment columns, and upserts by lead ID.
+The form and API share validation; price is always recomputed server-side. Supabase stores only the edit-token hash, the browser keeps the raw token in sessionStorage, and URLs carry only the lead UUID plus allowed attribution. Google Sheets keeps the existing A:W layout, appends the 20 enrollment columns, and upserts by lead ID. `GOOGLE_SHEETS_COPILOT_ID` selects the Copilot workbook and falls back to the retained `GOOGLE_SHEETS_ONLINE_ID` only when the dedicated ID is not configured.
 
 ## Project map
 
