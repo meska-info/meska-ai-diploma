@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   ENROLLMENT_SHEET_HEADERS,
+  enrollmentColumnsToAppend,
   enrollmentSheetValues,
+  sheetA1Range,
   sheetRowForLead,
 } from "../app/lib/googleSheets.ts";
 
@@ -56,6 +58,18 @@ test("keeps the exact twenty appended headers", () => {
     "Total (EGP)",
   ]);
   assert.equal(ENROLLMENT_SHEET_HEADERS.at(-1), "Last Updated");
+});
+
+test("expands a legacy A:W grid before writing the enrollment columns", () => {
+  assert.equal(enrollmentColumnsToAppend(23), 20);
+  assert.equal(enrollmentColumnsToAppend(42), 1);
+  assert.equal(enrollmentColumnsToAppend(43), 0);
+  assert.equal(enrollmentColumnsToAppend(50), 0);
+});
+
+test("quotes the actual Sheet title in A1 ranges", () => {
+  assert.equal(sheetA1Range("Leads", "A1:AQ1"), "'Leads'!A1:AQ1");
+  assert.equal(sheetA1Range("Team's Leads", "A:AQ"), "'Team''s Leads'!A:AQ");
 });
 
 test("maps a team lead after the existing A:W columns", () => {

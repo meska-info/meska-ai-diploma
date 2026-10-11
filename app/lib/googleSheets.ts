@@ -245,9 +245,92 @@ function sheetColumn(column: number) {
   return column <= 26 ? String.fromCharCode(64 + column) : `A${String.fromCharCode(64 + column - 26)}`;
 }
 
-async function ensureEnrollmentHeaders(spreadsheetId: string, headers: Record<string, string>) {
+type SheetProperties = {
+  sheetId: number;
+  title: string;
+  columnCount: number;
+};
+
+const ENROLLMENT_LAST_COLUMN = 43;
+
+export function enrollmentColumnsToAppend(columnCount: number) {
+  return Math.max(0, ENROLLMENT_LAST_COLUMN - Math.max(0, Math.trunc(columnCount)));
+}
+
+export function sheetA1Range(title: string, range: string) {
+  return `'${title.replaceAll("'", "''")}'!${range}`;
+}
+
+async function getSheetProperties(spreadsheetId: string, headers: Record<string, string>) {
   const response = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!A1:AQ1")}`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=${encodeURIComponent("sheets.properties(sheetId,title,index,hidden,gridProperties.columnCount)")}`,
+    { cache: "no-store", headers },
+  );
+  if (!response.ok) throw new Error(`google_sheet_metadata_${response.status}`);
+  const body = (await response.json()) as {
+    sheets?: Array<{
+      properties?: {
+        sheetId?: unknown;
+        title?: unknown;
+        index?: unknown;
+        hidden?: unknown;
+        gridProperties?: { columnCount?: unknown };
+      };
+    }>;
+  };
+  const visibleSheets = (body.sheets ?? [])
+    .map((sheet) => sheet.properties)
+    .filter((properties) => properties && properties.hidden !== true)
+    .sort((left, right) => Number(left?.index ?? 0) - Number(right?.index ?? 0));
+  const properties = visibleSheets[0];
+  if (
+    typeof properties?.sheetId !== "number" ||
+    typeof properties.title !== "string" ||
+    typeof properties.gridProperties?.columnCount !== "number"
+  ) {
+    throw new Error("google_sheet_properties_missing");
+  }
+  return {
+    sheetId: properties.sheetId,
+    title: properties.title,
+    columnCount: properties.gridProperties.columnCount,
+  } satisfies SheetProperties;
+}
+
+async function ensureEnrollmentColumns(
+  spreadsheetId: string,
+  properties: SheetProperties,
+  headers: Record<string, string>,
+) {
+  const length = enrollmentColumnsToAppend(properties.columnCount);
+  if (!length) return;
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
+    {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requests: [{
+          appendDimension: {
+            sheetId: properties.sheetId,
+            dimension: "COLUMNS",
+            length,
+          },
+        }],
+      }),
+      cache: "no-store",
+    },
+  );
+  if (!response.ok) throw new Error(`google_sheet_columns_${response.status}`);
+}
+
+async function ensureEnrollmentHeaders(
+  spreadsheetId: string,
+  properties: SheetProperties,
+  headers: Record<string, string>,
+) {
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, "A1:AQ1"))}`,
     { cache: "no-store", headers },
   );
   if (!response.ok) throw new Error(`google_sheet_headers_read_${response.status}`);
@@ -259,7 +342,7 @@ async function ensureEnrollmentHeaders(spreadsheetId: string, headers: Record<st
     const column = firstColumn + index;
     if (existing[column - 1]) continue;
     const update = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(`Sheet1!${sheetColumn(column)}1`)}?valueInputOption=RAW`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `${sheetColumn(column)}1`))}?valueInputOption=RAW`,
       {
         method: "PUT",
         headers: { ...headers, "Content-Type": "application/json" },
@@ -277,9 +360,11 @@ export async function syncLeadToGoogleSheets(lead: SheetLead, vercelOidcToken: s
     const spreadsheetId = spreadsheetIdFor(lead.diploma_slug);
     const accessToken = await getGoogleAccessToken(vercelOidcToken);
     const headers = { Authorization: `Bearer ${accessToken}` };
-    await ensureEnrollmentHeaders(spreadsheetId, headers);
+    const properties = await getSheetProperties(spreadsheetId, headers);
+    await ensureEnrollmentColumns(spreadsheetId, properties, headers);
+    await ensureEnrollmentHeaders(spreadsheetId, properties, headers);
     const leadIdsResponse = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!A:A")}?majorDimension=COLUMNS`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, "A:A"))}?majorDimension=COLUMNS`,
       { cache: "no-store", headers },
     );
     if (!leadIdsResponse.ok) throw new Error(`google_sheet_read_${leadIdsResponse.status}`);
@@ -290,7 +375,7 @@ export async function syncLeadToGoogleSheets(lead: SheetLead, vercelOidcToken: s
     if (existingIndex >= 0) {
       const rowNumber = existingIndex + 1;
       const updateResponse = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(`Sheet1!A${rowNumber}:AQ${rowNumber}`)}?valueInputOption=RAW`,
+        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `A${rowNumber}:AQ${rowNumber}`))}?valueInputOption=RAW`,
         {
           method: "PUT",
           headers: { ...headers, "Content-Type": "application/json" },
@@ -302,7 +387,7 @@ export async function syncLeadToGoogleSheets(lead: SheetLead, vercelOidcToken: s
       return;
     }
     const appendResponse = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!A:AQ")}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, "A:AQ"))}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
       {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
