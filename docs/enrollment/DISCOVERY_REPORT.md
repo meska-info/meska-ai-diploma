@@ -48,7 +48,13 @@ Current behavior is append-once, not upsert: it reads request IDs from column B,
 7. `current_wave_start_date`
 8. `start_timing`
 
-Implementation will keep A:W in place, append the 20 specified enrollment columns at X:AQ, locate rows by the persisted lead ID in column A, update matching rows in place, append new rows, add only missing new headers, and retry transient failures without failing the lead API response.
+Implementation keeps this repository's legacy diploma A:W mapping in place, appends the 20 specified enrollment columns at X:AQ, locates rows by the persisted lead ID in column A, updates matching rows in place, appends new rows, adds only missing new headers, and retries transient failures without failing the lead API response.
+
+### Live Copilot workbook revalidation
+
+The existing `Microsoft Copilot Diploma Leads` workbook was inspected directly before enabling writes. Its `Leads` tab has one frozen header row and 22 existing columns at A:V, in this exact order: `created_at`, `request_id`, `record_id`, `name`, `email`, `mobile`, `linkedin_url`, `years_experience`, `payment_preference`, `joining_readiness`, `cohort_label`, `onboarding_date`, `first_session_date`, `source_context`, `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `fbclid`, `referrer`, `landing_url`.
+
+The dedicated Copilot route therefore preserves A:V unchanged, keys upserts by `record_id` in column C, and appends the 20 enrollment columns at W:AP. The broader diploma workbook mapping remains A:W plus X:AQ. This dual-schema handling prevents the dedicated Copilot workbook from being rewritten into the unrelated diploma layout.
 
 ## Existing browser event inventory
 

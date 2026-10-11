@@ -59,6 +59,31 @@ const LEGACY_QUALIFICATION_HEADERS = [
   "start_timing",
 ] as const;
 
+const COPILOT_BASE_HEADERS = [
+  "created_at",
+  "request_id",
+  "record_id",
+  "name",
+  "email",
+  "mobile",
+  "linkedin_url",
+  "years_experience",
+  "payment_preference",
+  "joining_readiness",
+  "cohort_label",
+  "onboarding_date",
+  "first_session_date",
+  "source_context",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+  "fbclid",
+  "referrer",
+  "landing_url",
+] as const;
+
 export const ENROLLMENT_SHEET_HEADERS = [
   "Enrollment Type",
   "Seats",
@@ -182,6 +207,35 @@ export function sheetRowForLead(lead: SheetLead) {
   ];
 }
 
+export function copilotSheetRowForLead(lead: SheetLead) {
+  const attribution = lead.attribution ?? {};
+  return [
+    lead.created_at,
+    lead.request_id,
+    lead.id,
+    lead.name,
+    lead.email,
+    lead.mobile,
+    lead.linkedin_url ?? "",
+    lead.enrollment_type === "team" ? "" : lead.years_experience ?? "",
+    humanPaymentPreference(lead.payment_preference),
+    humanReadiness(lead.joining_readiness ?? lead.start_timing),
+    lead.current_wave ?? "",
+    "2026-11-04",
+    "2026-11-09",
+    lead.source_context,
+    attribution.utm_source ?? "",
+    attribution.utm_medium ?? "",
+    attribution.utm_campaign ?? "",
+    attribution.utm_term ?? "",
+    attribution.utm_content ?? "",
+    attribution.fbclid ?? "",
+    attribution.referrer ?? "",
+    attribution.landing_url ?? "",
+    ...enrollmentSheetValues(lead),
+  ];
+}
+
 async function getGoogleAccessToken(vercelOidcToken: string) {
   const projectNumber = process.env.GCP_PROJECT_NUMBER;
   const poolId = process.env.GCP_WORKLOAD_IDENTITY_POOL_ID;
@@ -255,10 +309,11 @@ type SheetProperties = {
   columnCount: number;
 };
 
-const ENROLLMENT_LAST_COLUMN = 43;
+const LEGACY_BASE_COLUMN_COUNT = 23;
+const COPILOT_BASE_COLUMN_COUNT = COPILOT_BASE_HEADERS.length;
 
-export function enrollmentColumnsToAppend(columnCount: number) {
-  return Math.max(0, ENROLLMENT_LAST_COLUMN - Math.max(0, Math.trunc(columnCount)));
+export function enrollmentColumnsToAppend(columnCount: number, requiredColumnCount = 43) {
+  return Math.max(0, requiredColumnCount - Math.max(0, Math.trunc(columnCount)));
 }
 
 export function sheetA1Range(title: string, range: string) {
@@ -305,8 +360,9 @@ async function ensureEnrollmentColumns(
   spreadsheetId: string,
   properties: SheetProperties,
   headers: Record<string, string>,
+  requiredColumnCount: number,
 ) {
-  const length = enrollmentColumnsToAppend(properties.columnCount);
+  const length = enrollmentColumnsToAppend(properties.columnCount, requiredColumnCount);
   if (!length) return;
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
@@ -332,16 +388,19 @@ async function ensureEnrollmentHeaders(
   spreadsheetId: string,
   properties: SheetProperties,
   headers: Record<string, string>,
+  existingHeaders: readonly string[],
+  baseColumnCount: number,
 ) {
+  const lastColumn = sheetColumn(baseColumnCount + ENROLLMENT_SHEET_HEADERS.length);
   const response = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, "A1:AQ1"))}`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `A1:${lastColumn}1`))}`,
     { cache: "no-store", headers },
   );
   if (!response.ok) throw new Error(`google_sheet_headers_read_${response.status}`);
   const body = (await response.json()) as { values?: unknown[][] };
   const existing = body.values?.[0] ?? [];
-  const expected = [...LEGACY_QUALIFICATION_HEADERS, ...ENROLLMENT_SHEET_HEADERS];
-  const firstColumn = 16;
+  const expected = [...existingHeaders, ...ENROLLMENT_SHEET_HEADERS];
+  const firstColumn = baseColumnCount - existingHeaders.length + 1;
   for (let index = 0; index < expected.length; index += 1) {
     const column = firstColumn + index;
     if (existing[column - 1]) continue;
@@ -358,6 +417,28 @@ async function ensureEnrollmentHeaders(
   }
 }
 
+function sheetPlanForLead(lead: SheetLead) {
+  if (lead.lead_source === "copilot-course") {
+    const baseColumnCount = COPILOT_BASE_COLUMN_COUNT;
+    const lastColumn = sheetColumn(baseColumnCount + ENROLLMENT_SHEET_HEADERS.length);
+    return {
+      baseColumnCount,
+      existingHeaders: [] as readonly string[],
+      keyColumn: "C",
+      lastColumn,
+      row: copilotSheetRowForLead(lead),
+    };
+  }
+  const baseColumnCount = LEGACY_BASE_COLUMN_COUNT;
+  return {
+    baseColumnCount,
+    existingHeaders: LEGACY_QUALIFICATION_HEADERS,
+    keyColumn: "A",
+    lastColumn: sheetColumn(baseColumnCount + ENROLLMENT_SHEET_HEADERS.length),
+    row: sheetRowForLead(lead),
+  };
+}
+
 export async function syncLeadToGoogleSheets(lead: SheetLead, vercelOidcToken: string | null | undefined) {
   if (!vercelOidcToken) throw new Error("vercel_oidc_token_missing");
   return retry(async () => {
@@ -365,21 +446,33 @@ export async function syncLeadToGoogleSheets(lead: SheetLead, vercelOidcToken: s
     const accessToken = await getGoogleAccessToken(vercelOidcToken);
     const headers = { Authorization: `Bearer ${accessToken}` };
     const properties = await getSheetProperties(spreadsheetId, headers);
-    await ensureEnrollmentColumns(spreadsheetId, properties, headers);
-    await ensureEnrollmentHeaders(spreadsheetId, properties, headers);
+    const plan = sheetPlanForLead(lead);
+    await ensureEnrollmentColumns(
+      spreadsheetId,
+      properties,
+      headers,
+      plan.baseColumnCount + ENROLLMENT_SHEET_HEADERS.length,
+    );
+    await ensureEnrollmentHeaders(
+      spreadsheetId,
+      properties,
+      headers,
+      plan.existingHeaders,
+      plan.baseColumnCount,
+    );
     const leadIdsResponse = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, "A:A"))}?majorDimension=COLUMNS`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `${plan.keyColumn}:${plan.keyColumn}`))}?majorDimension=COLUMNS`,
       { cache: "no-store", headers },
     );
     if (!leadIdsResponse.ok) throw new Error(`google_sheet_read_${leadIdsResponse.status}`);
     const leadIdsBody = (await leadIdsResponse.json()) as { values?: unknown[][] };
     const leadIds = leadIdsBody.values?.[0] ?? [];
     const existingIndex = leadIds.findIndex((value) => value === lead.id);
-    const row = sheetRowForLead(lead);
+    const row = plan.row;
     if (existingIndex >= 0) {
       const rowNumber = existingIndex + 1;
       const updateResponse = await fetch(
-        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `A${rowNumber}:AQ${rowNumber}`))}?valueInputOption=RAW`,
+        `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `A${rowNumber}:${plan.lastColumn}${rowNumber}`))}?valueInputOption=RAW`,
         {
           method: "PUT",
           headers: { ...headers, "Content-Type": "application/json" },
@@ -391,7 +484,7 @@ export async function syncLeadToGoogleSheets(lead: SheetLead, vercelOidcToken: s
       return;
     }
     const appendResponse = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, "A:AQ"))}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetA1Range(properties.title, `A:${plan.lastColumn}`))}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
       {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },

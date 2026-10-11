@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   ENROLLMENT_SHEET_HEADERS,
+  copilotSheetRowForLead,
   enrollmentColumnsToAppend,
   enrollmentSheetValues,
   sheetA1Range,
@@ -67,6 +68,11 @@ test("expands a legacy A:W grid before writing the enrollment columns", () => {
   assert.equal(enrollmentColumnsToAppend(50), 0);
 });
 
+test("expands the existing Copilot A:V schema through the appended W:AP columns", () => {
+  assert.equal(enrollmentColumnsToAppend(26, 42), 16);
+  assert.equal(enrollmentColumnsToAppend(42, 42), 0);
+});
+
 test("quotes the actual Sheet title in A1 ranges", () => {
   assert.equal(sheetA1Range("Leads", "A1:AQ1"), "'Leads'!A1:AQ1");
   assert.equal(sheetA1Range("Team's Leads", "A:AQ"), "'Team''s Leads'!A:AQ");
@@ -85,4 +91,21 @@ test("maps a team lead after the existing A:W columns", () => {
   assert.equal(row[25], 25);
   assert.equal(row[34], "Mona Adel <mona@meska.ai>");
   assert.equal(row[37], "Invoice requested");
+});
+
+test("preserves the live Copilot A:V order and appends enrollment values at W:AP", () => {
+  const row = copilotSheetRowForLead(lead);
+  assert.equal(row.length, 42);
+  assert.equal(row[0], lead.created_at);
+  assert.equal(row[1], lead.request_id);
+  assert.equal(row[2], lead.id);
+  assert.equal(row[6], lead.linkedin_url);
+  assert.equal(row[7], "");
+  assert.equal(row[8], "Enterprise arrangement");
+  assert.equal(row[9], "Upcoming cohort");
+  assert.equal(row[10], "Cohort 01");
+  assert.equal(row[11], "2026-11-04");
+  assert.equal(row[12], "2026-11-09");
+  assert.equal(row[14], "meta");
+  assert.deepEqual(row.slice(22), enrollmentSheetValues(lead));
 });
