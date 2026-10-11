@@ -21,6 +21,7 @@ import {
 } from "../lib/tracking";
 import { experienceOptions, validateLead } from "../lib/leadValidation";
 import { CloudflareStreamVideo } from "./CloudflareStreamVideo";
+import { EnrollmentLeadCapture } from "./enrollment/EnrollmentLeadCapture";
 
 export function BrandMark() {
   const logo = siteContent.media.brandLogo;
@@ -46,8 +47,9 @@ export function SiteHeader({
   ctaHref?: string;
   ctaLabel?: string;
 }) {
+  const enrollmentCta = ctaHref === "#checkout" || ctaHref === "#enrollment";
   const trackingId =
-    ctaHref === "#checkout"
+    enrollmentCta
       ? "header_choose_diploma"
       : "header_start_application";
 
@@ -60,7 +62,7 @@ export function SiteHeader({
         data-track-id={trackingId}
         onClick={() =>
           trackEvent(
-            ctaHref === "#checkout" ? "PricingView" : "CTAOpenForm",
+            enrollmentCta ? "PricingView" : "CTAOpenForm",
             {
               tracking_id: trackingId,
               cta_location: "header",
@@ -267,6 +269,28 @@ function FormatToggle({
 }
 
 export function LeadCapture({
+  location,
+  compact = false,
+  media,
+}: {
+  location: "primary" | "modal";
+  selectedId: DiplomaId;
+  onSelectedIdChange: (nextId: DiplomaId) => void;
+  compact?: boolean;
+  media?: ReactNode;
+}) {
+  return (
+    <EnrollmentLeadCapture
+      compact={compact}
+      location={location}
+      media={media}
+    />
+  );
+}
+
+// Retained temporarily as a non-rendered compatibility reference for the legacy diploma form.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function LegacyLeadCapture({
   location,
   selectedId,
   onSelectedIdChange,
