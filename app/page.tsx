@@ -8,13 +8,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const params = await searchParams;
-  const rawSeats = Array.isArray(params.seats) ? params.seats[0] : params.seats;
-  const seats = Number.parseInt(rawSeats ?? "1", 10);
-  return <LandingPage initialSeats={Number.isFinite(seats) ? seats : 1} />;
+export default function Home() {
+  return <LandingPage />;
 }

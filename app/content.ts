@@ -1,5 +1,3 @@
-import { BASE_PRICE, COPILOT_VARIANT_ID, formatEGP } from "./lib/teamPricing.ts";
-
 export type DiplomaId = "offline" | "online";
 
 export type Diploma = {
@@ -35,15 +33,6 @@ export const siteContent = {
   brand: {
     name: "Meska AI",
     diplomaName: "AI Co-Pilot Diploma",
-  },
-  copilotCourse: {
-    name: "Microsoft Copilot Course",
-    cohort: "Cohort 01",
-    startDate: "4 November 2026",
-    variantId: COPILOT_VARIANT_ID,
-    price: formatEGP(BASE_PRICE),
-    priceValue: BASE_PRICE,
-    currency: "EGP" as const,
   },
   hero: {
     eyebrow: "Meska AI Diploma",
