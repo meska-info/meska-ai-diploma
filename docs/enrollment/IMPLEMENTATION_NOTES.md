@@ -17,7 +17,7 @@ Implemented on `codex/copilot-team-enrollment` against `origin/main` at `8d6426a
 - `PATCH /api/copilot-leads/[leadId]` authenticates the signed edit token and supports seat/type, participant, cohort, licence and payment-path lifecycle updates while recomputing all prices server-side.
 - `POST /api/copilot-leads/receipt` restores a personalized enrollment safely without exposing the token.
 - The additive Supabase migration extends `public.leads` with the 20 enrollment fields and supporting constraints/indexes. It was applied through the authenticated Supabase SQL editor and returned `Success. No rows returned.`
-- The Google Sheet mapping preserves A:W and appends the 20 specified headers at X:AQ. Sync now locates by persisted lead UUID, updates an existing row or appends once, and retries transient Google failures without failing lead persistence. It resolves the actual first visible tab, expands legacy A:W grids before writing X:AQ, and targets the dedicated `GOOGLE_SHEETS_COPILOT_ID` workbook.
+- The Google Sheet mapping preserves A:W and appends the 20 specified headers at X:AQ. Sync now locates by persisted lead UUID, updates an existing row or appends once, and retries transient Google failures without failing lead persistence. It resolves the actual first visible tab, expands legacy A:W grids before writing X:AQ, and targets the existing `GOOGLE_SHEETS_COPILOT_ID` workbook through the repository's retained `GCP_*` Workload Identity configuration. Legacy diploma Sheet routing is unchanged.
 
 ## Pricing source of truth
 

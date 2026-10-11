@@ -222,11 +222,13 @@ async function getGoogleAccessToken(vercelOidcToken: string) {
   return impersonationBody.accessToken;
 }
 
-function spreadsheetIdFor(diploma: DiplomaSlug) {
-  const id = diploma === "offline"
+function spreadsheetIdFor(lead: Pick<SheetLead, "diploma_slug" | "lead_source">) {
+  const id = lead.lead_source === "copilot-course" && process.env.GOOGLE_SHEETS_COPILOT_ID
+    ? process.env.GOOGLE_SHEETS_COPILOT_ID
+    : lead.diploma_slug === "offline"
     ? process.env.GOOGLE_SHEETS_OFFLINE_ID
-    : process.env.GOOGLE_SHEETS_COPILOT_ID ?? process.env.GOOGLE_SHEETS_ONLINE_ID;
-  if (!id) throw new Error(`google_sheet_${diploma}_missing`);
+    : process.env.GOOGLE_SHEETS_ONLINE_ID;
+  if (!id) throw new Error(`google_sheet_${lead.diploma_slug}_missing`);
   return id;
 }
 
@@ -359,7 +361,7 @@ async function ensureEnrollmentHeaders(
 export async function syncLeadToGoogleSheets(lead: SheetLead, vercelOidcToken: string | null | undefined) {
   if (!vercelOidcToken) throw new Error("vercel_oidc_token_missing");
   return retry(async () => {
-    const spreadsheetId = spreadsheetIdFor(lead.diploma_slug);
+    const spreadsheetId = spreadsheetIdFor(lead);
     const accessToken = await getGoogleAccessToken(vercelOidcToken);
     const headers = { Authorization: `Bearer ${accessToken}` };
     const properties = await getSheetProperties(spreadsheetId, headers);

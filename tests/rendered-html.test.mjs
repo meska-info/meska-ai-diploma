@@ -251,7 +251,8 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(googleSheets, /sts\.googleapis\.com\/v1\/token/);
   assert.match(googleSheets, /iamcredentials\.googleapis\.com/);
   assert.match(googleSheets, /leadIds\.findIndex\(\(value\) => value === lead\.id\)/);
-  assert.match(googleSheets, /diploma === "offline"/);
+  assert.match(googleSheets, /lead\.diploma_slug === "offline"/);
+  assert.match(googleSheets, /GOOGLE_SHEETS_COPILOT_ID/);
   assert.match(thankYouPage, /<EnrollmentPanel leadId=\{leadId\} \/>/);
   assert.doesNotMatch(thankYouPage, /Ready to discuss the course|Go to the interest form/);
   assert.doesNotMatch(thankYouPage, /FloatingCheckoutCTA|CheckoutSection/);
