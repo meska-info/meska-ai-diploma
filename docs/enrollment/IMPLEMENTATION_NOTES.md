@@ -34,7 +34,7 @@ Every specified boundary (1–8, 10, 15 and 20) is covered by unit tests. Arbitr
 ## Tracking and privacy
 
 - Preserved the existing Pixel loader, Pixel ID, `PageView`, `ViewContent`, `CTAOpenForm`, `PricingView`, `FormStart`, `FormError`, `FormSubmit`, qualified `Lead`, `LeadThankYouView`, `InitiateCheckout`, media and capability events.
-- Added `EnrollmentTypeSelected`, `SeatCalculatorChange`, `TierUnlocked`, `EnrollmentPageView`, `ParticipantAdded`, `ParticipantRemoved`, `ParticipantUpdated`, `LicenceStatusChanged`, `CohortSwitched`, `PaymentPathSelected`, `InvoiceRequested`, `ManagerLinkCopied` and `EnrollmentStateError`.
+- Added `EnrollmentTypeSelected`, `SeatCalculatorChange`, `TierUnlocked`, `EnrollmentPageView`, `ParticipantsSaved`, `PaymentPathSelected`, `InvoiceRequested`, `PaymentLinkShared` and `CohortSwitched`.
 - Event parameters contain commercial state and opaque IDs only. Names, emails, mobile numbers, LinkedIn URLs and participant details are excluded.
 - `InitiateCheckout` fires only for the matching online payment action. `Purchase` remains Shopify-confirmed and is not implemented locally. There is no Conversions API implementation in this repository.
 
@@ -42,11 +42,12 @@ Every specified boundary (1–8, 10, 15 and 20) is covered by unit tests. Arbitr
 
 - `pnpm lint`: passed.
 - `pnpm exec tsc --noEmit`: passed.
-- `pnpm test`: passed both Next.js and worker builds plus 135 tests.
-- `pnpm test:e2e`: 5/5 journeys passed in 1.9 minutes.
+- `pnpm test`: passed both Next.js and worker builds plus 139 tests.
+- `pnpm test:e2e`: 5/5 journeys passed in 1.7 minutes.
 - Responsive overflow was checked at 320, 375, 390, 768, 1024, 1280 and 1440 px.
 - Fifty committed screenshots cover ten required states at 360×780, 390×844, 768×1024, 1280×800 and 1440×900.
 - Machine-readable evidence is in `artifacts/unit-test-results.xml`, `artifacts/playwright-results.json`, `artifacts/enrollment-event-log.json` and `artifacts/enrollment-screenshot-manifest.json`.
+- Live preview evidence is in `artifacts/enrollment-live-data-evidence.json`: the service account has Writer access, the deployment completed POST/PATCH/receipt without runtime errors, Supabase contains one six-seat `invoice_requested` row, and the Sheet contains one matching row at `Leads!A4:AP4` with the exact 20 appended columns.
 
 ## Repository and release boundaries
 

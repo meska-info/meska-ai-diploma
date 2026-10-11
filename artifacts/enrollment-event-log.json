@@ -6,7 +6,7 @@
       "content_name": "AI Co-Pilot Diploma",
       "content_category": "professional_diploma"
     },
-    "timestamp": "2026-10-11T19:28:35.729Z"
+    "timestamp": "2026-10-11T20:09:03.586Z"
   },
   {
     "event": "FormStart",
@@ -15,7 +15,7 @@
       "form_location": "primary",
       "variant": "online"
     },
-    "timestamp": "2026-10-11T19:28:36.989Z"
+    "timestamp": "2026-10-11T20:09:04.835Z"
   },
   {
     "event": "FormError",
@@ -29,7 +29,7 @@
       "seats": 1,
       "error_fields": "fullName,email,mobile,linkedinUrl,companyName,jobTitle,yearsExperience,paymentPreference,joiningReadiness,copilotLicence"
     },
-    "timestamp": "2026-10-11T19:28:36.995Z"
+    "timestamp": "2026-10-11T20:09:04.841Z"
   },
   {
     "event": "PricingView",
@@ -38,7 +38,7 @@
       "form_location": "primary",
       "variant": "online"
     },
-    "timestamp": "2026-10-11T19:28:37.199Z"
+    "timestamp": "2026-10-11T20:09:05.044Z"
   },
   {
     "event": "EnrollmentTypeSelected",
@@ -47,7 +47,7 @@
       "seats": 2,
       "form_location": "primary"
     },
-    "timestamp": "2026-10-11T19:28:38.001Z"
+    "timestamp": "2026-10-11T20:09:05.844Z"
   },
   {
     "event": "TierUnlocked",
@@ -56,7 +56,7 @@
       "seats": 2,
       "location": "price"
     },
-    "timestamp": "2026-10-11T19:28:38.010Z"
+    "timestamp": "2026-10-11T20:09:05.854Z"
   },
   {
     "event": "SeatCalculatorChange",
@@ -66,7 +66,7 @@
       "value": 72000,
       "location": "price"
     },
-    "timestamp": "2026-10-11T19:28:38.841Z"
+    "timestamp": "2026-10-11T20:09:06.685Z"
   },
   {
     "event": "SeatCalculatorChange",
@@ -76,7 +76,7 @@
       "value": 72000,
       "location": "closing"
     },
-    "timestamp": "2026-10-11T19:28:38.841Z"
+    "timestamp": "2026-10-11T20:09:06.685Z"
   },
   {
     "event": "SeatCalculatorChange",
@@ -86,7 +86,7 @@
       "value": 72000,
       "location": "modal"
     },
-    "timestamp": "2026-10-11T19:28:38.841Z"
+    "timestamp": "2026-10-11T20:09:06.685Z"
   },
   {
     "event": "FormSubmit",
@@ -96,7 +96,7 @@
       "wave": "Cohort 01",
       "form_location": "primary",
       "lead_destination_status": "supabase",
-      "event_id": "lead-7d9a54f8-89c4-4dcc-97c4-89b0405ef459",
+      "event_id": "lead-be5ac6fd-b88f-4525-87f6-c0ba6f63e578",
       "enrollment_type": "team",
       "seats": 3,
       "value": 72000,
@@ -106,7 +106,7 @@
       "joining_readiness": "upcoming",
       "copilot_licence": "all"
     },
-    "timestamp": "2026-10-11T19:28:39.145Z"
+    "timestamp": "2026-10-11T20:09:06.982Z"
   },
   {
     "event": "Lead",
@@ -116,11 +116,11 @@
       "wave": "Cohort 01",
       "form_location": "primary",
       "lead_destination_status": "persisted",
-      "event_id": "lead-7d9a54f8-89c4-4dcc-97c4-89b0405ef459",
+      "event_id": "lead-be5ac6fd-b88f-4525-87f6-c0ba6f63e578",
       "utm_source": "e2e",
       "utm_campaign": "copilot-team"
     },
-    "timestamp": "2026-10-11T19:28:39.392Z"
+    "timestamp": "2026-10-11T20:09:07.221Z"
   },
   {
     "event": "LeadThankYouView",
@@ -128,7 +128,7 @@
       "tracking_id": "lead_thank_you_view",
       "has_submission_state": true
     },
-    "timestamp": "2026-10-11T19:28:39.393Z"
+    "timestamp": "2026-10-11T20:09:07.222Z"
   },
   {
     "event": "EnrollmentPageView",
@@ -139,6 +139,6 @@
       "enrollment_type": "team",
       "joining_readiness": "upcoming"
     },
-    "timestamp": "2026-10-11T19:28:39.403Z"
+    "timestamp": "2026-10-11T20:09:07.234Z"
   }
 ]

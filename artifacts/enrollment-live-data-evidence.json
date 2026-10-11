@@ -1,0 +1,79 @@
+{
+  "captured_at": "2026-10-11T20:05:00.000Z",
+  "environment": "vercel_preview",
+  "deployment": {
+    "commit": "69b7bbfa99c5e4cf4a80b24732de8aded0fe3408",
+    "url": "https://meska-ai-diploma-codg484o0-info-21301372s-projects.vercel.app",
+    "state": "READY",
+    "runtime_log_errors": 0
+  },
+  "workbook_access": {
+    "workbook": "Microsoft Copilot Diploma Leads",
+    "spreadsheet_id": "1J9R140qEYXzpvZGu5hSRgT_oX3UXjvASt9a2NgAx77A",
+    "service_account": "meska-diploma-sheets-sync@mystical-method-474408-n5.iam.gserviceaccount.com",
+    "role": "writer",
+    "verified": true
+  },
+  "request": {
+    "request_id": "codex-preview-team-6-20261011-2235",
+    "lead_id": "aafa317a-db36-4060-94e2-ce86fa317fce",
+    "company": "Meska AI Verification",
+    "enrollment_type": "team",
+    "seats": 6
+  },
+  "receipt": {
+    "lead_id": "aafa317a-db36-4060-94e2-ce86fa317fce",
+    "enrollment_type": "team",
+    "seats": 6,
+    "quoted_total": 135000,
+    "participants_count": 3,
+    "status": "invoice_requested",
+    "joining_readiness": "upcoming",
+    "edit_token_exposed": false
+  },
+  "supabase": {
+    "table": "public.leads",
+    "matching_rows": 1,
+    "id": "aafa317a-db36-4060-94e2-ce86fa317fce",
+    "request_id": "codex-preview-team-6-20261011-2235",
+    "enrollment_type": "team",
+    "seats": 6,
+    "tier_rate": 0.25,
+    "price_per_seat": 22500,
+    "quoted_total": 135000,
+    "participants_count": 3,
+    "payment_path": "invoice",
+    "status": "invoice_requested",
+    "checkout_url": "https://aionline.meska.ai/cart/42776902369326:6?attributes%5Blead_id%5D=aafa317a-db36-4060-94e2-ce86fa317fce&ref=copilot-lp",
+    "repeat_submission": false,
+    "updated_at": "2026-10-11T20:04:09.349595Z"
+  },
+  "google_sheet": {
+    "sheet": "Leads",
+    "table": "CopilotLeads",
+    "table_range": "A1:AP4",
+    "existing_columns": "A:V",
+    "enrollment_columns": "W:AP",
+    "total_columns": 42,
+    "lead_key_column": "C",
+    "matching_rows": 1,
+    "row": 4,
+    "values": {
+      "Enrollment Type": "Team",
+      "Seats": 6,
+      "Discount %": 25,
+      "Price per Seat (EGP)": 22500,
+      "Total (EGP)": 135000,
+      "Company": "Meska AI Verification",
+      "Copilot Licence": "All",
+      "Participants Added": 3,
+      "Participants": "Nour Khaled <nour.khaled@verification.meska.ai>; Omar Hassan <omar.hassan@verification.meska.ai>; Salma Ali <salma.ali@verification.meska.ai>",
+      "Payment Path": "Invoice",
+      "Status": "Invoice requested",
+      "Checkout Link": "https://aionline.meska.ai/cart/42776902369326:6?attributes%5Blead_id%5D=aafa317a-db36-4060-94e2-ce86fa317fce&ref=copilot-lp",
+      "Repeat Submission": "No",
+      "Last Updated": "2026-10-11 23:04"
+    },
+    "visually_verified": true
+  }
+}

@@ -250,7 +250,10 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(googleSheets, /GCP_SERVICE_ACCOUNT_EMAIL/);
   assert.match(googleSheets, /sts\.googleapis\.com\/v1\/token/);
   assert.match(googleSheets, /iamcredentials\.googleapis\.com/);
-  assert.match(googleSheets, /leadIds\.findIndex\(\(value\) => value === lead\.id\)/);
+  assert.match(googleSheets, /matchingIndexes = leadIds\.flatMap/);
+  assert.match(googleSheets, /value === currentLead\.id/);
+  assert.match(googleSheets, /latestLeadForSync/);
+  assert.match(googleSheets, /clearDuplicateRows/);
   assert.match(googleSheets, /lead\.diploma_slug === "offline"/);
   assert.match(googleSheets, /GOOGLE_SHEETS_COPILOT_ID/);
   assert.match(thankYouPage, /<EnrollmentPanel leadId=\{leadId\} \/>/);

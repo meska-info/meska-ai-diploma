@@ -9,7 +9,7 @@ The pre-change discovery report is committed at `docs/enrollment/DISCOVERY_REPOR
 - Replaces the thank-you checkout action area with personalized/generic enrollment, editable totals, participant roster, licence/cohort/payment callouts, online payment, invoice and manager-share flows.
 - Uses Shopify variant `42776902369326`; removes the obsolete checkout destination from application code.
 - Keeps useful course content below enrollment while ensuring the redundant “Ready to discuss the course?” / “Go to the interest form” section is not rendered and leaves no spacer.
-- Adds shared browser/server validation, idempotent Copilot lead APIs, a signed edit session, additive Supabase schema, and Google Sheet A:W preservation plus X:AQ upsert fields.
+- Adds shared browser/server validation, idempotent Copilot lead APIs, a signed edit session, additive Supabase schema, and schema-aware Google Sheet upserts.
 - Preserves attribution and the existing Pixel inventory, adds the specified enrollment events, and keeps all browser tracking free of PII.
 
 ## Database and Sheet
@@ -22,7 +22,7 @@ The pre-change discovery report is committed at `docs/enrollment/DISCOVERY_REPOR
 
 Preserved: `PageView`, `ViewContent`, `CTAOpenForm`, `PricingView`, `FormStart`, `FormError`, `FormSubmit`, qualified `Lead`, `LeadThankYouView`, `InitiateCheckout`, `VideoPlay`, `CapabilitySelect`, `MediaPlaceholderClick`.
 
-Added: `EnrollmentTypeSelected`, `SeatCalculatorChange`, `TierUnlocked`, `EnrollmentPageView`, `ParticipantAdded`, `ParticipantRemoved`, `ParticipantUpdated`, `LicenceStatusChanged`, `CohortSwitched`, `PaymentPathSelected`, `InvoiceRequested`, `ManagerLinkCopied`, `EnrollmentStateError`.
+Added: `EnrollmentTypeSelected`, `SeatCalculatorChange`, `TierUnlocked`, `EnrollmentPageView`, `ParticipantsSaved`, `PaymentPathSelected`, `InvoiceRequested`, `PaymentLinkShared`, `CohortSwitched`.
 
 `Purchase` remains Shopify-confirmed and is not emitted locally. No Conversions API implementation exists in this repository.
 
@@ -30,7 +30,7 @@ Added: `EnrollmentTypeSelected`, `SeatCalculatorChange`, `TierUnlocked`, `Enroll
 
 - `pnpm lint` — passed
 - `pnpm exec tsc --noEmit` — passed
-- `pnpm test` — Next.js build, worker build and 135/135 tests passed
+- `pnpm test` — Next.js build, worker build and 139/139 tests passed
 - `pnpm test:e2e` — 5/5 Playwright journeys passed
 - Pricing boundaries — 1–8, 10, 15 and 20 seats passed
 - Responsive overflow — 320, 375, 390, 768, 1024, 1280 and 1440 px passed
@@ -38,6 +38,7 @@ Added: `EnrollmentTypeSelected`, `SeatCalculatorChange`, `TierUnlocked`, `Enroll
 - Removed prompt and obsolete checkout URL — rendered/source regression checks passed
 - Screenshots — 50 images in `artifacts/enrollment-screenshots/`
 - Machine-readable results — JUnit, Playwright JSON, event log and screenshot manifest in `artifacts/`
+- Live data — the preview POST/PATCH/receipt flow produced one six-seat Supabase row and one matching Sheet row; `artifacts/enrollment-live-data-evidence.json` records the deployment, permission, row values and identifiers without the edit token.
 
 See `docs/enrollment/IMPLEMENTATION_NOTES.md` for the API, data, pricing and evidence details.
 
