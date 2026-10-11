@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { trackEvent } from "../lib/tracking";
 import { DiplomaAdvisor } from "./DiplomaAdvisor";
-
+import { EnrollmentPanel } from "./enrollment/EnrollmentPanel";
+import { EnrollmentProvider } from "./enrollment/EnrollmentProvider";
 import {
-  CheckoutSection,
   FAQSection,
   FreeGuideSection,
   GraduationStory,
@@ -18,116 +16,31 @@ import {
   VideoTestimonialsSection,
 } from "./sections";
 
-function FloatingCheckoutCTA() {
-  const [headerCtaVisible, setHeaderCtaVisible] = useState(true);
-  const [checkoutCardVisible, setCheckoutCardVisible] = useState(false);
-
-  useEffect(() => {
-    const headerCta = document.querySelector<HTMLElement>(
-      '[data-track-id="header_choose_diploma"]',
-    );
-    const checkoutCard = document.querySelector<HTMLElement>(
-      "#checkout .checkout-card",
-    );
-    if (!headerCta || !checkoutCard) return;
-
-    const observeVisibility = (
-      node: HTMLElement,
-      update: (visible: boolean) => void,
-    ) => {
-      const observer = new IntersectionObserver(
-        ([entry]) => update(entry.isIntersecting && entry.intersectionRatio >= 0.15),
-        { threshold: [0, 0.15, 0.5] },
-      );
-      observer.observe(node);
-      return observer;
-    };
-
-    const headerObserver = observeVisibility(headerCta, setHeaderCtaVisible);
-    const checkoutObserver = observeVisibility(checkoutCard, setCheckoutCardVisible);
-    return () => {
-      headerObserver.disconnect();
-      checkoutObserver.disconnect();
-    };
-  }, []);
-
-  if (headerCtaVisible || checkoutCardVisible) return null;
-
+export function ThankYouPage({
+  initialSeats = 1,
+  leadId,
+}: {
+  initialSeats?: number;
+  leadId?: string;
+}) {
   return (
-    <div className="floating-checkout-cta">
-      <button
-        aria-controls="checkout"
-        className="button"
-        data-track-id="floating_choose_diploma"
-        onClick={() => {
-          trackEvent("PricingView", {
-            tracking_id: "floating_choose_diploma",
-            cta_location: "floating",
-          });
-          const checkoutCard = document.querySelector<HTMLElement>(
-            "#checkout .checkout-card",
-          );
-          if (!checkoutCard) return;
-          const header = document.querySelector<HTMLElement>(".site-header");
-          const headerPosition = header
-            ? window.getComputedStyle(header).position
-            : "static";
-          const headerOffset =
-            header && (headerPosition === "fixed" || headerPosition === "sticky")
-              ? header.getBoundingClientRect().height + 12
-              : 0;
-          const top =
-            window.scrollY + checkoutCard.getBoundingClientRect().top - headerOffset;
-          window.scrollTo({
-            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-              ? "auto"
-              : "smooth",
-            top,
-          });
-        }}
-        type="button"
-      >
-        Choose Diploma <span aria-hidden="true">↗</span>
-      </button>
-    </div>
-  );
-}
-
-export function ThankYouPage() {
-  return (
-    <main id="top" className="thank-you-page">
-      <ThankYouLeadTracker />
-      <SiteHeader ctaHref="#checkout" ctaLabel="Choose Diploma" />
-
-      <section className="thank-confirmation shell" aria-labelledby="thank-confirmation-title">
-        <div className="thank-confirmation-main">
-          <div className="thank-confirmation-copy">
-            <p className="eyebrow"><span aria-hidden="true" /> Enquiry received</p>
-            <h1 id="thank-confirmation-title">Thank you — we’ve received your details.</h1>
-            <p>A Meska advisor will review your information and contact you shortly.</p>
-          </div>
-          <nav className="thank-next-steps" aria-label="Thank-you page next steps">
-            <p>While you wait</p>
-            <div>
-              <a href="#curriculum">Review the curriculum <span aria-hidden="true">↓</span></a>
-              <a href="#checkout">Compare diploma formats <span aria-hidden="true">↓</span></a>
-            </div>
-          </nav>
-        </div>
-        <div className="thank-advisor-wrapper">
+    <EnrollmentProvider initialSeats={initialSeats}>
+      <main id="top" className="thank-you-page">
+        <ThankYouLeadTracker />
+        <SiteHeader ctaHref="#enrollment" ctaLabel="Enroll in the Course" />
+        <EnrollmentPanel leadId={leadId} />
+        <section className="thank-advisor-section shell" id="meska-diploma-advisor">
           <DiplomaAdvisor />
-        </div>
-      </section>
-      <FreeGuideSection />
-      <SyllabusSection description="Each session supports the next stage of an eight-week journey from practical AI foundations to a working, real-world build." />
-      <CheckoutSection />
-      <GraduationStory />
-      <SnippetsCarousel />
-      <InstructorSection />
-      <VideoTestimonialsSection context="thank_you" />
-      <FAQSection />
-      <SiteFooter light />
-      <FloatingCheckoutCTA />
-    </main>
+        </section>
+        <FreeGuideSection />
+        <SyllabusSection description="Each session supports the next stage of an eight-week journey from practical AI foundations to a working, real-world build." />
+        <GraduationStory />
+        <SnippetsCarousel />
+        <InstructorSection />
+        <VideoTestimonialsSection context="thank_you" />
+        <FAQSection />
+        <SiteFooter light />
+      </main>
+    </EnrollmentProvider>
   );
 }

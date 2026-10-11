@@ -1,18 +1,20 @@
 # Current state — Meska AI Co-Pilot Diploma
 
-Production-transition snapshot · 23 August 2026
+Copilot enrollment implementation snapshot · 11 October 2026
 
 ## What exists now
 
 - A mobile-first Next.js App Router website prepared for native Next.js deployment on Vercel.
 - Landing page `/`, thank-you page `/thank-you`, and 390/768/1440 live preview routes.
 - Approved local assets: official logo, main video/poster, graduation video/poster, nine session video/poster pairs, four instructor portraits, nine testimonial pairs, and sixteen organization logo pairs.
-- One synchronized Offline/Online landing price/form state.
-- Seven visible required enquiry fields plus hidden selected `diploma` value.
-- Shared client/server validation, normalized contact/profile data, PII-free diagnostic events, attribution, duplicate-submit guard, server-side Supabase persistence, Google Sheets sync, and persistence-qualified Lead token semantics.
-- One dynamic thank-you checkout card with both approved Shopify links.
+- One shared 1–20 seat calculator with EGP 30,000 individual, 20% 2–4 seat, and 25% 5+ seat pricing.
+- Separate Just me/My team form states with shared client/server validation, work-email enforcement, the existing honeypot, attribution, duplicate-submit protection, and persistence-qualified Lead semantics.
+- A personalized/session-token or generic `/thank-you` enrollment panel with editable seats, team roster, licence/cohort callouts, Pay, invoice, and manager-sharing paths.
+- Shopify cart permalinks use variant `42776902369326` and the current quantity; prices are always recomputed server-side.
+- Additive Supabase enrollment migration applied successfully on 11 October 2026; the versioned SQL remains in `supabase/migrations/`.
+- Google Sheets sync preserves A:W, appends the specified 20 columns, and upserts by lead UUID with retry/backoff.
 - Impact, outcomes, transparent greyscale marquee, shared curriculum disclosure, nine image testimonials, nine shared Stream video testimonials, free guide, graduation/session videos, nine-item skills matrix, four instructors, and sixteen FAQs.
-- Full landing-page PNGs at 390, 768, and 1440px in `artifacts/full-page-pngs/`.
+- Fifty enrollment state screenshots at 360, 390, 768, 1280, and 1440px in `artifacts/enrollment-screenshots/`.
 - Phase 2 changes replace the active runtime Pixel constant with `1982493002344234`; production receipt remains unverified until the Phase 2 Preview is approved and deployed.
 - Active production documentation lives in `DEPLOYMENT.md`, `TRACKING.md`, `README.md`, and `AGENTS.md`.
 - GitHub source repository is connected at `https://github.com/meska-info/meska-ai-diploma`; local `main` tracks remote `main`, and production baseline commit `e2c0ebe` remains in history for recovery.
@@ -22,7 +24,7 @@ Production-transition snapshot · 23 August 2026
 
 ## What does not exist yet
 
-- Phase 2 lead route has not yet been deployed and verified end-to-end.
+- The Copilot feature branch still requires its Vercel Preview deployment, controlled live lead/Sheet verification, and PR review before merge.
 - No CAPI implementation or confirmed Shopify Purchase event implementation.
 - Shopify/CEQUENS lead-offer automation is not live until the Supabase migration, n8n credentials/config, CEQUENS template approval, Vercel server variables, and controlled end-to-end test are complete.
 - No live Framer changes or publication from this local project.
@@ -34,7 +36,7 @@ Production-transition snapshot · 23 August 2026
 - Keep the current header Start Application anchor and persistent sticky advisor CTA; only the old hero CTA pair is removed.
 - Preserve mobile-first behavior across 320, 375, 390, 768, 1024, 1280, and 1440px.
 - Reduce height through structure and redundancy removal, never by crowding, tiny type, compressed padding, or aggressive media/testimonial crops.
-- Keep landing format, price, hidden value, CTA, future route, and tracking variant synchronized.
+- Keep seat count, enrollment type, server price, Shopify quantity, URL, and tracking context synchronized.
 - Do not invent facts, endpoints, events, infrastructure, or production verification.
 - Production deployment, domain assignment, and DNS changes require the approvals described in `DEPLOYMENT.md`.
 - Framer handoff files are historical reference only: preserve them, never use them for deployment, and do not maintain Framer compatibility unless explicitly requested.
@@ -49,4 +51,4 @@ Production-transition snapshot · 23 August 2026
 
 ## Next phase
 
-Finish Cloudflare guide encoding, release the Phase 2 branch through Vercel Preview/PR, test controlled Supabase leads, and complete Meta Events Manager validation. Purchase/CAPI remain separate future work.
+Push the Copilot enrollment branch, verify the Vercel Preview with controlled individual/team leads and the Sheet upsert, then review and merge the PR. Purchase/CAPI remain separate future work.
