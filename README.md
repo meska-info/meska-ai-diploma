@@ -42,22 +42,19 @@ pnpm test
 
 ## Routes
 
-- `/` — landing page with a shared 1–20 seat calculator and distinct individual/team Copilot enrollment forms.
-- `/thank-you` — personalized or generic Copilot enrollment, editable seats, team roster, payment paths, then the retained course information.
-- `/api/copilot-leads` — validated, server-priced enrollment lead creation.
-- `/api/copilot-leads/[leadId]` — edit-token-authenticated seat, roster, cohort, and payment lifecycle updates.
-- `/api/copilot-leads/receipt` — edit-token-authenticated non-PII enrollment summary.
+- `/` — landing page, dynamic Offline/Online pricing, and a seven-field Diploma enquiry/qualification form plus hidden selected format.
+- `/thank-you` — qualified local thank-you state, format checkout, videos, skills matrix, instructors, and FAQ.
 - `/preview/mobile` — 390px live review frame.
 - `/preview/tablet` — 768px live review frame.
 - `/preview/desktop` — 1440px live review frame.
 
 ## Current experience
 
-The landing page uses the official Meska logo, outcome-led build-focused hero copy, a Cloudflare Stream 16:9 overview video, shared tiered Copilot pricing, exact individual/team form variants, impact metrics, independent outcome disclosures, a transparent greyscale sixteen-logo marquee, a shared nine-session curriculum disclosure, nine Cloudflare video testimonials, the skills-to-business-value matrix, nine image testimonial cards, and a persistent advisor CTA after the hero.
+The landing page uses the official Meska logo, outcome-led build-focused hero copy, a Cloudflare Stream 16:9 overview video, one compact format-aware price card, one-line `5 interest-free payments via Sympl.` copy, a seven-field Diploma enquiry form, impact metrics, independent outcome disclosures, a transparent greyscale sixteen-logo marquee, a shared nine-session curriculum disclosure, nine Cloudflare video testimonials, the skills-to-business-value matrix, nine image testimonial cards, and a persistent advisor CTA after the hero.
 
-The thank-you page now begins with the Copilot enrollment panel. A matching sessionStorage lead/edit token unlocks personalization, roster editing, licence/cohort callouts, invoice, and manager-sharing paths; an untrusted or cross-device URL stays generic and exposes only the server-rendered Pay path. Every Pay link uses Shopify variant `42776902369326` and the current seat quantity. The redundant “Ready to discuss the course?” return-to-form section is absent. The retained advisor, free guide, curriculum, graduation material, videos, instructors, testimonials, and FAQs follow the enrollment panel.
+The thank-you page begins with the Cloudflare-hosted free guide, followed by the graduation story, shared curriculum, one accessible unified checkout card, both approved Shopify checkout destinations, nine portrait session videos, a nine-item skills-to-business-value matrix, four official instructors, shared video testimonials, and sixteen FAQs. All below-fold videos are user-controlled; starting one pauses any other playing Stream player.
 
-The form and API share validation; price is always recomputed server-side. Supabase stores only the edit-token hash, the browser keeps the raw token in sessionStorage, and URLs carry only the lead UUID plus allowed attribution. Google Sheets keeps the existing A:W layout, appends the 20 enrollment columns, and upserts by lead ID. `GOOGLE_SHEETS_COPILOT_ID` selects the existing Copilot workbook while the retained `GCP_*` Workload Identity configuration continues serving all repository-owned Sheet syncs.
+The current local form validates and synchronizes the selected format, posts to the server-only Supabase route, records PII-free events, stores a qualified token only after accepted persistence, preserves supported attribution, and redirects to the thank-you route. Preview and production journey verification remain required before release.
 
 ## Project map
 
@@ -65,18 +62,12 @@ The form and API share validation; price is always recomputed server-side. Supab
 - `app/components/LandingPage.tsx` — landing composition and sticky trigger/focus return.
 - `app/components/ThankYouPage.tsx` — thank-you composition.
 - `app/components/sections.tsx` — reusable controls, form, sections, carousels, checkout, media coordination, and trackers.
-- `app/components/enrollment/` — shared calculator, type toggle, forms, enrollment panel, roster, and payment paths.
-- `app/lib/teamPricing.ts` — authoritative seat tiers, totals, and Shopify permalink generation.
-- `app/lib/leadValidation.ts` — shared legacy and Copilot client/server validation.
-- `app/lib/copilotLeadsServer.ts` — server-only Supabase lead creation, edit-token authorization, rate limiting, pricing, and lifecycle updates.
-- `app/lib/googleSheets.ts` — A:AQ row mapping and lead-ID upsert with retry.
 - `app/components/MetaPixel.tsx` — one-time Pixel loading and pathname `PageView` tracking.
 - `app/lib/leadAutomation.ts` — normalized persisted-lead payload and authenticated n8n trigger.
 - `app/lib/tracking.ts` — local evidence, Meta forwarding, deduplication, attribution, and PII filtering.
 - `app/globals.css` — design tokens, layouts, breakpoints, focus, safe-area, and reduced-motion rules.
 - `public/media/` — 77 local approved/source/optimized media files.
 - `tests/rendered-html.test.mjs` — landing, thank-you, and regression assertions.
-- `e2e/enrollment.spec.ts` — Playwright flows, edge cases, no-JavaScript checkout, responsive overflow, and screenshot matrix.
 - `worker/index.ts` / `vite.config.ts` — retained worker compatibility/history; not the active Vercel adapter.
 - `vercel.json` — explicit Next.js framework, install, and build contract.
 - `DEPLOYMENT.md` / `TRACKING.md` — production workflow/status and analytics inventory.
@@ -96,12 +87,11 @@ The repository also preserves earlier Framer and cross-chat handoff documentatio
 ## Tracking semantics
 
 - `CTAOpenForm` — ordinary header/sticky free-guide interaction; never a conversion.
-- `FormStart`, `FormError`, `FormSubmit` — PII-free form diagnostics with enrollment type, seats, tier, and total context.
+- `FormStart`, `FormError`, `FormSubmit` — PII-free form diagnostics with synchronized format.
 - `Lead` — only after a valid submission reaches the qualified thank-you state.
-- `SeatCalculatorChange`, `TierUnlocked`, `EnrollmentTypeSelected` — pricing and type interactions.
-- `EnrollmentPageView`, `ParticipantsSaved`, `PaymentPathSelected`, `InvoiceRequested`, `PaymentLinkShared`, `CohortSwitched` — post-submit enrollment interactions.
+- `FormatSelect` — changed landing/checkout format selection.
 - `CapabilitySelect` — changed skills-matrix selection.
-- `InitiateCheckout` — Copilot Pay click with the displayed total and Shopify variant.
+- `InitiateCheckout` — matching Offline/Online checkout click.
 - `VideoPlay` — first tracked graduation/session video play.
 - `Purchase` — future confirmed-payment event; not implemented.
 
@@ -109,7 +99,7 @@ The browser Pixel forwards standard `ViewContent`, `Lead`, and `InitiateCheckout
 
 ## Pending production work
 
-1. Review the Copilot enrollment Vercel Preview and its attached screenshot/data evidence.
-2. Merge the focused PR only after Preview approval; merging `main` is the production release.
-3. Verify Meta Test Events for Pixel `1982493002344234` on the deployed production hostname.
-4. Keep verifying responsive, accessibility, form, roster, payment, media, checkout, and event behavior after every production change.
+1. Verify all 21 Stream players in Vercel Preview.
+2. Release the Phase 2 branch through Preview and PR after Git metadata writes are available.
+3. Verify controlled Supabase leads and Meta Test Events for Pixel `1982493002344234` on the deployed build.
+4. Keep verifying responsive, accessibility, form, media, checkout, and Pixel/event behavior after every production change.

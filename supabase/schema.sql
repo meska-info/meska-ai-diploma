@@ -24,31 +24,6 @@ alter table public.leads enable row level security;
 comment on table public.leads is
   'Server-written source of truth for Meska diploma enquiries synchronized to Google Sheets.';
 
-alter table public.leads
-  add column if not exists enrollment_type text not null default 'individual',
-  add column if not exists seats integer not null default 1,
-  add column if not exists tier_rate numeric(4,2) not null default 0,
-  add column if not exists price_per_seat integer not null default 30000,
-  add column if not exists quoted_total integer not null default 30000,
-  add column if not exists company_name text,
-  add column if not exists job_title text,
-  add column if not exists copilot_licence text,
-  add column if not exists joining_readiness text,
-  add column if not exists licence_acknowledged boolean not null default false,
-  add column if not exists submitter_is_participant boolean not null default true,
-  add column if not exists participants jsonb not null default '[]'::jsonb,
-  add column if not exists participants_count integer not null default 0,
-  add column if not exists seats_history jsonb not null default '[]'::jsonb,
-  add column if not exists payment_path text,
-  add column if not exists payer_email text,
-  add column if not exists checkout_url text,
-  add column if not exists status text not null default 'lead',
-  add column if not exists checkout_started_at timestamptz,
-  add column if not exists invoice_requested_at timestamptz,
-  add column if not exists repeat_submission boolean not null default false,
-  add column if not exists edit_token_hash text,
-  add column if not exists updated_at timestamptz not null default now();
-
 create table if not exists public.lead_offers (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid not null references public.leads(id) on delete cascade,

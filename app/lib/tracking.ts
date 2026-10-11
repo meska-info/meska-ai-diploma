@@ -12,20 +12,11 @@ export type TrackingEventName =
   | "CapabilitySelect"
   | "VideoPlay"
   | "MediaPlaceholderClick"
-  | "CheckoutLinkPending"
-  | "SeatCalculatorChange"
-  | "TierUnlocked"
-  | "EnrollmentTypeSelected"
-  | "EnrollmentPageView"
-  | "ParticipantsSaved"
-  | "PaymentPathSelected"
-  | "InvoiceRequested"
-  | "PaymentLinkShared"
-  | "CohortSwitched";
+  | "CheckoutLinkPending";
 
 export type TrackingParameters = Record<
   string,
-  string | number | boolean | readonly string[] | undefined
+  string | number | boolean | undefined
 >;
 
 export const META_PIXEL_ID = "1982493002344234";
@@ -200,21 +191,6 @@ export function trackEvent(
       event,
       safeParameters,
       options,
-    );
-  }
-}
-
-export function safeTrackEvent(
-  event: TrackingEventName,
-  parameters: TrackingParameters = {},
-  options?: { onceKey?: string },
-) {
-  try {
-    trackEvent(event, parameters, options);
-  } catch (error) {
-    console.info(
-      "[Meska tracking] Event transport unavailable",
-      JSON.stringify({ event, code: error instanceof Error ? error.name : "unknown" }),
     );
   }
 }

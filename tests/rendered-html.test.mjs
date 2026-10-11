@@ -40,29 +40,23 @@ test("server-renders the diploma landing page", async () => {
     /Learn AI to solve real business challenges, unlock new opportunities, and build practical solutions alongside managers, CEOs, founders, mentors, trainers, and subject-matter experts/i,
   );
   assert.match(html, /Why We Built the Diploma/i);
-  assert.match(html, /Talk to a Meska Advisor/i);
-  assert.match(html, /Who(?:'|’|&rsquo;)s enrolling\?/i);
+  assert.match(html, /Interested\? Talk with a Meska Advisor/i);
+  assert.match(html, /Enquiry only\. No payment is taken here\./i);
   assert.match(html, /name="fullName"/i);
-  assert.match(html, /type="hidden" name="diploma" value="online"/i);
+  assert.match(html, /type="hidden" name="diploma" value="offline"/i);
   assert.doesNotMatch(html, /<select[^>]+name="diploma"/i);
-  assert.match(html, /role="radiogroup" aria-label="Who(?:'|’|&rsquo;|&#x27;)s enrolling\?"/i);
-  assert.match(html, /Submit my interest/i);
-  assert.match(html, /How would you like to pay\?/i);
+  assert.match(html, /role="tablist" aria-label="Diploma format"/i);
+  assert.match(html, /Submit Enquiry/i);
+  assert.match(html, /Payment preference/i);
   assert.match(html, /name="linkedinUrl"/i);
   assert.match(html, /name="yearsExperience"/i);
   assert.match(html, /name="paymentPreference"/i);
-  assert.match(html, /name="joiningReadiness"/i);
-  assert.match(html, /name="copilotLicence"/i);
-  assert.match(html, /name="companyName"/i);
-  assert.match(html, /name="jobTitle"/i);
-  assert.match(html, /<input[^>]+type="hidden"[^>]+name="companyWebsite"/i);
-  assert.match(html, /1 seat · individual price/i);
-  assert.match(html, /2–4 seats/i);
-  assert.match(html, /5\+ seats/i);
-  assert.match(html, /Cohort 01/i);
-  assert.match(html, /4 Nov 2026/i);
+  assert.match(html, /name="startTiming"/i);
+  assert.match(html, /Wave 16/i);
+  assert.match(html, /7 November 2026/i);
+  assert.match(html, /Every Saturday from 5 PM to 10 PM/i);
   assert.doesNotMatch(html, /name="job"|name="company"|name="website"/i);
-  assert.match(html, /0% interest installments via Sympl/i);
+  assert.match(html, /5 interest-free payments via Sympl\./i);
   assert.doesNotMatch(html, /class="price-benefits"|>Included</i);
   assert.doesNotMatch(html, /Request Diploma Details|View everything included/i);
   assert.match(html, /Explore the complete curriculum/i);
@@ -96,27 +90,25 @@ test("server-renders the diploma landing page", async () => {
   assert.doesNotMatch(html, /lui2mOdc0S4TJNx3RrGqi/i);
 });
 
-test("server-renders the thank-you enrollment page", async () => {
-  const response = await render("/thank-you?diploma=online&seats=6&lead=public-id");
+test("server-renders the thank-you comparison page", async () => {
+  const response = await render("/thank-you?diploma=online");
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Microsoft Copilot Course Enrollment \| Meska AI<\/title>/i);
-  assert.match(html, /Your enrollment/i);
-  assert.match(html, /<output aria-live="polite">6<\/output>/i);
-  assert.match(html, /Per seat<\/span><span>EGP 22,500/i);
-  assert.match(html, /EGP 135,000/i);
-  assert.match(html, /How would you like to pay\?/i);
-  assert.match(html, /Pay online now/i);
-  assert.match(html, /aionline\.meska\.ai\/cart\/42776902369326:6/i);
-  assert.doesNotMatch(html, /Company invoice/i);
-  assert.doesNotMatch(html, /Send to my manager to pay/i);
-  assert.doesNotMatch(html, /Ready to discuss the course\?/i);
-  assert.doesNotMatch(html, /Go to the interest form/i);
-  assert.doesNotMatch(html, /checkouts\/cn\//i);
+  assert.match(html, /<title>Free AI Agent Guide \| Meska AI<\/title>/i);
+  assert.match(html, /Thank you — we’ve received your details/i);
   assert.match(html, /Pre-diploma session/i);
   assert.match(html, /See how we build AI Agents for real business problems/i);
+  assert.match(html, /One outcome\. Two practical ways to get there\./i);
+  assert.match(html, /Offline Diploma/i);
+  assert.match(html, /<button[^>]+role="tab"[^>]*>Online<\/button>/i);
+  assert.match(html, /role="tablist" aria-label="Diploma format"/i);
+  assert.match(html, /Wave 16/i);
+  assert.match(html, /7 November 2026/i);
+  assert.match(html, /Every Saturday from 5 PM to 10 PM/i);
+  assert.equal((html.match(/class="checkout-card checkout-card-unified"/g) ?? []).length, 1);
+  assert.match(html, /Continue with the [\s\S]{0,30}Offline Diploma/i);
   assert.match(html, /Step inside the diploma and see for yourself\./i);
   assert.doesNotMatch(html, /From AI skills to measurable business value\./i);
   assert.equal((html.match(/<iframe[^>]+cloudflare-stream-player/g) ?? []).length, 20);
@@ -179,8 +171,10 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(css, /\.logo-sequence\[aria-hidden="true"\][\s\S]*display:\s*none/i);
   assert.match(css, /--blue:\s*#021f94/i);
   assert.match(css, /--blue-bright:\s*#f54f1b/i);
-  assert.doesNotMatch(content, /https:\/\/aionline\.meska\.ai\/checkouts\/cn\//i);
-  assert.equal((content.match(/https:\/\/aionline\.meska\.ai\/cart\//g) ?? []).length, 2);
+  assert.equal(
+    (content.match(/https:\/\/aionline\.meska\.ai\/checkouts\/cn\//g) ?? []).length,
+    2,
+  );
   assert.equal((content.match(/checkoutUrl:/g) ?? []).length, 3);
   assert.equal((content.match(/inside_diploma_video_\d{2}/g) ?? []).length, 9);
   assert.equal((content.match(/leadDestination: null,/g) ?? []).length, 2);
@@ -250,15 +244,13 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(googleSheets, /GCP_SERVICE_ACCOUNT_EMAIL/);
   assert.match(googleSheets, /sts\.googleapis\.com\/v1\/token/);
   assert.match(googleSheets, /iamcredentials\.googleapis\.com/);
-  assert.match(googleSheets, /matchingIndexes = leadIds\.flatMap/);
-  assert.match(googleSheets, /value === currentLead\.id/);
-  assert.match(googleSheets, /latestLeadForSync/);
-  assert.match(googleSheets, /clearDuplicateRows/);
-  assert.match(googleSheets, /lead\.diploma_slug === "offline"/);
-  assert.match(googleSheets, /GOOGLE_SHEETS_COPILOT_ID/);
-  assert.match(thankYouPage, /<EnrollmentPanel leadId=\{leadId\} \/>/);
-  assert.doesNotMatch(thankYouPage, /Ready to discuss the course|Go to the interest form/);
-  assert.doesNotMatch(thankYouPage, /FloatingCheckoutCTA|CheckoutSection/);
+  assert.match(googleSheets, /requestIds\.includes\(lead\.request_id\)/);
+  assert.match(googleSheets, /diploma === "offline"/);
+  assert.match(thankYouPage, /function FloatingCheckoutCTA/);
+  assert.match(thankYouPage, /new IntersectionObserver/);
+  assert.match(thankYouPage, /checkoutCard\.getBoundingClientRect\(\)\.top/);
+  assert.match(thankYouPage, /window\.scrollTo\(\{/);
+  assert.match(thankYouPage, /headerCtaVisible \|\| checkoutCardVisible/);
   assert.match(metaPixel, /id="meska-meta-pixel"/);
   assert.match(metaPixel, /connect\.facebook\.net\/en_US\/fbevents\.js/);
   assert.match(metaPixel, /initializeMetaPixel\(\)/);

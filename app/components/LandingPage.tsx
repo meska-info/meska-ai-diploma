@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { DiplomaId, siteContent } from "../content";
 import { captureAttribution, trackEvent } from "../lib/tracking";
-import { EnrollmentProvider } from "./enrollment/EnrollmentProvider";
-import { SeatCalculator } from "./enrollment/SeatCalculator";
 import {
   DiplomaVideo,
   LeadCapture,
@@ -21,7 +19,7 @@ import {
   VideoTestimonialsSection,
 } from "./sections";
 
-export function LandingPage({ initialSeats = 1 }: { initialSeats?: number }) {
+export function LandingPage() {
   const [selectedId, setSelectedId] = useState<DiplomaId>("offline");
   const [showSticky, setShowSticky] = useState(false);
   const [showLeadModal, setShowLeadModal] = useState(false);
@@ -37,12 +35,6 @@ export function LandingPage({ initialSeats = 1 }: { initialSeats?: number }) {
       },
       { onceKey: siteContent.trackingNames.landingView },
     );
-  }, []);
-
-  useEffect(() => {
-    const openEnrollmentModal = () => setShowLeadModal(true);
-    window.addEventListener("meska:open-enrollment-modal", openEnrollmentModal);
-    return () => window.removeEventListener("meska:open-enrollment-modal", openEnrollmentModal);
   }, []);
 
   useEffect(() => {
@@ -77,7 +69,6 @@ export function LandingPage({ initialSeats = 1 }: { initialSeats?: number }) {
   }, []);
 
   return (
-    <EnrollmentProvider initialSeats={initialSeats}>
     <main id="top">
       <SiteHeader />
 
@@ -119,10 +110,6 @@ export function LandingPage({ initialSeats = 1 }: { initialSeats?: number }) {
       <SkillsBusinessValueSection />
       <TestimonialCarousel />
 
-      <section className="section closing-enrollment shell" aria-label="Price your enrollment">
-        <SeatCalculator location="closing" />
-      </section>
-
       <SiteFooter />
       {showSticky ? (
         <StickyMobileCTA onActivate={() => setShowLeadModal(true)} />
@@ -134,6 +121,5 @@ export function LandingPage({ initialSeats = 1 }: { initialSeats?: number }) {
         selectedId={selectedId}
       />
     </main>
-    </EnrollmentProvider>
   );
 }
