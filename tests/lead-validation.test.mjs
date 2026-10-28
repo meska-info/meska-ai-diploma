@@ -15,6 +15,9 @@ const base = {
 
 for (const [label, changes, expected] of [
   ["Egyptian local mobile", { mobile: "01012345678" }, "+201012345678"],
+  ["Egyptian mobile without leading 0", { mobile: "1012345678" }, "+201012345678"],
+  ["Egyptian mobile without leading 0, spaced", { mobile: "115 123 4567" }, "+201151234567"],
+  ["Egyptian 0020 mobile", { mobile: "00201012345678" }, "+201012345678"],
   ["Egyptian +20 mobile", { mobile: "+20 101 234 5678" }, "+201012345678"],
   ["international mobile", { mobile: "+44 7700 900123" }, "+447700900123"],
   ["Arabic name", { fullName: "أحمد زكي" }, "+201012345678"],
@@ -63,7 +66,6 @@ for (const [label, changes, field] of [
   ["invalid domain", { email: "person@example.1com" }, "email"],
   ["letters in phone", { mobile: "+20phone" }, "mobile"],
   ["impossible phone length", { mobile: "+20123" }, "mobile"],
-  ["repeated phone", { mobile: "+201111111111" }, "mobile"],
   ["garbage name", { fullName: "!!!!!!" }, "fullName"],
   ["numeric name", { fullName: "123456" }, "fullName"],
   ["two-letter name", { fullName: "ab" }, "fullName"],
@@ -78,6 +80,7 @@ for (const [label, changes, field] of [
   ["placeholder name", { fullName: "test" }, "fullName"],
   ["placeholder testing name", { fullName: "testing" }, "fullName"],
   ["malformed LinkedIn", { linkedinUrl: "linkedin.com" }, "linkedinUrl"],
+  ["Egyptian mobile too short without 0", { mobile: "101234567" }, "mobile"],
   ["other social URL", { linkedinUrl: "facebook.com/ahmed" }, "linkedinUrl"],
   ["fake LinkedIn domain", { linkedinUrl: "linkedin.example/in/ahmed" }, "linkedinUrl"],
 ]) {
@@ -102,4 +105,31 @@ test("rejects the exact reported name and email together", () => {
   assert.equal(result.valid, false);
   assert.equal(result.errors.fullName, "Please enter your real full name.");
   assert.equal(result.errors.email, "Please enter a valid email address you actively use.");
+});
+
+test("flags repeated or sequential phone digits instead of blocking", () => {
+  for (const mobile of ["+201111111111", "01111111111"]) {
+    const result = validateLead({ ...base, mobile });
+    assert.equal(result.valid, true, JSON.stringify(result.errors));
+    assert.equal(result.normalized.suspectedSpam, true);
+  }
+  assert.equal(validateLead(base).normalized.suspectedSpam, false);
+});
+
+test("keeps the typed LinkedIn value and its type", () => {
+  const typed = "https://m.linkedin.com/in/Ahmed-Zaki?utm_source=share";
+  const result = validateLead({ ...base, linkedinUrl: typed });
+  assert.equal(result.valid, true);
+  assert.equal(result.normalized.linkedinUrl, "https://www.linkedin.com/in/ahmed-zaki");
+  assert.equal(result.normalized.linkedinUrlRaw, typed);
+  assert.equal(result.normalized.linkedinKind, "profile");
+});
+
+test("LinkedIn error messages per failure reason", () => {
+  const paste = "Paste your LinkedIn profile link, e.g. linkedin.com/in/your-name";
+  const notProfile = "This looks like a company page or a post. Please paste your personal profile link.";
+  assert.equal(validateLead({ ...base, linkedinUrl: "" }).errors.linkedinUrl, paste);
+  assert.equal(validateLead({ ...base, linkedinUrl: "ahmed-zaki" }).errors.linkedinUrl, paste);
+  assert.equal(validateLead({ ...base, linkedinUrl: "https://facebook.com/ahmed" }).errors.linkedinUrl, paste);
+  assert.equal(validateLead({ ...base, linkedinUrl: "https://www.linkedin.com/company/meska-ai" }).errors.linkedinUrl, notProfile);
 });
