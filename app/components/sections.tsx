@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { diplomaList, DiplomaId, siteContent } from "../content";
+import { defaultLeadMagnet, diplomaList, DiplomaId, siteContent } from "../content";
 import { serializeDiplomaAdvisorContext } from "../lib/chatbase";
 import {
   captureAttribution,
@@ -382,6 +382,10 @@ export function LeadCapture({
         form_location: location,
         error_type: "validation",
         invalid_field_count: Object.keys(nextErrors).length,
+        // Field names only — never the typed values.
+        error_fields: Object.keys(nextErrors)
+          .map((field) => (field === "linkedinUrl" ? "linkedin" : field))
+          .join(","),
         variant: selectedId,
       });
       return;
@@ -424,7 +428,8 @@ export function LeadCapture({
           name: validation.normalized.name,
           email: validation.normalized.email,
           mobile: validation.normalized.mobile,
-          linkedinUrl: validation.normalized.linkedinUrl,
+          // The server normalises authoritatively and keeps the typed value too.
+          linkedinUrl: validation.normalized.linkedinUrlRaw,
           yearsExperience: validation.normalized.yearsExperience,
           paymentPreference: validation.normalized.paymentPreference,
           programmePrice: selected.price,
@@ -434,7 +439,7 @@ export function LeadCapture({
           currentWaveStartDate: selected.startDate,
           diplomaSlug: selectedId,
           sourceContext: location,
-          leadMagnet: "free-ai-agent-guide",
+          leadMagnet: defaultLeadMagnet,
           companyWebsite: formData.get("companyWebsite"),
           attribution,
         }),
