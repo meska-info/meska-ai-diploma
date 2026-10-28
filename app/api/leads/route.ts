@@ -1,7 +1,18 @@
 import { after, NextResponse } from "next/server";
-import { syncLeadToGoogleSheets, type SheetLead } from "../../lib/googleSheets";
+import { leadMagnets, siteContent } from "../../content";
 import { validateLead } from "../../lib/leadValidation";
-import { triggerLeadAutomation } from "../../lib/leadAutomation";
+import {
+  insertLead,
+  recordPipelineEvent,
+  selectLeadByRequestId,
+} from "../../lib/leadStore";
+import {
+  runAutomation,
+  runConversion,
+  runSheetSync,
+  type PipelineLead,
+} from "../../lib/leadPipeline";
+import { resolveProgrammeContext } from "../../lib/programmeContext";
 import {
   createDiplomaSessionToken,
   DIPLOMA_SESSION_COOKIE,
@@ -22,6 +33,43 @@ function text(value: unknown, maxLength: number) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 }
 
+function readCookie(request: Request, name: string) {
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  for (const part of cookieHeader.split(";")) {
+    const [key, ...rest] = part.trim().split("=");
+    if (key === name) return decodeURIComponent(rest.join("=")).slice(0, 300);
+  }
+  return undefined;
+}
+
+/** Browser context Meta needs to match the server Lead (Conversions API). */
+function conversionContext(request: Request) {
+  const forwardedFor = request.headers.get("x-forwarded-for") ?? "";
+  const ip =
+    forwardedFor.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip")?.trim() ||
+    undefined;
+  const referer = request.headers.get("referer") ?? "";
+  let eventSourceUrl: string | undefined;
+  try {
+    const url = new URL(referer);
+    if (url.hostname.endsWith("meska.ai") || url.hostname.endsWith("vercel.app")) {
+      eventSourceUrl = url.toString().slice(0, 1000);
+    }
+  } catch {
+    eventSourceUrl = undefined;
+  }
+  return Object.fromEntries(
+    Object.entries({
+      fbp: readCookie(request, "_fbp"),
+      fbc: readCookie(request, "_fbc"),
+      client_ip_address: ip?.slice(0, 64),
+      client_user_agent: request.headers.get("user-agent")?.slice(0, 500) ?? undefined,
+      event_source_url: eventSourceUrl,
+    }).filter(([, value]) => Boolean(value)),
+  );
+}
+
 export async function POST(request: Request) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -30,6 +78,7 @@ export async function POST(request: Request) {
   if (!supabaseUrl || !serviceRoleKey) {
     return NextResponse.json({ error: "Lead service unavailable" }, { status: 503 });
   }
+  const supabase = { url: supabaseUrl.replace(/\/$/, ""), key: serviceRoleKey };
 
   let input: Record<string, unknown>;
   try {
@@ -69,21 +118,27 @@ export async function POST(request: Request) {
     startTiming,
     diplomaSlug,
   });
-  const expectedProgramme = diplomaSlug === "offline"
-    ? { price: "EGP 25,000", priceValue: 25000, wave: "Wave 16", startDate: "7 November 2026" }
-    : { price: "EGP 20,000", priceValue: 20000, wave: "Wave 12", startDate: "8 November 2026" };
+  const programme = resolveProgrammeContext(
+    siteContent.diplomas,
+    diplomaSlug,
+    {
+      programmePrice,
+      programmePriceValue,
+      currentWave,
+      currentWaveStartDate,
+      leadMagnet,
+    },
+    leadMagnets,
+  );
 
   if (
     !requestId ||
     !leadValidation.valid ||
     !allowedDiplomas.has(diplomaSlug) ||
-    programmePrice !== expectedProgramme.price ||
-    programmePriceValue !== expectedProgramme.priceValue ||
-    currentWave !== expectedProgramme.wave ||
-    currentWaveStartDate !== expectedProgramme.startDate ||
-    !["primary", "modal"].includes(sourceContext) ||
-    leadMagnet !== "free-ai-agent-guide"
+    !programme ||
+    !["primary", "modal"].includes(sourceContext)
   ) {
+    const invalidFields = Object.keys(leadValidation.errors);
     console.warn(
       "Lead request rejected",
       JSON.stringify({
@@ -91,9 +146,39 @@ export async function POST(request: Request) {
         code: "invalid_lead_data",
         sourceContext: sourceContext || "missing",
         diplomaSlug: diplomaSlug || "missing",
+        invalidFields,
+      }),
+    );
+    after(() =>
+      recordPipelineEvent(supabase, "lead_rejected", "invalid_lead_data", {
+        sourceContext: sourceContext || "missing",
+        diplomaSlug: diplomaSlug || "missing",
+        invalidFields,
+        missingRequestId: !requestId,
       }),
     );
     return NextResponse.json({ error: "Invalid lead data" }, { status: 422 });
+  }
+
+  // The price/wave/date stored with the lead always come from app/content.ts.
+  // A page/API mismatch (e.g. a tab opened before a wave change) never rejects
+  // the lead; it is logged as content_drift for the pipeline-health check.
+  if (programme.drift.length) {
+    console.warn(
+      "Lead content drift",
+      JSON.stringify({
+        step: "validation",
+        code: "content_drift",
+        diplomaSlug,
+        drift: programme.drift,
+      }),
+    );
+    after(() =>
+      recordPipelineEvent(supabase, "content_drift", "content_drift", {
+        diplomaSlug,
+        drift: programme.drift,
+      }),
+    );
   }
 
   // Browser/profile autofill can populate visually hidden text fields on Android.
@@ -118,34 +203,28 @@ export async function POST(request: Request) {
     }),
   );
 
-  const leadsEndpoint = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/leads`;
-  const response = await fetch(`${leadsEndpoint}?select=*`, {
-    method: "POST",
-    headers: {
-      apikey: serviceRoleKey,
-      Authorization: `Bearer ${serviceRoleKey}`,
-      "Content-Type": "application/json",
-      Prefer: "return=representation,resolution=ignore-duplicates",
-    },
-    body: JSON.stringify({
-      request_id: requestId,
-      name: leadValidation.normalized.name,
-      email: leadValidation.normalized.email,
-      mobile: leadValidation.normalized.mobile,
-      linkedin_url: leadValidation.normalized.linkedinUrl,
-      years_experience: leadValidation.normalized.yearsExperience,
-      payment_preference: leadValidation.normalized.paymentPreference,
-      programme_price: programmePrice,
-      programme_price_value: programmePriceValue,
-      current_wave: currentWave,
-      current_wave_start_date: currentWaveStartDate,
-      start_timing: leadValidation.normalized.startTiming,
-      diploma_slug: diplomaSlug,
-      lead_source: leadMagnet,
-      source_context: sourceContext,
-      attribution,
-    }),
-    cache: "no-store",
+  const capiContext = conversionContext(request);
+  const { response } = await insertLead(supabase, {
+    request_id: requestId,
+    name: leadValidation.normalized.name,
+    email: leadValidation.normalized.email,
+    mobile: leadValidation.normalized.mobile,
+    linkedin_url: leadValidation.normalized.linkedinUrl,
+    linkedin_url_raw: leadValidation.normalized.linkedinUrlRaw,
+    linkedin_kind: leadValidation.normalized.linkedinKind,
+    suspected_spam: leadValidation.normalized.suspectedSpam,
+    years_experience: leadValidation.normalized.yearsExperience,
+    payment_preference: leadValidation.normalized.paymentPreference,
+    programme_price: programme.facts.price,
+    programme_price_value: programme.facts.priceValue,
+    current_wave: programme.facts.wave,
+    current_wave_start_date: programme.facts.startDate,
+    start_timing: leadValidation.normalized.startTiming,
+    diploma_slug: diplomaSlug,
+    lead_source: programme.leadMagnet,
+    source_context: sourceContext,
+    attribution,
+    capi_context: capiContext,
   });
 
   if (!response.ok) {
@@ -172,40 +251,44 @@ export async function POST(request: Request) {
     );
   }
 
-  let persistedLeads = (await response.json()) as SheetLead[];
+  let persistedLeads = (await response.json()) as PipelineLead[];
   if (!persistedLeads.length) {
-    const existingResponse = await fetch(
-      `${leadsEndpoint}?request_id=eq.${encodeURIComponent(requestId)}&select=*`,
-      {
-        headers: {
-          apikey: serviceRoleKey,
-          Authorization: `Bearer ${serviceRoleKey}`,
-        },
-        cache: "no-store",
-      },
-    );
-    if (existingResponse.ok) {
-      persistedLeads = (await existingResponse.json()) as SheetLead[];
-    }
+    persistedLeads = (await selectLeadByRequestId(
+      supabase,
+      requestId,
+    )) as unknown as PipelineLead[];
   }
 
-  const persistedLead = persistedLeads[0];
-  if (!persistedLead) {
+  const persistedRow = persistedLeads[0];
+  if (!persistedRow) {
     return NextResponse.json(
       { error: "Lead persistence could not be confirmed", code: "persistence_unconfirmed" },
       { status: 502 },
     );
   }
 
+  // Keeps the Meta match data even if the status migration is not applied yet.
+  const persistedLead: PipelineLead = {
+    ...persistedRow,
+    capi_context: persistedRow.capi_context ?? capiContext,
+  };
+
+  // First delivery attempt right after the lead is saved. Failures are stored
+  // on the lead and retried by /api/cron/lead-sync (Sheets + Meta), and n8n
+  // failures are counted by /api/cron/pipeline-health.
   after(async () => {
     const jobs = [
       {
         name: "google_sheets",
-        run: () => syncLeadToGoogleSheets(persistedLead, vercelOidcToken),
+        run: () => runSheetSync(supabase, persistedLead, vercelOidcToken),
       },
       {
         name: "n8n",
-        run: () => triggerLeadAutomation(persistedLead),
+        run: () => runAutomation(supabase, persistedLead),
+      },
+      {
+        name: "meta_capi",
+        run: () => runConversion(supabase, persistedLead),
       },
     ];
 

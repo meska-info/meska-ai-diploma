@@ -29,6 +29,13 @@ export type SkillValueItem = {
   curriculumSessions: string[];
 };
 
+/**
+ * Lead magnets the form may post. The lead API accepts these values only, so
+ * the form and the API always share one list.
+ */
+export const leadMagnets = ["free-ai-agent-guide"] as const;
+export const defaultLeadMagnet = leadMagnets[0];
+
 export const siteContent = {
   brand: {
     name: "Meska AI",

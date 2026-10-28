@@ -185,10 +185,9 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(content, /Wave 12/);
   assert.match(content, /8 November 2026/);
   assert.match(content, /Every Sunday from 7 PM to 11 PM/);
-  assert.match(apiRoute, /Wave 16/);
-  assert.match(apiRoute, /7 November 2026/);
-  assert.match(apiRoute, /Wave 12/);
-  assert.match(apiRoute, /8 November 2026/);
+  // Programme facts come from app/content.ts only (see lead-route-content test).
+  assert.match(apiRoute, /resolveProgrammeContext\(\s*siteContent\.diplomas/);
+  assert.doesNotMatch(apiRoute, /Wave 1\d|November 2026/);
   assert.equal((content.match(/5 interest-free payments via Sympl\./g) ?? []).length, 2);
   assert.match(sections, /CloudflareStreamVideo/);
   assert.match(sections, /videoId=\{video\.streamId\}/);
@@ -232,8 +231,9 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.doesNotMatch(streamVideo, /player\.muted = true/);
   assert.doesNotMatch(streamVideo, /enableAudio/);
   assert.match(apiRoute, /after\(async \(\) =>/);
-  assert.match(apiRoute, /syncLeadToGoogleSheets\(persistedLead, vercelOidcToken\)/);
-  assert.match(apiRoute, /triggerLeadAutomation\(persistedLead\)/);
+  assert.match(apiRoute, /runSheetSync\(supabase, persistedLead, vercelOidcToken\)/);
+  assert.match(apiRoute, /runAutomation\(supabase, persistedLead\)/);
+  assert.match(apiRoute, /runConversion\(supabase, persistedLead\)/);
   assert.match(apiRoute, /Promise\.allSettled/);
   assert.match(apiRoute, /status:\s*201/);
   assert.match(apiRoute, /x-vercel-oidc-token/);

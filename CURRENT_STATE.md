@@ -20,10 +20,12 @@ Production-transition snapshot · 23 August 2026
 - Production is live at `https://diploma.meska.ai` with GoDaddy DNS, Vercel-managed HTTPS, and the verified initial deployment `dpl_5ikQucV9zNi6rhzVKyNmr1ChehG5`.
 - The repository includes a fail-open n8n lead trigger, a versioned `lead_offers` migration with an atomic processing claim, and an inactive credential-free n8n Cloud import for real Shopify 24-hour codes followed by an approved CEQUENS WhatsApp template.
 
+- 28 Oct 2026 lead-flow fixes: LinkedIn accepts every real profile link format (still required) with per-reason error messages; Egyptian mobiles typed without the leading 0 are accepted; repeated/sequential phone digits are flagged (`suspected_spam`) instead of blocked; `FormError` carries `error_fields`; the lead API reads price/wave/date from `app/content.ts` (no hard-coded constants, `content_drift` logging); server-side Meta Lead with retries; Sheet sync status + retry job; "LinkedIn type" Sheet column; n8n failure logging; daily pipeline-health check. Details in `SUPABASE_LEADS.md` and `TRACKING.md`.
+
 ## What does not exist yet
 
 - Phase 2 lead route has not yet been deployed and verified end-to-end.
-- No CAPI implementation or confirmed Shopify Purchase event implementation.
+- No confirmed Shopify Purchase event implementation. (Server-side Lead via the Conversions API is implemented; it needs `META_CONVERSIONS_TOKEN` in Vercel Production — see `TRACKING.md`.)
 - Shopify/CEQUENS lead-offer automation is not live until the Supabase migration, n8n credentials/config, CEQUENS template approval, Vercel server variables, and controlled end-to-end test are complete.
 - No live Framer changes or publication from this local project.
 

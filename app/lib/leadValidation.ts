@@ -30,6 +30,9 @@ export type NormalizedLead = {
   email: string;
   mobile: string;
   linkedinUrl: string;
+  linkedinUrlRaw: string;
+  linkedinKind: LinkedInKind | null;
+  suspectedSpam: boolean;
   yearsExperience: Experience;
   paymentPreference: PaymentKind;
   startTiming: StartTiming;
@@ -148,28 +151,87 @@ function looksLikeGarbageEmailLocal(local: string, domain: string) {
 export function normalizePhone(value: string) {
   const compact = value.trim().replace(/[\s().-]/g, "");
   if (/^01[0125]\d{8}$/.test(compact)) return `+20${compact.slice(1)}`;
+  // Egyptian mobile typed without its leading 0 (common on mobile keyboards).
+  if (/^1[0125]\d{8}$/.test(compact)) return `+20${compact}`;
   if (/^0020/.test(compact)) return `+${compact.slice(2)}`;
   return compact;
 }
 
-export function normalizeLinkedIn(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) return "";
-  const candidate = /^[a-z][a-z\d+.-]*:\/\//i.test(trimmed)
-    ? trimmed
-    : `https://${trimmed}`;
+export type LinkedInKind = "profile" | "pub" | "short";
+export type LinkedInFailure = "empty" | "not_linkedin" | "not_profile";
+export type LinkedInResult =
+  | { ok: true; kind: LinkedInKind; url: string; raw: string }
+  | { ok: false; reason: LinkedInFailure; raw: string };
+
+export const linkedInErrorMessages: Record<LinkedInFailure, string> = {
+  empty: "Paste your LinkedIn profile link, e.g. linkedin.com/in/your-name",
+  not_linkedin: "Paste your LinkedIn profile link, e.g. linkedin.com/in/your-name",
+  not_profile: "This looks like a company page or a post. Please paste your personal profile link.",
+};
+
+/**
+ * Accepts every real LinkedIn personal-profile link format (www., m., any
+ * two-letter country subdomain, lnkd.in short links and legacy /pub/ links)
+ * and rejects non-LinkedIn sites, lookalikes and non-profile LinkedIn pages.
+ * Shared by the form (client) and the lead API (server, authoritative).
+ */
+export function parseLinkedIn(input: string): LinkedInResult {
+  const raw = String(input ?? "").trim();
+  if (!raw) return { ok: false, reason: "empty", raw };
+
+  let candidate = raw.replace(/\s+/g, "");
+  if (!/^https?:\/\//i.test(candidate)) candidate = `https://${candidate}`;
+
+  let url: URL;
   try {
-    const url = new URL(candidate);
-    url.protocol = "https:";
-    url.hash = "";
-    url.search = "";
-    if (url.hostname === "linkedin.com" || url.hostname === "www.linkedin.com") {
-      url.hostname = "www.linkedin.com";
-    }
-    return url.toString().replace(/\/$/, "");
+    url = new URL(candidate);
   } catch {
-    return trimmed;
+    return { ok: false, reason: "not_linkedin", raw };
   }
+
+  const host = url.hostname.toLowerCase();
+  const parts = url.pathname.split("/").filter(Boolean);
+
+  if (host === "lnkd.in" || host === "www.lnkd.in") {
+    const code = parts[0];
+    if (code && /^[A-Za-z0-9_-]{3,}$/.test(code)) {
+      return { ok: true, kind: "short", url: `https://lnkd.in/${code}`, raw };
+    }
+    return { ok: false, reason: "not_profile", raw };
+  }
+
+  if (!/^(?:(?:www|m|[a-z]{2})\.)?linkedin\.com$/.test(host)) {
+    return { ok: false, reason: "not_linkedin", raw };
+  }
+
+  const section = (parts[0] || "").toLowerCase();
+  let slug: string;
+  try {
+    slug = parts[1] ? decodeURIComponent(parts[1]) : "";
+  } catch {
+    slug = parts[1] || "";
+  }
+
+  if (section === "in" && slug.length >= 3 && slug.length <= 100) {
+    return {
+      ok: true,
+      kind: "profile",
+      url: `https://www.linkedin.com/in/${encodeURIComponent(slug.toLowerCase())}`,
+      raw,
+    };
+  }
+
+  if (section === "pub" && slug && slug.toLowerCase() !== "dir") {
+    const rest = parts.slice(1).map((part) => part.toLowerCase()).join("/");
+    return { ok: true, kind: "pub", url: `https://www.linkedin.com/pub/${rest}`, raw };
+  }
+
+  return { ok: false, reason: "not_profile", raw };
+}
+
+export function normalizeLinkedIn(value: string) {
+  const result = parseLinkedIn(value);
+  return result.ok ? result.url : result.raw;
 }
 
 export function validateLead(input: LeadInput) {
@@ -177,7 +239,8 @@ export function validateLead(input: LeadInput) {
   const name = input.fullName.trim().replace(/\s+/g, " ");
   const email = input.email.trim().toLowerCase();
   const mobile = normalizePhone(input.mobile);
-  const linkedinUrl = normalizeLinkedIn(input.linkedinUrl);
+  const linkedin = parseLinkedIn(input.linkedinUrl);
+  const linkedinUrl = linkedin.ok ? linkedin.url : linkedin.raw;
   const nameLetterCount = (name.match(/\p{L}/gu) ?? []).length;
 
   if (!name) errors.fullName = "Full name is required.";
@@ -216,25 +279,16 @@ export function validateLead(input: LeadInput) {
   const digits = mobile.replace(/\D/g, "");
   const egyptianValid = /^\+201[0125]\d{8}$/.test(mobile);
   const internationalValid = /^\+[1-9]\d{7,14}$/.test(mobile);
+  // Repeated or sequential digits are flagged for sales review, not blocked.
+  const suspectedSpam = repeatedOrSequentialDigits(mobile);
   if (!input.mobile.trim()) errors.mobile = "Mobile number is required.";
-  else if ((!egyptianValid && !internationalValid) || repeatedOrSequentialDigits(mobile)) {
+  else if (!egyptianValid && !internationalValid) {
     errors.mobile = "Enter a valid mobile number with its country code.";
   } else if (digits.length < 8 || digits.length > 15) {
     errors.mobile = "Enter a valid mobile number with its country code.";
   }
 
-  let linkedinValid = false;
-  try {
-    const url = new URL(linkedinUrl);
-    linkedinValid =
-      url.protocol === "https:" &&
-      url.hostname === "www.linkedin.com" &&
-      /^\/in\/[a-z\d%_-]{2,}\/?$/i.test(url.pathname);
-  } catch {
-    linkedinValid = false;
-  }
-  if (!input.linkedinUrl.trim()) errors.linkedinUrl = "LinkedIn profile is required.";
-  else if (!linkedinValid) errors.linkedinUrl = "Enter your LinkedIn profile URL, e.g. linkedin.com/in/your-profile.";
+  if (!linkedin.ok) errors.linkedinUrl = linkedInErrorMessages[linkedin.reason];
 
   if (!experienceOptions.includes(input.yearsExperience as Experience)) {
     errors.yearsExperience = "Select your years of experience.";
@@ -256,6 +310,9 @@ export function validateLead(input: LeadInput) {
       email,
       mobile,
       linkedinUrl,
+      linkedinUrlRaw: linkedin.raw,
+      linkedinKind: linkedin.ok ? linkedin.kind : null,
+      suspectedSpam,
       yearsExperience: input.yearsExperience as Experience,
       paymentPreference: input.paymentPreference as PaymentKind,
       startTiming: input.startTiming as StartTiming,
