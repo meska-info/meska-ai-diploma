@@ -10,7 +10,7 @@ GitHub is the source of truth. The production branch is `main`.
 
 ## Verified status
 
-Updated: 23 August 2026
+Updated: 23 August 2026 (infrastructure). Since then: the lead flow is live (28 Oct 2026: Supabase → Sheets → n8n → server-side Meta `Lead`, retry job `/api/cron/lead-sync`, daily `/api/cron/pipeline-health`) and Meta events are confirmed in Events Manager (29 Oct 2026). Preview deployments share the Production Supabase project; their leads are stored with `sheet_sync_status`/`capi_status` = `legacy` so they never reach the live Sheets or Meta. `CRON_SECRET` is not set yet (see `app/lib/cronAuth.ts`). See `AGENTS.md`, `TRACKING.md` and `SUPABASE_LEADS.md`.
 
 - Local production build: verified with native Next.js.
 - GitHub repository: verified at `https://github.com/meska-info/meska-ai-diploma`; `main` is production, local `main` tracks remote `main`, and baseline commit `e2c0ebe` remains in history.
@@ -20,7 +20,7 @@ Updated: 23 August 2026
 - Production domain: `https://diploma.meska.ai`, attached and ownership-verified.
 - DNS: GoDaddy authoritative nameservers; scoped `_vercel` TXT verification and `diploma` CNAME only. Root and `www` records were not changed.
 - SSL/HTTPS: verified; HTTP redirects to HTTPS and HTTPS returns `200` with Vercel HSTS.
-- Production Meta Pixel: Pixel ID and one loader instance verified live; CTA, form, qualified `Lead`, thank-you, and checkout event sequences verified through the production diagnostic log. Meta Events Manager Test Events remains pending account-owner validation.
+- Production Meta Pixel: Pixel ID and one loader instance verified live; CTA, form, qualified `Lead`, thank-you, and checkout event sequences verified through the production diagnostic log; Events Manager receipt confirmed 29 Oct 2026.
 
 Never describe a pending item as complete without inspecting the external state.
 

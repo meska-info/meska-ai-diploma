@@ -1,6 +1,6 @@
 # Supabase lead persistence
 
-The Phase 2 form posts only to `POST /api/leads`. The route validates and length-limits the payload, rejects the honeypot, allow-lists diploma/source/attribution values, and writes to Supabase using server-only credentials.
+The Phase 2 form posts only to `POST /api/leads`. The route validates and length-limits the payload, logs (never rejects) an autofilled honeypot field as `honeypot_autofill_ignored`, allow-lists diploma/source/attribution values, and writes to Supabase using server-only credentials.
 
 Required server environment variables:
 

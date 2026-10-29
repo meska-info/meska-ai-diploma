@@ -1,6 +1,6 @@
 # Current state — Meska AI Co-Pilot Diploma
 
-Production-transition snapshot · 23 August 2026
+Production-transition snapshot · 23 August 2026, with the dated updates below (latest 29 Oct 2026). The site is live at https://diploma.meska.ai.
 
 ## What exists now
 

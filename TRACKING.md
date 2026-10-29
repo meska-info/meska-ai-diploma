@@ -33,7 +33,7 @@ Meta forwarding is enabled only on the production hostname `diploma.meska.ai`. V
 - `value` = price of the selected format (`priceValue`), `currency: "EGP"`;
 - `content_ids` = `[Shopify variant ID]` taken from the format's `checkoutUrl` (`/cart/<variant>:1`), `content_type: "product"`.
 
-The browser `Lead` reads them from the pending-lead entry saved at submit; the server `Lead` resolves them from `diploma_slug`. Both copies of `Lead` therefore match, whichever copy Meta keeps after deduplication. Changing a checkout link in `app/content.ts` changes the product ID everywhere at once.
+The browser `Lead` reads them from the pending-lead entry saved at submit; the server `Lead` resolves them from `diploma_slug` (and the stored `programme_price_value`). Both copies of `Lead` therefore match, whichever copy Meta keeps after deduplication — except for a page opened before a content deploy (logged as `content_drift`), where the browser copy carries the old page's values. Changing a checkout link in `app/content.ts` changes the product ID everywhere at once.
 
 ## Script loading
 
@@ -56,6 +56,6 @@ Do not remove, rename, disable, relocate, or alter these events or their trigger
 
 - `user_data`: SHA-256 hashed email, phone (digits with country code), first and last name; `fbp`/`fbc` (from the `_fbp`/`_fbc` cookies, or `fbc` derived from `fbclid`), client IP and user agent. Raw IP is removed from Supabase after 7 days.
 - `custom_data`: `currency: "EGP"`, `value` = programme price, `content_name` = `offline|online`, `content_category: "professional_diploma"`, `content_ids: [Shopify variant]`, `content_type: "product"` (same as the browser `Lead`).
-- First attempt runs right after the lead is saved; failures are retried every 5 minutes by `/api/cron/lead-sync` (max 10 attempts, never for events older than 7 days). Status is stored on the lead (`capi_status`, `capi_attempts`, `capi_sent_at`, `capi_error`).
+- First attempt runs right after the lead is saved (Production only); failures are retried by `/api/cron/lead-sync` (every 5 minutes) on a schedule by lead age — attempts 2–3 within minutes, then two each at 1 h, 6 h, 24 h and 72 h (10 in total) — and given up (`failed`, `meta_event_too_old`) once older than 7 days. Status is stored on the lead (`capi_status`, `capi_attempts`, `capi_sent_at`, `capi_error`).
 - Requires `META_CONVERSIONS_TOKEN` (Production). Until it is set the server Lead is skipped and leads stay `pending`; they are sent automatically once the token exists (within Meta's 7-day window). Optional: `META_TEST_EVENT_CODE` (used outside Production only), `META_GRAPH_API_VERSION` (default `v25.0`, the current Marketing API version).
 - The browser Pixel events, their names and their triggers are unchanged.

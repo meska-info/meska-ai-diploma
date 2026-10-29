@@ -19,7 +19,7 @@ GitHub: https://github.com/meska-info/meska-ai-diploma
 Vercel: `meska-ai-diploma`, connected directly to GitHub
 Production deployment/domain/SSL: verified at https://diploma.meska.ai
 Production Meta Pixel: `1982493002344234`, live (browser events + server-side Lead via Conversions API)
-Lead persistence: Supabase server-side route live in Production, with Sheets/Meta retries every 5 minutes
+Lead persistence: Supabase server-side route live in Production; the retry job runs every 5 minutes (Meta server Leads on a 3-day schedule, Sheets for 14 days)
 Shopify/WhatsApp offer automation: repository implementation present; external migration, credentials, activation, and live verification pending
 Legacy Framer workflow: archived reference only
 ```

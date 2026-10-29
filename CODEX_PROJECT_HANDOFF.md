@@ -1,5 +1,7 @@
 # Meska AI Diploma — Codex project handoff
 
+> **Historical document (status note added 29 Oct 2026).** Pre-production record. Current facts are in `AGENTS.md`, `CURRENT_STATE.md`, `TRACKING.md` and `SUPABASE_LEADS.md`: the site is live at https://diploma.meska.ai; Pixel/Dataset `1982493002344234` (browser events + server-side `Lead`); `4138749493027663` is the separate **Offline** dataset and must never be used here. Do not act on pending/future items below without checking the current files.
+
 Evidence-based continuation record updated 25 August 2026 (Africa/Cairo). The repository and external services are the source of truth. Never infer that a pending Preview or production check is complete.
 
 ## Android autofill P0 incident — resolved 25 August 2026

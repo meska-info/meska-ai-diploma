@@ -1,5 +1,7 @@
 # Phase 2 implementation status
 
+> **Historical document (status note added 29 Oct 2026).** Pre-production record. Current facts are in `AGENTS.md`, `CURRENT_STATE.md`, `TRACKING.md` and `SUPABASE_LEADS.md`: the site is live at https://diploma.meska.ai; Pixel/Dataset `1982493002344234` (browser events + server-side `Lead`); `4138749493027663` is the separate **Offline** dataset and must never be used here. Do not act on pending/future items below without checking the current files.
+
 Updated 25 August 2026 (Africa/Cairo).
 
 ## Git baseline

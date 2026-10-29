@@ -131,6 +131,23 @@ export async function updateLeadStatus(
   }
 }
 
+/** Updates every lead matching a PostgREST filter (status bookkeeping only). */
+export async function updateLeads(
+  config: SupabaseConfig,
+  filter: string,
+  patch: Record<string, unknown>,
+) {
+  const response = await fetch(`${config.url}/rest/v1/leads?${filter}`, {
+    method: "PATCH",
+    headers: headers(config, { Prefer: "return=minimal" }),
+    body: JSON.stringify(patch),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new Error(`supabase_update_${response.status}_${await errorCode(response)}`);
+  }
+}
+
 export async function selectLeads(config: SupabaseConfig, query: string) {
   const response = await fetch(`${config.url}/rest/v1/leads?${query}`, {
     headers: headers(config),

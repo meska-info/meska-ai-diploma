@@ -19,6 +19,38 @@ export type PipelineLead = SheetLead & ConversionLead & {
 export const SHEET_MAX_ATTEMPTS = 12;
 export const CAPI_MAX_ATTEMPTS = 10;
 
+/**
+ * Preview and Production share one Supabase project. Only Production leads are
+ * queued for the Sheet retry job and the server-side Meta Lead; Preview leads
+ * are stored as "legacy" for both, so they never reach the live Sheets or Meta.
+ */
+export function isProductionDeployment() {
+  return process.env.VERCEL_ENV === "production";
+}
+
+const HOUR_MS = 60 * 60 * 1000;
+// Server Lead retry schedule by lead age: [attempts made below this count, minimum age].
+// Attempts 2–3 within minutes, then two attempts each at 1 h, 6 h, 24 h and 72 h,
+// so a token or permission problem fixed within three days still delivers.
+export const CAPI_RETRY_TIERS: ReadonlyArray<readonly [number, number]> = [
+  [3, 2 * 60 * 1000],
+  [5, HOUR_MS],
+  [7, 6 * HOUR_MS],
+  [9, 24 * HOUR_MS],
+  [CAPI_MAX_ATTEMPTS, 72 * HOUR_MS],
+];
+
+/** PostgREST `or` filter selecting server Leads that are due for a retry now. */
+export function capiRetryFilter(now = Date.now()) {
+  let below = 0;
+  const tiers = CAPI_RETRY_TIERS.map(([attemptsBelow, minAge]) => {
+    const tier = `and(capi_attempts.gte.${below},capi_attempts.lt.${attemptsBelow},created_at.lt."${new Date(now - minAge).toISOString()}")`;
+    below = attemptsBelow;
+    return tier;
+  });
+  return `or=${encodeURIComponent(`(${tiers.join(",")})`)}`;
+}
+
 function errorText(error: unknown) {
   return (error instanceof Error ? error.message : "unknown").slice(0, 300);
 }
@@ -53,7 +85,8 @@ export async function runSheetSync(
   } catch (error) {
     logFailure("google_sheets", error, lead);
     await updateLeadStatus(config, lead.request_id, {
-      sheet_sync_status: attempts >= SHEET_MAX_ATTEMPTS ? "failed" : "retrying",
+      sheet_sync_status:
+        attempts >= SHEET_MAX_ATTEMPTS || !isProductionDeployment() ? "failed" : "retrying",
       sheet_sync_attempts: attempts,
       sheet_sync_error: errorText(error),
     });
@@ -62,6 +95,7 @@ export async function runSheetSync(
 }
 
 export async function runConversion(config: SupabaseConfig, lead: PipelineLead) {
+  if (!isProductionDeployment()) return false;
   if (!isConversionsApiConfigured()) {
     // Stays "pending" so the retry job sends it once the token is configured.
     return false;
