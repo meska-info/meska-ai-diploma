@@ -117,7 +117,7 @@ test("recaps the selected Diploma without asserting discount validity or deliver
   }
   assert.match(copy, /Full tuition: EGP 20,000/);
   assert.match(copy, /Check WhatsApp.*10% code/);
-  assert.match(copy, /validity needs confirmation/);
+  assert.doesNotMatch(copy, /confirm/i);
   assert.doesNotMatch(copy, /sent|delivered|valid until|https?:|lead-123|Claude/);
   assert.ok(copy.endsWith("If you have any other questions, ask me here."));
   assert.equal(messages.length, 2);
@@ -176,7 +176,7 @@ test("missing format or offer cannot invent tuition or checkout", () => {
     const copy = buildVerifiedAdvisorMessages(null, options).join(" ");
     assert.match(copy, /^Hi 👋/);
     assert.doesNotMatch(copy, /EGP|https?:|What's your name|Online or Offline/);
-    assert.match(copy, /enrollment availability must be confirmed/);
+    assert.doesNotMatch(copy, /confirm|تأكيد|مؤكد/i);
   }
   const noSession = buildVerifiedAdvisorMessages(null, {
     applicationReceived: false,
