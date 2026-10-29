@@ -18,6 +18,7 @@ Never expose the service-role key through a `NEXT_PUBLIC_` variable. Apply `supa
 
 - LinkedIn: `linkedin_url` (normalised), `linkedin_url_raw` (as typed), `linkedin_kind` (`profile | pub | short`). LinkedIn stays required; every real profile link format is accepted (www., m., country subdomains, lnkd.in, legacy /pub/).
 - `suspected_spam`: repeated or sequential phone digits are flagged for review instead of blocked.
+- `mobile` is always stored as `+<country><number>`: Arabic digits and Egyptian numbers typed as 01…, 1…, 20…, 0020… or +20… become `+201XXXXXXXXX` (29 Oct 2026, same rules as Copilot).
 - Delivery status: `sheet_sync_status` / `sheet_sync_attempts` / `sheet_synced_at` / `sheet_sync_error`, `capi_status` / `capi_attempts` / `capi_sent_at` / `capi_error` / `capi_context`, `n8n_status` / `n8n_error`. Rows that existed before the migration are `legacy` and never re-sent.
 - `lead_pipeline_events`: non-PII events — rejected requests, `content_drift`, daily `health_check` reports.
 - `purge_lead_capi_ip()`: removes raw IP addresses older than 7 days (run by the lead-sync job).
