@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { ChatbaseWidget } from "./components/ChatbaseWidget";
 import { MetaPixel } from "./components/MetaPixel";
+import { META_PIXEL_ID } from "./lib/tracking";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,6 +37,19 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
         <MetaPixel />
+        {/* No-JavaScript PageView: production builds only, never previews. */}
+        {process.env.VERCEL_ENV === "production" ? (
+          <noscript>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt=""
+              height="1"
+              src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+              style={{ display: "none" }}
+              width="1"
+            />
+          </noscript>
+        ) : null}
         <ChatbaseWidget />
         {children}
       </body>
