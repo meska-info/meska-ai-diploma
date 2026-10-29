@@ -16,7 +16,7 @@ export type TrackingEventName =
 
 export type TrackingParameters = Record<
   string,
-  string | number | boolean | undefined
+  string | number | boolean | string[] | undefined
 >;
 
 export const META_PIXEL_ID = "1982493002344234";
