@@ -172,7 +172,7 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(css, /--blue:\s*#021f94/i);
   assert.match(css, /--blue-bright:\s*#f54f1b/i);
   assert.equal(
-    (content.match(/https:\/\/aionline\.meska\.ai\/checkouts\/cn\//g) ?? []).length,
+    (content.match(/https:\/\/aionline\.meska\.ai\/cart\/\d+:1/g) ?? []).length,
     2,
   );
   assert.equal((content.match(/checkoutUrl:/g) ?? []).length, 3);
@@ -209,6 +209,9 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(tracking, /export function readSessionValue/);
   assert.match(tracking, /export function writeSessionValue/);
   assert.match(sections, /window\.name = `meska-pending-lead:/);
+  assert.match(sections, /contentId: shopifyVariantId\(selected\.checkoutUrl\)/);
+  assert.match(sections, /content_ids: contentId \? \[contentId\] : undefined/);
+  assert.match(sections, /\.\.\.metaProductFields\(selected\)/);
   assert.match(sections, /readSessionValue\("meska-pending-lead"\)/);
   assert.match(sections, /name="companyWebsite"[\s\S]*readOnly[\s\S]*type="hidden"[\s\S]*value=""/);
   assert.match(sections, /\[Meska lead\] Submission rejected/);
@@ -251,7 +254,9 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.match(thankYouPage, /checkoutCard\.getBoundingClientRect\(\)\.top/);
   assert.match(thankYouPage, /window\.scrollTo\(\{/);
   assert.match(thankYouPage, /headerCtaVisible \|\| checkoutCardVisible/);
-  assert.match(metaPixel, /id="meska-meta-pixel"/);
+  assert.match(metaPixel, /script\.id = "meska-meta-pixel"/);
+  assert.match(metaPixel, /if \(!isProductionTrackingHost\(\)\) return;/);
+  assert.match(layout, /process\.env\.VERCEL_ENV === "production"/);
   assert.match(metaPixel, /connect\.facebook\.net\/en_US\/fbevents\.js/);
   assert.match(metaPixel, /initializeMetaPixel\(\)/);
   assert.match(metaPixel, /trackMetaPageView\(pathname\)/);

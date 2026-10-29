@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "generatedAt": "2026-08-23",
+  "statusNote": "Historical pre-production snapshot (23 Aug 2026). Superseded by AGENTS.md, CURRENT_STATE.md, TRACKING.md and DEPLOYMENT.md. Production Pixel/Dataset is 1982493002344234 (live, with server-side Lead); 4138749493027663 is the separate Offline dataset and must never be used.",
   "project": {
     "name": "Meska AI Co-Pilot Diploma local approval prototype",
     "root": "/Users/ahmedzaki/Documents/Codex/2026-08-14/create-a-high-conversion-journey-of-2",
@@ -156,7 +157,7 @@
     "transport": "local window.__MESKA_EVENTS__ and console bridge only",
     "piiFiltering": true,
     "productionMetaPixelInstalled": false,
-    "futureMetaPixelId": "4138749493027663",
+    "futureMetaPixelId": "4138749493027663 (superseded: production uses 1982493002344234; 4138749493027663 is the Offline dataset)",
     "futureMetaPixelAuthorizedByThisHandoff": false,
     "events": [
       "CTAOpenForm",
@@ -249,7 +250,7 @@
   ],
   "knownIssues": [
     "Both production format-specific lead destinations are missing, so the local form intentionally performs no external submission.",
-    "Meta Pixel and CAPI are not implemented; the documented Pixel ID is a future requirement only.",
+    "(Historical) Meta Pixel and CAPI were not implemented at the time; both are now live on Pixel 1982493002344234.",
     "There is no Git remote, Vercel project, production deployment, or project-configured custom domain.",
     "app/globals.css intentionally contains earlier style blocks followed by accepted later override blocks; future cleanup is risky without full regression testing.",
     "The current build output is vinext/Vite Worker-style and has not been proven as a Vercel production configuration."
@@ -258,7 +259,7 @@
     "Obtain and verify distinct Offline and Online lead destinations before implementing production routing.",
     "Create/connect GitHub only on explicit request.",
     "Choose and verify a production deployment adapter, including Vercel only on explicit request.",
-    "Implement consent-aware Meta Pixel 4138749493027663 and approved CAPI deduplication only on explicit request.",
+    "(Done, superseded) Meta Pixel 1982493002344234 and server-side Lead (CAPI) deduplication are live; never use 4138749493027663.",
     "Implement Purchase only from confirmed Shopify payment evidence.",
     "Resume native Framer recreation or publication only on explicit request."
   ],

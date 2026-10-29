@@ -1,11 +1,10 @@
 "use client";
 
-import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import {
   initializeMetaPixel,
-  META_PIXEL_ID,
+  isProductionTrackingHost,
   trackMetaPageView,
 } from "../lib/tracking";
 
@@ -15,27 +14,19 @@ export function MetaPixel() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Meta's script loads only on the live hostname; Vercel previews and local
+    // builds never download it (the in-page event log still works there).
+    if (!isProductionTrackingHost()) return;
     initializeMetaPixel();
+    if (!document.getElementById("meska-meta-pixel")) {
+      const script = document.createElement("script");
+      script.id = "meska-meta-pixel";
+      script.async = true;
+      script.src = "https://connect.facebook.net/en_US/fbevents.js";
+      document.head.appendChild(script);
+    }
     trackMetaPageView(pathname);
   }, [pathname]);
 
-  return (
-    <>
-      <Script
-        id="meska-meta-pixel"
-        src="https://connect.facebook.net/en_US/fbevents.js"
-        strategy="afterInteractive"
-      />
-      <noscript>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          alt=""
-          height="1"
-          src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-          style={{ display: "none" }}
-          width="1"
-        />
-      </noscript>
-    </>
-  );
+  return null;
 }

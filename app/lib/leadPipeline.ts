@@ -1,3 +1,4 @@
+import { siteContent, type DiplomaId } from "../content";
 import { syncLeadToGoogleSheets, type SheetLead } from "./googleSheets";
 import { triggerLeadAutomation } from "./leadAutomation";
 import {
@@ -7,6 +8,7 @@ import {
   type ConversionLead,
 } from "./metaConversions";
 import { updateLeadStatus, type SupabaseConfig } from "./leadStore";
+import { shopifyVariantId } from "./metaProduct";
 
 export type PipelineLead = SheetLead & ConversionLead & {
   sheet_sync_attempts?: number | null;
@@ -70,7 +72,11 @@ export async function runConversion(config: SupabaseConfig, lead: PipelineLead) 
     Number.isFinite(createdAt) && Date.now() - createdAt > CONVERSION_MAX_AGE_MS;
   try {
     if (expired) throw new Error("meta_event_too_old");
-    await sendLeadConversion(lead);
+    const diploma = siteContent.diplomas[lead.diploma_slug as DiplomaId];
+    await sendLeadConversion({
+      ...lead,
+      content_id: diploma ? shopifyVariantId(diploma.checkoutUrl) : undefined,
+    });
     await updateLeadStatus(config, lead.request_id, {
       capi_status: "sent",
       capi_attempts: attempts,

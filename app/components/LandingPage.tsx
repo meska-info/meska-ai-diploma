@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DiplomaId, siteContent } from "../content";
+import { metaProductFields } from "../lib/metaProduct";
 import { captureAttribution, trackEvent } from "../lib/tracking";
 import {
   DiplomaVideo,
@@ -26,12 +27,18 @@ export function LandingPage() {
 
   useEffect(() => {
     captureAttribution();
+    // The format shown first: ?diploma=online opens Online, otherwise Offline.
+    const shownFormat: DiplomaId =
+      new URLSearchParams(window.location.search).get("diploma") === "online"
+        ? "online"
+        : "offline";
     trackEvent(
       "ViewContent",
       {
         tracking_id: siteContent.trackingNames.landingView,
         content_name: siteContent.brand.diplomaName,
         content_category: "professional_diploma",
+        ...metaProductFields(siteContent.diplomas[shownFormat]),
       },
       { onceKey: siteContent.trackingNames.landingView },
     );

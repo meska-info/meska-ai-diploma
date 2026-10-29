@@ -31,8 +31,8 @@ Then inspect the actual source and Git status. The current uncommitted working t
 
 - Local development and Git: yes.
 - GitHub, Vercel, and the production domain must match the verified status in `DEPLOYMENT.md`; never infer that a pending item is complete.
-- Production Meta Pixel ID: `4138749493027663`. Its implementation and event mapping are production requirements.
-- Production Offline and Online lead destinations: both missing/pending. Never invent endpoints or claim two-destination routing works.
+- Production Meta Pixel/Dataset ID: `1982493002344234` (Meska's Pixel | Onnline), live on `diploma.meska.ai`. `4138749493027663` is the separate Offline dataset: no ad set optimises on it — never put it in this site. The event mapping in `TRACKING.md` is a production requirement.
+- Production lead flow (live since 28 Oct 2026): `POST /api/leads` → Supabase → Google Sheets (Offline/Online) → n8n automation → server-side Meta `Lead` (Conversions API, same event ID as the browser `Lead`); `/api/cron/lead-sync` retries Sheets and Meta every 5 minutes. See `TRACKING.md` and `DEPLOYMENT.md`.
 
 ## Commands
 

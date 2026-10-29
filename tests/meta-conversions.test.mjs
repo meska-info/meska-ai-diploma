@@ -81,3 +81,31 @@ test("events older than 7 days are not sent", async () => {
   await assert.rejects(sendLeadConversion(old, async () => new Response("{}")), /too_old/);
   delete process.env.META_CONVERSIONS_TOKEN;
 });
+
+test("server Lead carries the same value and Shopify product ID as the browser Lead", async () => {
+  const { metaProductFields } = await import("../app/lib/metaProduct.ts");
+  const { siteContent } = await import("../app/content.ts");
+  for (const diploma of Object.values(siteContent.diplomas)) {
+    const browser = metaProductFields(diploma);
+    assert.equal(browser.value, diploma.priceValue);
+    assert.equal(browser.currency, "EGP");
+    assert.equal(browser.content_type, "product");
+    assert.match(browser.content_ids[0], /^\d{8,}$/);
+    const server = buildLeadConversionEvent({
+      ...lead,
+      diploma_slug: diploma.id,
+      programme_price_value: diploma.priceValue,
+      content_id: browser.content_ids[0],
+    });
+    assert.equal(server.custom_data.value, browser.value);
+    assert.equal(server.custom_data.currency, browser.currency);
+    assert.deepEqual(server.custom_data.content_ids, browser.content_ids);
+    assert.equal(server.custom_data.content_type, "product");
+  }
+});
+
+test("server Lead without a product ID omits content_ids", () => {
+  const event = buildLeadConversionEvent(lead);
+  assert.equal(event.custom_data.content_ids, undefined);
+  assert.equal(event.custom_data.content_type, undefined);
+});

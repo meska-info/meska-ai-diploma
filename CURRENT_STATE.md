@@ -13,7 +13,7 @@ Production-transition snapshot · 23 August 2026
 - One dynamic thank-you checkout card with both approved Shopify links.
 - Impact, outcomes, transparent greyscale marquee, shared curriculum disclosure, nine image testimonials, nine shared Stream video testimonials, free guide, graduation/session videos, nine-item skills matrix, four instructors, and sixteen FAQs.
 - Full landing-page PNGs at 390, 768, and 1440px in `artifacts/full-page-pngs/`.
-- Phase 2 changes replace the active runtime Pixel constant with `1982493002344234`; production receipt remains unverified until the Phase 2 Preview is approved and deployed.
+- The runtime Pixel/Dataset is `1982493002344234` and is live on production (Events Manager receives the browser events and the server-side `Lead`). `4138749493027663` is the separate Offline dataset and is not used.
 - Active production documentation lives in `DEPLOYMENT.md`, `TRACKING.md`, `README.md`, and `AGENTS.md`.
 - GitHub source repository is connected at `https://github.com/meska-info/meska-ai-diploma`; local `main` tracks remote `main`, and production baseline commit `e2c0ebe` remains in history for recovery.
 - Vercel project `meska-ai-diploma` is connected directly to GitHub with `main` as its production branch.
@@ -22,10 +22,11 @@ Production-transition snapshot · 23 August 2026
 
 - 28 Oct 2026 lead-flow fixes: LinkedIn accepts every real profile link format (still required) with per-reason error messages; Egyptian mobiles typed without the leading 0 are accepted; repeated/sequential phone digits are flagged (`suspected_spam`) instead of blocked; `FormError` carries `error_fields`; the lead API reads price/wave/date from `app/content.ts` (no hard-coded constants, `content_drift` logging); server-side Meta Lead with retries; Sheet sync status + retry job; "LinkedIn type" Sheet column; n8n failure logging; daily pipeline-health check. Details in `SUPABASE_LEADS.md` and `TRACKING.md`.
 
+- 29 Oct 2026 tracking alignment: `ViewContent`, `Lead` (browser and server) and `InitiateCheckout` carry the same value, EGP currency and Shopify variant ID (`content_ids`); Meta's script loads only on `diploma.meska.ai`; Conversions API on Marketing API v25.0; stale pixel/handoff docs corrected. See `TRACKING.md`.
+
 ## What does not exist yet
 
-- Phase 2 lead route has not yet been deployed and verified end-to-end.
-- No confirmed Shopify Purchase event implementation. (Server-side Lead via the Conversions API is implemented; it needs `META_CONVERSIONS_TOKEN` in Vercel Production — see `TRACKING.md`.)
+- No `Purchase` event in this site: Purchase reaches the same dataset from Shopify's own Meta integration after a paid checkout. (Server-side `Lead` via the Conversions API is live since 28 Oct 2026 — see `TRACKING.md`.)
 - Shopify/CEQUENS lead-offer automation is not live until the Supabase migration, n8n credentials/config, CEQUENS template approval, Vercel server variables, and controlled end-to-end test are complete.
 - No live Framer changes or publication from this local project.
 
@@ -51,4 +52,4 @@ Production-transition snapshot · 23 August 2026
 
 ## Next phase
 
-Finish Cloudflare guide encoding, release the Phase 2 branch through Vercel Preview/PR, test controlled Supabase leads, and complete Meta Events Manager validation. Purchase/CAPI remain separate future work.
+Keep the lead pipeline, Meta event mapping (`TRACKING.md`) and responsive behavior verified after every change. Purchase stays with Shopify's Meta integration.

@@ -18,8 +18,8 @@ Local Git repository: yes (`main` tracks `origin/main`)
 GitHub: https://github.com/meska-info/meska-ai-diploma
 Vercel: `meska-ai-diploma`, connected directly to GitHub
 Production deployment/domain/SSL: verified at https://diploma.meska.ai
-Production Meta Pixel: loader and production event flow technically verified; Meta Events Manager Test Events pending
-Lead persistence: Supabase server-side route configured in Vercel Preview and Production; deployment verification pending
+Production Meta Pixel: `1982493002344234`, live (browser events + server-side Lead via Conversions API)
+Lead persistence: Supabase server-side route live in Production, with Sheets/Meta retries every 5 minutes
 Shopify/WhatsApp offer automation: repository implementation present; external migration, credentials, activation, and live verification pending
 Legacy Framer workflow: archived reference only
 ```
@@ -95,11 +95,11 @@ The repository also preserves earlier Framer and cross-chat handoff documentatio
 - `VideoPlay` — first tracked graduation/session video play.
 - `Purchase` — future confirmed-payment event; not implemented.
 
-The browser Pixel forwards standard `ViewContent`, `Lead`, and `InitiateCheckout` events and sends all other active events as custom events. No CAPI, Purchase event, or PII event parameter is present.
+The browser Pixel forwards standard `ViewContent`, `Lead`, and `InitiateCheckout` events and sends all other active events as custom events. The server also sends `Lead` through the Conversions API with the same event ID. No Purchase event or PII event parameter is present in this code (see `TRACKING.md` for Meta's advanced matching).
 
 ## Pending production work
 
 1. Verify all 21 Stream players in Vercel Preview.
-2. Release the Phase 2 branch through Preview and PR after Git metadata writes are available.
-3. Verify controlled Supabase leads and Meta Test Events for Pixel `1982493002344234` on the deployed build.
+2. (Done) Phase 2 lead route released to production.
+3. (Done) Pixel `1982493002344234` browser events and server-side Lead verified in Events Manager.
 4. Keep verifying responsive, accessibility, form, media, checkout, and Pixel/event behavior after every production change.

@@ -10,7 +10,8 @@ import { createHash } from "node:crypto";
  */
 
 export const META_PIXEL_ID = "1982493002344234";
-const DEFAULT_GRAPH_API_VERSION = "v26.0";
+// Current Marketing API version (Conversions API is part of the Marketing API).
+const DEFAULT_GRAPH_API_VERSION = "v25.0";
 // Meta rejects website events older than seven days.
 export const CONVERSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -30,6 +31,8 @@ export type ConversionLead = {
   mobile: string;
   diploma_slug: string;
   programme_price_value?: number | null;
+  /** Shopify variant ID of the chosen format; the browser Lead sends the same. */
+  content_id?: string | null;
   attribution?: Record<string, string> | null;
   capi_context?: ConversionContext | null;
 };
@@ -119,6 +122,8 @@ export function buildLeadConversionEvent(lead: ConversionLead) {
           : undefined,
       content_name: lead.diploma_slug,
       content_category: "professional_diploma",
+      content_ids: lead.content_id ? [lead.content_id] : undefined,
+      content_type: lead.content_id ? "product" : undefined,
     }),
   };
 }

@@ -1,10 +1,12 @@
 # Meska AI Co-Pilot Diploma — Native Framer Handoff
 
+> **Historical document (status note added 29 Oct 2026).** This file records the pre-production handoff and is superseded by `AGENTS.md`, `CURRENT_STATE.md`, `TRACKING.md` and `DEPLOYMENT.md`. Current facts: the site is live at https://diploma.meska.ai; the production Meta Pixel/Dataset is `1982493002344234` (browser events + server-side `Lead` via the Conversions API); `4138749493027663` is the separate **Offline** dataset and must never be used on this site; the lead route (Supabase → Sheets → n8n → Meta) is live. Do not act on pending/future items below without checking the current files.
+
 Authoritative recreation specification · 16 August 2026
 
 Recreate the accepted local implementation with native Framer structures. Do not import screenshots as the page, hotlink Google Drive, publish, or alter the live project without explicit approval. Read `NEXT_CHAT_HANDOFF.md`, `PROJECT_HANDOFF.md`, `MEDIA_ASSET_MANIFEST.md`, and the actual source first.
 
-Handoff status note · 23 August 2026: this file is retained as the detailed native-Framer recreation reference. It does not override the active local React implementation and does not authorize editing or publishing the live Framer project. The production Meta Pixel remains unimplemented; Pixel ID `4138749493027663` is documented for a future explicitly approved integration only.
+Handoff status note · 23 August 2026: this file is retained as the detailed native-Framer recreation reference. It does not override the active local React implementation and does not authorize editing or publishing the live Framer project. The production Meta Pixel was then unimplemented; Pixel ID `4138749493027663` was documented at the time (superseded: production uses `1982493002344234`; `4138749493027663` is the Offline dataset).
 
 ## Journey contract
 
@@ -354,7 +356,7 @@ Use the project naming convention exactly.
 | Graduation first play | `VideoPlay` | `thank_you_graduation_video`, media location |
 | Session first play | `VideoPlay` | `inside_diploma_video_01` … `_09`, location and 1-based index |
 
-Deduplicate `Lead` and first-video-play events. Preserve the shared `event_id` for future Pixel/CAPI deduplication. Filter PII-shaped keys and never pass field values. Do not install a production Pixel in the local project. The future approved Pixel ID is `4138749493027663`; documenting it here is not authorization to initialize, fire, publish, or deploy it.
+Deduplicate `Lead` and first-video-play events. Preserve the shared `event_id` for future Pixel/CAPI deduplication. Filter PII-shaped keys and never pass field values. Do not install a production Pixel in the local project. The future Pixel ID was then `4138749493027663` (superseded: production uses `1982493002344234`; `4138749493027663` is the Offline dataset); documenting it here is not authorization to initialize, fire, publish, or deploy it.
 
 ## Scoped correction verification · 16 August 2026
 
