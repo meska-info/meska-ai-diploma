@@ -32,7 +32,7 @@ Then inspect the actual source and Git status. The current uncommitted working t
 - Local development and Git: yes.
 - GitHub, Vercel, and the production domain must match the verified status in `DEPLOYMENT.md`; never infer that a pending item is complete.
 - Production Meta Pixel/Dataset ID: `1982493002344234` (Meska's Pixel | Onnline), live on `diploma.meska.ai`. `4138749493027663` is the separate Offline dataset: no ad set optimises on it — never put it in this site. The event mapping in `TRACKING.md` is a production requirement.
-- Production lead flow (live since 28 Oct 2026): `POST /api/leads` → Supabase → Google Sheets (Offline/Online) → n8n automation → server-side Meta `Lead` (Conversions API, same event ID as the browser `Lead`); `/api/cron/lead-sync` retries Sheets and Meta every 5 minutes. See `TRACKING.md` and `DEPLOYMENT.md`.
+- Production lead flow (live since 28 Oct 2026): `POST /api/leads` → Supabase → Google Sheets (Offline/Online) → n8n automation → server-side Meta `Lead` (Conversions API, same event ID as the browser `Lead`); `/api/cron/lead-sync` (every 5 minutes) retries the server Lead on a 3-day schedule and Sheets for 14 days. Preview deployments share the Production database; their leads are stored as `legacy` and never reach the live Sheets or Meta. See `TRACKING.md` and `DEPLOYMENT.md`.
 
 ## Commands
 
@@ -65,7 +65,7 @@ pnpm test
 - The old hero CTA pair (`Start Application` / `Explore Curriculum`), orbit image, and course-detail bar remain removed. The current header Start Application anchor and sticky “Speak with a Meska Advisor” CTA are intentional and must remain.
 - The landing price card has no Included area, replacement disclosure, or reserved empty space. The inclusion arrays in `app/content.ts` remain because the thank-you checkout card still uses them.
 - Preserve the one-line `5 interest-free payments via Sympl.` text and the compact content-sized curriculum-session pill.
-- Preserve the six visible required form controls plus toggle-owned hidden `diploma` value, atomic Offline/Online state, validation, duplicate-submit guard, attribution, and qualified thank-you flow.
+- Preserve the seven visible required form controls plus toggle-owned hidden `diploma` value, atomic Offline/Online state, validation, duplicate-submit guard, attribution, and qualified thank-you flow.
 - Preserve the compact thank-you confirmation, one dynamic checkout card, ten user-controlled/exclusive thank-you videos, nine-item skills matrix, four instructor cards, sixteen FAQs, nine testimonials, and transparent greyscale sixteen-logo marquee.
 - WhatsApp may appear only in the verified thank-you FAQ support answer. Do not add a landing WhatsApp CTA, eligibility section, checkout gate, or payment-before-eligibility copy.
 
@@ -77,7 +77,7 @@ pnpm test
 - Whenever changing CTAs, buttons, links, forms, navigation, application flows, thank-you flows, or conversion components, verify their associated tracking. Check for missing events, duplicate events, broken handlers, duplicate `PageView` calls, incorrect conversion triggers, and PII leakage.
 - A UI task is incomplete if it works visually but breaks tracking. Preserve the event inventory and Meta mapping in `TRACKING.md`.
 - Never send PII in tracking parameters, fire duplicate events, or hard-code tracking into visual indexes.
-- Preserve both complete checkout URLs and their query strings in `app/content.ts`; append attribution only when a key is absent.
+- Preserve both complete checkout URLs in `app/content.ts` (Shopify cart permalinks `/cart/<variant>:1`; the variant is also the Meta product ID); append attribution only when a key is absent.
 
 ## Legacy Framer handoff
 
