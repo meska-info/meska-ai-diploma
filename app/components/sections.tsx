@@ -20,6 +20,7 @@ import {
   writeSessionValue,
 } from "../lib/tracking";
 import { experienceOptions, validateLead } from "../lib/leadValidation";
+import { metaProductFields, shopifyVariantId } from "../lib/metaProduct";
 import { CloudflareStreamVideo } from "./CloudflareStreamVideo";
 
 export function BrandMark() {
@@ -486,6 +487,10 @@ export function LeadCapture({
       formLocation: location,
       leadDestinationStatus: "persisted",
       attribution,
+      // Same value and Shopify product ID as the server Lead (Conversions API).
+      value: selected.priceValue,
+      currency: selected.currency,
+      contentId: shopifyVariantId(selected.checkoutUrl),
     });
     if (!writeSessionValue("meska-pending-lead", pendingLead)) {
       window.name = `meska-pending-lead:${pendingLead}`;
@@ -1240,8 +1245,7 @@ export function CheckoutSection() {
     trackEvent("InitiateCheckout", {
       tracking_id: trackingId,
       variant: selected.id,
-      value: selected.priceValue,
-      currency: selected.currency,
+      ...metaProductFields(selected),
       event_id: eventId,
     });
 
@@ -1649,6 +1653,9 @@ export function ThankYouLeadTracker() {
       formLocation: string;
       leadDestinationStatus?: string;
       attribution?: Record<string, string>;
+      value?: number;
+      currency?: string;
+      contentId?: string;
     };
     const windowNamePrefix = "meska-pending-lead:";
     const windowNamePending = window.name.startsWith(windowNamePrefix)
@@ -1663,6 +1670,12 @@ export function ThankYouLeadTracker() {
         pending = null;
       }
       if (pending) {
+      // Older pending entries (saved before this release) fall back to content.
+      const product = siteContent.diplomas[pending.variant]
+        ? metaProductFields(siteContent.diplomas[pending.variant])
+        : undefined;
+      const value = typeof pending.value === "number" ? pending.value : product?.value;
+      const contentId = pending.contentId ?? product?.content_ids?.[0];
       trackEvent(
         "Lead",
         {
@@ -1673,6 +1686,10 @@ export function ThankYouLeadTracker() {
           lead_destination_status:
             pending.leadDestinationStatus ?? "pending",
           event_id: pending.eventId,
+          value,
+          currency: value !== undefined ? pending.currency ?? "EGP" : undefined,
+          content_ids: contentId ? [contentId] : undefined,
+          content_type: contentId ? "product" : undefined,
           utm_source: pending.attribution?.utm_source,
           utm_medium: pending.attribution?.utm_medium,
           utm_campaign: pending.attribution?.utm_campaign,
