@@ -1,5 +1,7 @@
 # Meska AI Co-Pilot Diploma — master local project handoff
 
+> **Historical document (status note added 29 Oct 2026).** This file records the pre-production handoff and is superseded by `AGENTS.md`, `CURRENT_STATE.md`, `TRACKING.md` and `DEPLOYMENT.md`. Current facts: the site is live at https://diploma.meska.ai; the production Meta Pixel/Dataset is `1982493002344234` (browser events + server-side `Lead` via the Conversions API); `4138749493027663` is the separate **Offline** dataset and must never be used on this site; the lead route (Supabase → Sheets → n8n → Meta) is live. Do not act on pending/future items below without checking the current files.
+
 Complete continuation record · updated 23 August 2026
 
 This document is the primary replacement for the previous Codex conversation. A fresh Codex session must be able to continue from the repository and these handoff files alone. Read `AGENTS.md`, `CURRENT_STATE.md`, `PROJECT_STATE.json`, `CHANGELOG_PROJECT.md`, `FRAMER_HANDOFF.md`, `MEDIA_ASSET_MANIFEST.md`, `MEDIA_PLACEMENT_PLAN.md`, and the actual source before making changes.
@@ -436,7 +438,7 @@ Never pass full name, email, phone/mobile, job, company, or website values to ev
 
 The production Meta Pixel is not present in source, generated HTML, environment configuration, or local runtime.
 
-Future approved Pixel ID: `4138749493027663`.
+Future approved Pixel ID at the time: `4138749493027663` (superseded — production uses `1982493002344234`; `4138749493027663` is the Offline dataset).
 
 When the user explicitly authorizes tracking implementation, the future agent must choose the correct framework-safe integration and implement the standard Meta loader/noscript equivalent once. It must prevent:
 
@@ -522,7 +524,7 @@ They do not override the active local React implementation, trigger a Framer reb
 - One dynamic checkout card; ten user-controlled exclusive videos; nine capability items; four official instructors; sixteen FAQs.
 - Curriculum-session pill remains content-sized and natural-height at tablet/desktop.
 - No invented facts, dates, claims, endpoints, policies, people, partners, or outcomes.
-- Production tracking is future work. Pixel ID is `4138749493027663`; it is not implemented.
+- Production tracking is future work. Pixel ID was then `4138749493027663` (superseded — production uses `1982493002344234`, live).
 - GitHub, Vercel, production deployment, domain setup, and production lead routing are pending.
 - Framer documentation is reference material unless explicitly resumed.
 
@@ -563,7 +565,7 @@ Highest priority when separately authorized:
 1. obtain verified Offline and Online lead destinations and implement confirmed single-route capture;
 2. decide GitHub repository/asset scope, create remote, and push safely;
 3. decide deployment target/adapter, then configure Vercel only if still desired;
-4. implement consent-aware Meta Pixel `4138749493027663` and any approved CAPI deduplication;
+4. (done) Meta Pixel `1982493002344234` and server-side Lead (CAPI) deduplication are live — do not use `4138749493027663`;
 5. perform production browser/device/accessibility/tracking/form/checkout/media testing;
 6. configure production domain and monitoring only after deployment approval;
 7. resume native Framer recreation only if explicitly desired;

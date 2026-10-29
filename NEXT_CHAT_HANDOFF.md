@@ -1,5 +1,7 @@
 # Meska AI Co-Pilot Diploma — Next Chat Handoff
 
+> **Historical document (status note added 29 Oct 2026).** This file records the pre-production handoff and is superseded by `AGENTS.md`, `CURRENT_STATE.md`, `TRACKING.md` and `DEPLOYMENT.md`. Current facts: the site is live at https://diploma.meska.ai; the production Meta Pixel/Dataset is `1982493002344234` (browser events + server-side `Lead` via the Conversions API); `4138749493027663` is the separate **Offline** dataset and must never be used on this site; the lead route (Supabase → Sheets → n8n → Meta) is live. Do not act on pending/future items below without checking the current files.
+
 Standalone continuation source of truth · 16 August 2026
 
 23 August 2026 packaging note: use `AGENTS.md`, `CURRENT_STATE.md`, `PROJECT_HANDOFF.md`, `PROJECT_STATE.json`, `CHANGELOG_PROJECT.md`, and `NEXT_CODEX_PROMPT.md` as the current fresh-chat package. This earlier detailed handoff remains valid supporting history. Meta Pixel is still absent; ID `4138749493027663` is a future explicitly approved requirement only. GitHub, Vercel, both production lead destinations, deployment, and live Framer publication remain pending.

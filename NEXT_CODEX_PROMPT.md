@@ -1,5 +1,7 @@
 # Prompt for the fresh Codex chat
 
+> **Historical document (status note added 29 Oct 2026).** This file records the pre-production handoff and is superseded by `AGENTS.md`, `CURRENT_STATE.md`, `TRACKING.md` and `DEPLOYMENT.md`. Current facts: the site is live at https://diploma.meska.ai; the production Meta Pixel/Dataset is `1982493002344234` (browser events + server-side `Lead` via the Conversions API); `4138749493027663` is the separate **Offline** dataset and must never be used on this site; the lead route (Supabase → Sheets → n8n → Meta) is live. Do not act on pending/future items below without checking the current files.
+
 Paste everything below into a fresh Codex chat opened on this same local project.
 
 ---
@@ -49,7 +51,7 @@ Understand the infrastructure state:
 - Vercel setup and deployment are pending;
 - production deployment and custom-domain configuration are pending;
 - production Offline and Online lead destinations are both pending;
-- Meta Pixel is not implemented; future approved Pixel ID is `4138749493027663`;
+- Meta Pixel is not implemented; future Pixel ID was then `4138749493027663` (superseded: production uses `1982493002344234`; `4138749493027663` is the Offline dataset);
 - Framer files are retained reference material unless I explicitly resume Framer work;
 - nothing in the handoff authorizes publishing, deploying, pushing, connecting production services, or editing the live Framer project.
 
