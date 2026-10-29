@@ -243,7 +243,8 @@ export function buildVerifiedAdvisorMessages(
   }: {
     firstName?: string;
     diplomaSlug?: DiplomaId;
-    currentOffer?: Pick<Diploma, "id" | "priceValue" | "currency">;
+    currentOffer?: Pick<Diploma, "id" | "priceValue" | "currency"> &
+      Partial<Pick<Diploma, "wave" | "startDate" | "schedule" | "location">>;
     language?: "en" | "ar";
     applicationReceived?: boolean;
   } = {},
@@ -251,21 +252,45 @@ export function buildVerifiedAdvisorMessages(
   const verified = context?.leadVerified ? context : null;
   const name = cleanText(verified?.firstName ?? firstName, 60);
   const slug = verified?.diplomaSlug ?? diplomaSlug;
-  const format = slug === "online" ? "Online" : slug === "offline" ? "Offline" : "";
-  const label = `AI Copilot Diploma${format ? ` — ${format}` : ""}`;
   const arabic = language === "ar";
+  const format = slug === "online"
+    ? arabic ? "أونلاين (Online)" : "Online"
+    : slug === "offline"
+      ? arabic ? "أوفلاين (Offline)" : "Offline"
+      : "";
+  const label = `AI Copilot Diploma${format ? ` — ${format}` : ""}`;
   const greeting = arabic
-    ? `أهلًا${name ? ` يا ${name}` : ""} 👋${applicationReceived ? " طلبك وصلنا." : ""} MESKA شركة مصرية متخصصة في تعليم الـAI بشكل عملي للمهنيين.`
-    : `Hi${name ? ` ${name}` : ""} 👋${applicationReceived ? " We've received your application." : ""} MESKA is an Egyptian company focused on practical AI training for professionals.`;
-  const recap = arabic
-    ? `في ${label} هتتعلم prompting، اختيار أدوات AI، بناء assistants، automation وagents، وصناعة المحتوى بالـAI. البرنامج عملي على مدار 8 أسابيع، مع مشروع جماعي بإشراف mentor، وتسجيلات وموارد LMS مدى الحياة.`
-    : `In the ${label}, you'll learn prompting, how to choose AI tools, build assistants, automation and agents, and create content with AI. The practical 8-week program includes a mentored group project and lifetime LMS recordings and resources.`;
+    ? `أهلًا${name ? ` يا ${name}` : ""} 👋${applicationReceived ? " طلبك وصلنا، ومش محتاج تبعت أي بيانات تاني." : ""}`
+    : `Hi${name ? ` ${name}` : ""} 👋${applicationReceived ? " We've received your application." : ""}`;
+
+  // The welcome is the agent's own first message, so stating the track here is
+  // what keeps the conversation on the format the visitor applied for.
+  const matchingOffer = currentOffer && currentOffer.id === slug ? currentOffer : null;
+  const trackDetails = matchingOffer
+    ? [
+        matchingOffer.wave && matchingOffer.startDate
+          ? `${matchingOffer.wave} · ${matchingOffer.startDate}`
+          : undefined,
+        matchingOffer.schedule,
+        matchingOffer.location,
+      ].filter(Boolean).map((line) => `- ${line}`).join("\n")
+    : "";
+  const recap = format
+    ? [
+        arabic ? `إنت مسجل في ${label}:` : `You applied for the ${label}:`,
+        trackDetails,
+      ].filter(Boolean).join("\n")
+    : arabic
+      ? "MESKA شركة مصرية متخصصة في تعليم الـAI بشكل عملي للمهنيين."
+      : "MESKA is an Egyptian company focused on practical AI training for professionals.";
 
   const expiry = formatOfferExpiry(verified?.offer?.expiresAt);
   const percent = verified?.offer?.discountPercent;
+  const code = verified?.offer?.discountCode;
   const activeDiscount =
     verified?.offerState === "offer_ready" &&
     Boolean(expiry) &&
+    Boolean(code) &&
     typeof percent === "number" &&
     Number.isFinite(percent) &&
     percent > 0 && percent <= 100;
@@ -274,28 +299,32 @@ export function buildVerifiedAdvisorMessages(
     ? arabic ? "نافذة كود خصمك الشخصي انتهت." : "Your personal discount window has ended."
     : activeDiscount
       ? arabic
-        ? `راجع WhatsApp لكود خصمك الشخصي ${percent}%. ينتهي في ${expiry} بتوقيت القاهرة.`
-        : `Check WhatsApp for your personal ${percent}% code. It expires on ${expiry} (Cairo time).`
+        ? `كود خصمك الشخصي ${percent}%: ${code}\nاكتبه في خانة الخصم في صفحة الدفع. صالح لحد ${expiry} بتوقيت القاهرة.`
+        : `Your personal ${percent}% code: ${code}\nEnter it in the discount field at checkout. It expires on ${expiry} (Cairo time).`
       : arabic
         ? applicationReceived ? "راجع WhatsApp لكود خصمك الشخصي 10%." : "لو عندك كود خصم شخصي 10%، راجع WhatsApp."
         : applicationReceived ? "Check WhatsApp for your personal 10% code." : "If you have a personal 10% code, check WhatsApp.";
 
-  const fullPrice = currentOffer && currentOffer.id === slug &&
-    currentOffer.currency === "EGP" &&
-    Number.isFinite(currentOffer.priceValue) && currentOffer.priceValue > 0
-      ? currentOffer.priceValue : null;
+  const fullPrice = matchingOffer &&
+    matchingOffer.currency === "EGP" &&
+    Number.isFinite(matchingOffer.priceValue) && matchingOffer.priceValue > 0
+      ? matchingOffer.priceValue : null;
   const money = (value: number) => `EGP ${new Intl.NumberFormat("en-GB", {
     maximumFractionDigits: 2,
   }).format(value)}`;
   const price = fullPrice === null ? "" : activeDiscount
     ? arabic
-      ? `السعر بكود ساري: ${money(fullPrice * (1 - percent! / 100))}؛ السعر الكامل: ${money(fullPrice)}.`
-      : `With a valid code: ${money(fullPrice * (1 - percent! / 100))}; full tuition: ${money(fullPrice)}.`
+      ? `السعر بالكود: ${money(fullPrice * (1 - percent! / 100))}؛ السعر الكامل: ${money(fullPrice)}.`
+      : `With your code: ${money(fullPrice * (1 - percent! / 100))}; full tuition: ${money(fullPrice)}.`
     : arabic ? `السعر الكامل: ${money(fullPrice)}.` : `Full tuition: ${money(fullPrice)}.`;
 
-  const closing = arabic
-    ? "لو عندك أي استفسار تاني، اسألني هنا."
-    : "If you have any other questions, ask me here.";
+  const closing = format
+    ? arabic
+      ? `تحب أبعتلك لينك الدفع للـ${format}؟ أو اسألني أي سؤال عنه.`
+      : `Want your ${format} payment link? Or ask me anything about it.`
+    : arabic
+      ? "لو عندك أي استفسار تاني، اسألني هنا."
+      : "If you have any other questions, ask me here.";
 
   return [
     `${greeting}\n\n${recap}`,
