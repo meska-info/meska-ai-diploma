@@ -148,12 +148,25 @@ function looksLikeGarbageEmailLocal(local: string, domain: string) {
     !/[aeiouy]/i.test(local);
 }
 
+// Arabic-Indic (٠-٩) and Persian (۰-۹) digits become 0-9.
+const EASTERN_ARABIC_DIGITS = /[٠-٩۰-۹]/g;
+
+// Same rules as the Copilot form (29 Oct 2026): Arabic digits, Egyptian
+// mobiles with or without the leading 0, and 20… / 0020… / +20… with or
+// without the extra 0 all become +201XXXXXXXXX. Other countries keep needing
+// their + or 00 country code.
 export function normalizePhone(value: string) {
-  const compact = value.trim().replace(/[\s().-]/g, "");
-  if (/^01[0125]\d{8}$/.test(compact)) return `+20${compact.slice(1)}`;
-  // Egyptian mobile typed without its leading 0 (common on mobile keyboards).
-  if (/^1[0125]\d{8}$/.test(compact)) return `+20${compact}`;
-  if (/^0020/.test(compact)) return `+${compact.slice(2)}`;
+  const compact = value
+    .replace(EASTERN_ARABIC_DIGITS, (digit) => String(digit.charCodeAt(0) & 0xf))
+    .trim()
+    .replace(/[\s().\-‎‏‪-‮]/g, "");
+  // 01XXXXXXXXX or 1XXXXXXXXX (Egyptian mobile without the leading zero)
+  const local = compact.match(/^0?(1[0125]\d{8})$/);
+  if (local) return `+20${local[1]}`;
+  // +20…, 0020…, 20… — including the common "+20 01…" extra zero
+  const international = compact.match(/^(?:\+|00)?200?(1[0125]\d{8})$/);
+  if (international) return `+20${international[1]}`;
+  if (/^00\d/.test(compact)) return `+${compact.slice(2)}`;
   return compact;
 }
 
