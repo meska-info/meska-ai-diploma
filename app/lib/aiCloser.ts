@@ -277,8 +277,8 @@ export function buildVerifiedAdvisorMessages(
         ? `راجع WhatsApp لكود خصمك الشخصي ${percent}%. ينتهي في ${expiry} بتوقيت القاهرة.`
         : `Check WhatsApp for your personal ${percent}% code. It expires on ${expiry} (Cairo time).`
       : arabic
-        ? `${applicationReceived ? "راجع WhatsApp لكود خصمك الشخصي 10%." : "لو عندك كود خصم شخصي 10%، راجع WhatsApp."} صلاحية الكود محتاجة تأكيد.`
-        : `${applicationReceived ? "Check WhatsApp for your personal 10% code." : "If you have a personal 10% code, check WhatsApp."} Its validity needs confirmation.`;
+        ? applicationReceived ? "راجع WhatsApp لكود خصمك الشخصي 10%." : "لو عندك كود خصم شخصي 10%، راجع WhatsApp."
+        : applicationReceived ? "Check WhatsApp for your personal 10% code." : "If you have a personal 10% code, check WhatsApp.";
 
   const fullPrice = currentOffer && currentOffer.id === slug &&
     currentOffer.currency === "EGP" &&
@@ -293,19 +293,13 @@ export function buildVerifiedAdvisorMessages(
       : `With a valid code: ${money(fullPrice * (1 - percent! / 100))}; full tuition: ${money(fullPrice)}.`
     : arabic ? `السعر الكامل: ${money(fullPrice)}.` : `Full tuition: ${money(fullPrice)}.`;
 
-  // Neither the existing verified context nor siteContent exposes join_until,
-  // enrollment eligibility, or payment status. A discount expiry is not an
-  // enrollment cutoff; do not advertise checkout without that evidence.
-  const availability = arabic
-    ? "قبل الدفع، لازم الصيغة المختارة وإتاحة الانضمام الحالية يكونوا مؤكدين."
-    : "Your selected format and current enrollment availability must be confirmed before payment.";
   const closing = arabic
     ? "لو عندك أي استفسار تاني، اسألني هنا."
     : "If you have any other questions, ask me here.";
 
   return [
     `${greeting}\n\n${recap}`,
-    [discount, price, availability, closing].filter(Boolean).join("\n\n"),
+    [discount, price, closing].filter(Boolean).join("\n\n"),
   ];
 }
 

@@ -280,7 +280,7 @@ test("offer normalization never invents ready, coupon, percentage, or expiry", (
   );
   assert.equal(pending.offerState, "offer_pending");
   assert.equal(pending.offer, null);
-  assert.match(buildVerifiedAdvisorMessages(pending).join(" "), /validity needs confirmation/);
+  assert.match(buildVerifiedAdvisorMessages(pending).join(" "), /Check WhatsApp for your personal 10% code/);
 
   const invalidReady = normalizeAiCloserContext(
     {
@@ -376,7 +376,7 @@ test("a pending offer keeps polling without asserting code validity", () => {
     "online",
   );
   assert.equal(isPendingOfferState(pending), true);
-  assert.match(buildVerifiedAdvisorMessages(pending).join(" "), /validity needs confirmation/);
+  assert.match(buildVerifiedAdvisorMessages(pending).join(" "), /Check WhatsApp for your personal 10% code/);
   assert.doesNotMatch(buildVerifiedAdvisorMessages(pending).join(" "), /With a valid code|It expires/);
 
   // Terminal and unverified states must stop the poll loop.
