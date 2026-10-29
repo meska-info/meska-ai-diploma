@@ -22,6 +22,13 @@ export type SheetLead = {
   attribution: Record<string, string>;
 };
 
+// Every Google call has a time limit, so a slow Google response cannot use up
+// the request or the 60-second retry job (the Meta retries run in that job too).
+const GOOGLE_TIMEOUT_MS = 10_000;
+function googleFetch(input: string, init: RequestInit = {}) {
+  return fetch(input, { ...init, signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS) });
+}
+
 async function getGoogleAccessToken(vercelOidcToken: string) {
   const projectNumber = process.env.GCP_PROJECT_NUMBER;
   const poolId = process.env.GCP_WORKLOAD_IDENTITY_POOL_ID;
@@ -32,7 +39,7 @@ async function getGoogleAccessToken(vercelOidcToken: string) {
   }
 
   const audience = `//iam.googleapis.com/projects/${projectNumber}/locations/global/workloadIdentityPools/${poolId}/providers/${providerId}`;
-  const exchangeResponse = await fetch("https://sts.googleapis.com/v1/token", {
+  const exchangeResponse = await googleFetch("https://sts.googleapis.com/v1/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
@@ -55,7 +62,7 @@ async function getGoogleAccessToken(vercelOidcToken: string) {
     throw new Error("google_sts_token_missing");
   }
 
-  const impersonationResponse = await fetch(
+  const impersonationResponse = await googleFetch(
     `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${encodeURIComponent(serviceAccountEmail)}:generateAccessToken`,
     {
       method: "POST",
@@ -113,7 +120,7 @@ const qualificationHeaders = [
 type SheetLayout = "current" | "legacy";
 
 async function readHeaderRow(spreadsheetId: string, headers: Record<string, string>) {
-  const response = await fetch(
+  const response = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!A1:Z1")}`,
     { cache: "no-store", headers },
   );
@@ -155,7 +162,7 @@ export async function ensureLinkedInKindColumn(
   if (layoutFromHeaders(headerRow) === "current") return "already_current";
   if (headerRow[15] !== "linkedin_url") return "unexpected_layout";
 
-  const metaResponse = await fetch(
+  const metaResponse = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=${encodeURIComponent("sheets.properties(sheetId,title)")}`,
     { cache: "no-store", headers },
   );
@@ -167,7 +174,7 @@ export async function ensureLinkedInKindColumn(
     ?.properties?.sheetId;
   if (typeof sheetId !== "number") throw new Error("google_sheet1_missing");
 
-  const insertResponse = await fetch(
+  const insertResponse = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
     {
       method: "POST",
@@ -210,7 +217,7 @@ export async function syncLeadToGoogleSheets(
   const layout = layoutFromHeaders(await readHeaderRow(spreadsheetId, headers));
   const headerValues = layout === "current" ? qualificationHeaders : legacyQualificationHeaders;
   const headerRange = layout === "current" ? "Sheet1!P1:X1" : "Sheet1!P1:W1";
-  const qualificationHeadersResponse = await fetch(
+  const qualificationHeadersResponse = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(headerRange)}?valueInputOption=RAW`,
     {
       method: "PUT",
@@ -225,7 +232,7 @@ export async function syncLeadToGoogleSheets(
   if (!qualificationHeadersResponse.ok) {
     throw new Error(`google_sheet_headers_${qualificationHeadersResponse.status}`);
   }
-  const requestIdsResponse = await fetch(
+  const requestIdsResponse = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent("Sheet1!B:B")}?majorDimension=COLUMNS`,
     { cache: "no-store", headers },
   );
@@ -251,7 +258,7 @@ export async function syncLeadToGoogleSheets(
     lead.start_timing,
   ];
   const appendRange = layout === "current" ? "Sheet1!A:X" : "Sheet1!A:W";
-  const appendResponse = await fetch(
+  const appendResponse = await googleFetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(appendRange)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
     {
       method: "POST",
