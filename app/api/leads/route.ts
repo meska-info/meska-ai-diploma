@@ -7,6 +7,7 @@ import {
   selectLeadByRequestId,
 } from "../../lib/leadStore";
 import {
+  isProductionDeployment,
   runAutomation,
   runConversion,
   runSheetSync,
@@ -225,6 +226,9 @@ export async function POST(request: Request) {
     source_context: sourceContext,
     attribution,
     capi_context: capiContext,
+    // Preview shares this database: keep Preview leads out of the Production
+    // retry job (live Sheets) and away from the live Meta dataset.
+    ...(isProductionDeployment() ? {} : { sheet_sync_status: "legacy", capi_status: "legacy" }),
   });
 
   if (!response.ok) {
