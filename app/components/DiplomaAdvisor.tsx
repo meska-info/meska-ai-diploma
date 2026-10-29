@@ -255,18 +255,19 @@ export function DiplomaAdvisor() {
       diplomaSlug,
       currentOffer: diplomaSlug ? siteContent.diplomas[diplomaSlug] : undefined,
       applicationReceived: Boolean(browserContext),
-      language: typeof document !== "undefined" &&
-        document.documentElement.lang.toLowerCase().startsWith("ar")
-        ? "ar" : "en",
+      // Applicants chat in Egyptian Arabic, matching the agent's own welcome.
+      language: "ar",
     });
   }, [browserContext, identity, verifiedContext]);
 
   // Declared before the auto-open effect so the widget always carries the best
-  // available copy by the time it is opened.
+  // available copy by the time it is opened. It waits on the same deadline as
+  // the auto-open, so the widget never opens on the generic dashboard welcome
+  // that does not know the visitor's format.
   useEffect(() => {
     if (
       status !== "ready" || !contextResolved ||
-      (browserContext && !personalizationSettled)
+      (browserContext && !personalizationSettled && !autoOpenDeadlineReached)
     ) return;
     let active = true;
     let timer = 0;
@@ -289,7 +290,14 @@ export function DiplomaAdvisor() {
       active = false;
       window.clearTimeout(timer);
     };
-  }, [browserContext, contextResolved, initialMessages, personalizationSettled, status]);
+  }, [
+    autoOpenDeadlineReached,
+    browserContext,
+    contextResolved,
+    initialMessages,
+    personalizationSettled,
+    status,
+  ]);
 
   useEffect(() => {
     if (!identityReady) return;
