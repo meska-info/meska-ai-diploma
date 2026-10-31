@@ -102,39 +102,7 @@ test("rejects expired or malformed advisor context without blocking the page", (
   assert.equal(resolveDiplomaAdvisorContext(malformedStorage, now), null);
 });
 
-test("states the applicant's own format and its details without asserting discount delivery", () => {
-  const messages = buildVerifiedAdvisorMessages(null, {
-    firstName: "Mariam",
-    diplomaSlug: "online",
-    currentOffer: siteContent.diplomas.online,
-  });
-  const copy = messages.join(" ");
-
-  assert.match(copy, /Mariam/);
-  assert.match(copy, /You applied for the AI Copilot Diploma — Online/);
-  const online = siteContent.diplomas.online;
-  for (const detail of [online.wave, online.startDate, online.schedule, online.location]) {
-    assert.ok(copy.includes(detail), detail);
-  }
-  assert.doesNotMatch(copy, /Offline|Online or Offline/);
-  assert.match(copy, /Full tuition: EGP 20,000/);
-  assert.match(copy, /Check WhatsApp.*10% code/);
-  assert.doesNotMatch(copy, /confirm/i);
-  assert.doesNotMatch(copy, /sent|delivered|valid until|https?:|lead-123|Claude/);
-  assert.ok(copy.endsWith("Want your Online payment link? Or ask me anything about it."));
-  assert.equal(messages.length, 2);
-
-  const offline = buildVerifiedAdvisorMessages(null, {
-    diplomaSlug: "offline",
-    currentOffer: siteContent.diplomas.offline,
-    language: "ar",
-  }).join(" ");
-  assert.match(offline, /إنت مسجل في AI Copilot Diploma — أوفلاين \(Offline\)/);
-  assert.ok(offline.includes(siteContent.diplomas.offline.location));
-  assert.match(offline, /لينك الدفع للـأوفلاين \(Offline\)/);
-  assert.doesNotMatch(offline, /Online|أونلاين/);
-});
-
+const NOW = Date.UTC(2026, 9, 31, 10);
 const readyContext = {
   schemaVersion: "1",
   leadVerified: true,
@@ -144,52 +112,102 @@ const readyContext = {
   offer: {
     discountPercent: 10,
     discountCode: "MESKA-PERSONAL-10",
-    startsAt: "2026-10-04T12:00:00Z",
-    expiresAt: "2026-10-05T12:00:00Z",
+    startsAt: "2026-10-31T10:00:00Z",
+    expiresAt: "2026-10-31T22:00:00Z",
   },
   safeMessage: "ready",
 };
 
-test("uses only matching content prices and shows the verified personal code", () => {
-  for (const [slug, full, discounted] of [["online", "20,000", "18,000"], ["offline", "25,000", "22,500"]]) {
-    const copy = buildVerifiedAdvisorMessages(
-      { ...readyContext, diplomaSlug: slug },
-      { currentOffer: siteContent.diplomas[slug] },
-    ).join(" ");
-    assert.ok(copy.includes(`full tuition: EGP ${full}`));
-    assert.ok(copy.includes(`With your code: EGP ${discounted}`));
-    assert.match(copy, /Your personal 10% code: MESKA-PERSONAL-10/);
-    assert.match(copy, /5 Oct 2026, 15:00 \(Cairo time\)/);
-    assert.doesNotMatch(copy, /https?:|12 hours|24 hours/);
-  }
-  const mismatch = buildVerifiedAdvisorMessages(readyContext, {
-    currentOffer: siteContent.diplomas.offline,
-  }).join(" ");
-  assert.doesNotMatch(mismatch, /EGP/);
+test("a ready offer renders the approved welcome for the applied format", () => {
+  const online = buildVerifiedAdvisorMessages(readyContext, {
+    currentOffer: siteContent.diplomas.online,
+    now: NOW,
+  });
+  assert.equal(online.length, 1);
+  assert.equal(online[0], [
+    "Hi Mariam, **You've earned 10% OFF on the Meska AI Diploma** 🎉",
+    "Expires in 12 hours",
+    "Meska AI Diploma | Online · Wave 12",
+    [
+      "👉🏽First session: Sunday, 8th November 2026",
+      "👉🏽Duration: 8 weeks",
+      "👉🏽Price: EGP 18,000 instead of EGP 20,000",
+      "👉🏽Sessions are every Sunday, 7 PM–11 PM",
+      "👉🏽Live online, via ZOOM",
+    ].join("\n"),
+    [
+      "**Your discount:** 10% OFF",
+      "**Your code:** MESKA-PERSONAL-10",
+      "**Offer expires:** 1 Nov 2026, 00:00 (Cairo time)",
+    ].join("\n"),
+    "Here is your payment link: https://aionline.meska.ai/cart/41309075341358:1?discount=MESKA-PERSONAL-10",
+  ].join("\n\n"));
+
+  const offline = buildVerifiedAdvisorMessages(
+    { ...readyContext, diplomaSlug: "offline" },
+    { currentOffer: siteContent.diplomas.offline, now: NOW },
+  )[0];
+  assert.match(offline, /Meska AI Diploma \| Offline · Wave 16/);
+  assert.match(offline, /👉🏽First session: Saturday, 7th November 2026/);
+  assert.match(offline, /👉🏽Price: EGP 22,500 instead of EGP 25,000/);
+  assert.match(offline, /👉🏽Sessions are every Saturday, 5 PM–10 PM/);
+  assert.match(offline, /👉🏽Venue: Creativa Innovation Hub, Giza/);
+  assert.ok(offline.endsWith(`${siteContent.diplomas.offline.checkoutUrl}?discount=MESKA-PERSONAL-10`));
+  assert.doesNotMatch(offline, /Online|ZOOM|Sunday/);
+  assert.doesNotMatch(online.join(" "), /Offline|Creativa|Saturday/);
 });
 
-test("expired and unknown discounts never advertise discounted tuition", () => {
-  for (const offerState of ["expired", "offer_pending", "unavailable"]) {
+test("the expiry line counts down from the real offer expiry", () => {
+  const at = (hoursBeforeExpiry) => buildVerifiedAdvisorMessages(readyContext, {
+    currentOffer: siteContent.diplomas.online,
+    now: Date.parse(readyContext.offer.expiresAt) - hoursBeforeExpiry * 60 * 60 * 1000,
+  })[0];
+  assert.match(at(5), /\n\nExpires in 5 hours\n\n/);
+  assert.match(at(1), /\n\nExpires in 1 hour\n\n/);
+  assert.match(at(0.2), /\n\nExpires in less than an hour\n\n/);
+  // An offer that has already run out never shows a code or a discounted price.
+  const lapsed = at(-1);
+  assert.doesNotMatch(lapsed, /MESKA-PERSONAL-10|18,000|discount=/);
+  assert.match(lapsed, /👉🏽Price: EGP 20,000\n/);
+});
+
+test("without a ready offer the welcome keeps the format but never invents a code", () => {
+  for (const offerState of ["offer_pending", "unavailable", "expired"]) {
     const copy = buildVerifiedAdvisorMessages(
       { ...readyContext, offerState },
-      { currentOffer: siteContent.diplomas.online },
+      { currentOffer: siteContent.diplomas.online, now: NOW },
     ).join(" ");
-    assert.match(copy, /Full tuition: EGP 20,000/);
-    assert.doesNotMatch(copy, /18,000|With your code|It expires|MESKA-PERSONAL-10/);
-    if (offerState === "expired") assert.match(copy, /window has ended/);
+    assert.match(copy, /Meska AI Diploma \| Online · Wave 12/);
+    assert.match(copy, /👉🏽Price: EGP 20,000\n/);
+    assert.doesNotMatch(copy, /18,000|MESKA-PERSONAL-10|discount=|Expires in/);
+    assert.ok(copy.endsWith(`Here is your payment link: ${siteContent.diplomas.online.checkoutUrl}`));
+    if (offerState === "expired") assert.match(copy, /discount window has ended/);
+    else assert.match(copy, /Check WhatsApp for your personal 10% code/);
   }
+  const fromBrowserOnly = buildVerifiedAdvisorMessages(null, {
+    firstName: "Mariam",
+    diplomaSlug: "offline",
+    currentOffer: siteContent.diplomas.offline,
+  }).join(" ");
+  assert.match(fromBrowserOnly, /^Hi Mariam, we've received your application/);
+  assert.match(fromBrowserOnly, /Offline · Wave 16/);
+  assert.doesNotMatch(fromBrowserOnly, /confirm/i);
+});
+
+test("an unverified, mismatched or missing format never shows tuition, links or codes", () => {
   const unverified = buildVerifiedAdvisorMessages(
     { ...readyContext, leadVerified: false },
   ).join(" ");
-  assert.doesNotMatch(unverified, /Mariam|— Online|EGP|It expires|MESKA-PERSONAL-10/);
-});
-
-test("missing format or offer cannot invent tuition or checkout", () => {
+  assert.doesNotMatch(unverified, /Mariam|Online|EGP|https?:|MESKA-PERSONAL-10/);
+  const mismatch = buildVerifiedAdvisorMessages(readyContext, {
+    currentOffer: siteContent.diplomas.offline,
+    now: NOW,
+  }).join(" ");
+  assert.doesNotMatch(mismatch, /EGP|https?:|MESKA-PERSONAL-10/);
   for (const options of [{}, { diplomaSlug: "online" }, { currentOffer: siteContent.diplomas.online }]) {
     const copy = buildVerifiedAdvisorMessages(null, options).join(" ");
     assert.match(copy, /^Hi 👋/);
-    assert.doesNotMatch(copy, /EGP|https?:|What's your name|Online or Offline/);
-    assert.doesNotMatch(copy, /confirm|تأكيد|مؤكد/i);
+    assert.doesNotMatch(copy, /EGP|https?:|What's your name|Online or Offline|confirm/i);
   }
   const noSession = buildVerifiedAdvisorMessages(null, {
     applicationReceived: false,
@@ -198,38 +216,17 @@ test("missing format or offer cannot invent tuition or checkout", () => {
   assert.match(noSession, /If you have a personal 10% code/);
 });
 
-test("discount readiness and a graduation date cannot establish enrollment eligibility", () => {
-  for (const extra of [
-    { join_until: "2026-09-01", offer_validity_date: "2027-01-10" },
-    { paymentFailure: true },
-    { enrollmentEligible: true },
-  ]) {
-    const copy = buildVerifiedAdvisorMessages(
-      { ...readyContext, ...extra },
-      { currentOffer: { ...siteContent.diplomas.online, ...extra } },
-    ).join(" ");
-    // These fields are not exposed by the existing trusted context contract.
-    assert.doesNotMatch(copy, /https?:|try again|pay now/i);
-  }
-});
-
-test("both languages fit the Chatbase limit, including the maximum first name", () => {
-  for (const language of ["en", "ar"]) {
-    for (const diplomaSlug of ["online", "offline"]) {
-      for (const offerState of ["offer_ready", "expired", "offer_pending", "unavailable"]) {
-        const messages = buildVerifiedAdvisorMessages(
-          { ...readyContext, firstName: "م".repeat(60), diplomaSlug, offerState },
-          { currentOffer: siteContent.diplomas[diplomaSlug], language },
-        );
-        assert.equal(messages.length, 2);
-        assert.ok(messages.reduce((sum, message) => sum + message.length, 0) <= 1000);
-        assert.ok(messages.at(-1).endsWith(language === "ar"
-          ? "أو اسألني أي سؤال عنه."
-          : "Or ask me anything about it."));
-      }
+test("the welcome fits the Chatbase limit, including the maximum first name", () => {
+  for (const diplomaSlug of ["online", "offline"]) {
+    for (const offerState of ["offer_ready", "expired", "offer_pending", "unavailable"]) {
+      const messages = buildVerifiedAdvisorMessages(
+        { ...readyContext, firstName: "م".repeat(60), diplomaSlug, offerState },
+        { currentOffer: siteContent.diplomas[diplomaSlug], now: NOW },
+      );
+      assert.equal(messages.length, 1);
+      assert.ok(messages[0].length <= 1000);
     }
   }
-  assert.match(buildVerifiedAdvisorMessages(null, { language: "ar" })[0], /^أهلًا 👋/);
 });
 
 test("welcome configuration is once per widget and existing lead identity", () => {
