@@ -3,6 +3,7 @@ import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
+  ADVISOR_AUTO_OPEN_DELAY_MS,
   buildVerifiedAdvisorMessages,
   formatOfferExpiry,
   isPendingOfferState,
@@ -400,6 +401,11 @@ test("auto-open never stalls behind a slow or failed AI Closer", () => {
   // The popup opens once personalization settles OR the deadline passes, so a
   // missing secret, a stale session, or a slow n8n can no longer suppress it.
   assert.match(advisor, /personalizationResolved \|\| autoOpenDeadlineReached/);
+
+  // The popup never opens on its own before the visitor has spent 40s on the page.
+  assert.equal(ADVISOR_AUTO_OPEN_DELAY_MS, 40_000);
+  assert.match(advisor, /if \(!contextResolved \|\| !autoOpenDelayReached\) return;/);
+  assert.match(advisor, /setAutoOpenDelayReached\(true\),\s*ADVISOR_AUTO_OPEN_DELAY_MS/);
   assert.match(advisor, /status === "unavailable"/);
 
   // A verified offer is required for personalized copy, never for opening.
