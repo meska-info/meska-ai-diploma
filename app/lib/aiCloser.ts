@@ -9,7 +9,9 @@ export const AI_CLOSER_EVENT_ENDPOINT =
 // first context read usually lands while `lead_offers` is still `pending`.
 export const AI_CLOSER_POLL_INTERVAL_MS = 3_000;
 export const AI_CLOSER_POLL_MAX_MS = 90_000;
-export const ADVISOR_AUTO_OPEN_DEADLINE_MS = 12_000;
+// How long the welcome waits for the verified offer (and its code) before it is
+// set without it. Kept under the auto-open delay so the popup opens on it.
+export const ADVISOR_AUTO_OPEN_DEADLINE_MS = 35_000;
 // The popup opens on its own only after the visitor has had time on the page.
 export const ADVISOR_AUTO_OPEN_DELAY_MS = 40_000;
 
@@ -234,103 +236,118 @@ export function normalizeAiCloserContext(
   };
 }
 
+function formatHoursLeft(expiresAt: string | undefined, now: number) {
+  const msLeft = expiresAt ? new Date(expiresAt).getTime() - now : Number.NaN;
+  if (!Number.isFinite(msLeft) || msLeft <= 0) return undefined;
+  const hours = Math.round(msLeft / (60 * 60 * 1000));
+  if (hours < 1) return "Expires in less than an hour";
+  return `Expires in ${hours} ${hours === 1 ? "hour" : "hours"}`;
+}
+
+// The thank-you welcome is the agent's own first message: it names the format
+// the visitor applied for, so the conversation stays on that format, and it
+// carries the verified personal code with a payment link that applies it.
 export function buildVerifiedAdvisorMessages(
   context: SafeAiCloserContext | null,
   {
     firstName,
     diplomaSlug,
     currentOffer,
-    language = "en",
     applicationReceived = true,
+    now = Date.now(),
   }: {
     firstName?: string;
     diplomaSlug?: DiplomaId;
-    currentOffer?: Pick<Diploma, "id" | "priceValue" | "currency"> &
-      Partial<Pick<Diploma, "wave" | "startDate" | "schedule" | "location">>;
-    language?: "en" | "ar";
+    currentOffer?: Pick<
+      Diploma,
+      "id" | "wave" | "priceValue" | "currency" | "checkoutUrl" | "advisorWelcome"
+    >;
     applicationReceived?: boolean;
+    now?: number;
   } = {},
 ) {
   const verified = context?.leadVerified ? context : null;
   const name = cleanText(verified?.firstName ?? firstName, 60);
+  const hi = `Hi${name ? ` ${name}` : ""}`;
   const slug = verified?.diplomaSlug ?? diplomaSlug;
-  const arabic = language === "ar";
-  const format = slug === "online"
-    ? arabic ? "أونلاين (Online)" : "Online"
-    : slug === "offline"
-      ? arabic ? "أوفلاين (Offline)" : "Offline"
-      : "";
-  const label = `AI Copilot Diploma${format ? ` — ${format}` : ""}`;
-  const greeting = arabic
-    ? `أهلًا${name ? ` يا ${name}` : ""} 👋${applicationReceived ? " طلبك وصلنا، ومش محتاج تبعت أي بيانات تاني." : ""}`
-    : `Hi${name ? ` ${name}` : ""} 👋${applicationReceived ? " We've received your application." : ""}`;
+  const offer = currentOffer && currentOffer.id === slug &&
+    currentOffer.currency === "EGP" &&
+    Number.isFinite(currentOffer.priceValue) && currentOffer.priceValue > 0
+      ? currentOffer : null;
 
-  // The welcome is the agent's own first message, so stating the track here is
-  // what keeps the conversation on the format the visitor applied for.
-  const matchingOffer = currentOffer && currentOffer.id === slug ? currentOffer : null;
-  const trackDetails = matchingOffer
-    ? [
-        matchingOffer.wave && matchingOffer.startDate
-          ? `${matchingOffer.wave} · ${matchingOffer.startDate}`
-          : undefined,
-        matchingOffer.schedule,
-        matchingOffer.location,
-      ].filter(Boolean).map((line) => `- ${line}`).join("\n")
-    : "";
-  const recap = format
-    ? [
-        arabic ? `إنت مسجل في ${label}:` : `You applied for the ${label}:`,
-        trackDetails,
-      ].filter(Boolean).join("\n")
-    : arabic
-      ? "MESKA شركة مصرية متخصصة في تعليم الـAI بشكل عملي للمهنيين."
-      : "MESKA is an Egyptian company focused on practical AI training for professionals.";
+  if (!offer) {
+    return [
+      [
+        `${hi} 👋${applicationReceived ? " We've received your application." : ""} MESKA is an Egyptian company focused on practical AI training for professionals.`,
+        applicationReceived
+          ? "Check WhatsApp for your personal 10% code."
+          : "If you have a personal 10% code, check WhatsApp.",
+        "If you have any other questions, ask me here.",
+      ].join("\n\n"),
+    ];
+  }
 
   const expiry = formatOfferExpiry(verified?.offer?.expiresAt);
+  const hoursLeft = formatHoursLeft(verified?.offer?.expiresAt, now);
   const percent = verified?.offer?.discountPercent;
   const code = verified?.offer?.discountCode;
   const activeDiscount =
     verified?.offerState === "offer_ready" &&
     Boolean(expiry) &&
+    Boolean(hoursLeft) &&
     Boolean(code) &&
     typeof percent === "number" &&
     Number.isFinite(percent) &&
     percent > 0 && percent <= 100;
   const expired = verified?.offerState === "expired";
-  const discount = expired
-    ? arabic ? "نافذة كود خصمك الشخصي انتهت." : "Your personal discount window has ended."
-    : activeDiscount
-      ? arabic
-        ? `كود خصمك الشخصي ${percent}%: ${code}\nاكتبه في خانة الخصم في صفحة الدفع. صالح لحد ${expiry} بتوقيت القاهرة.`
-        : `Your personal ${percent}% code: ${code}\nEnter it in the discount field at checkout. It expires on ${expiry} (Cairo time).`
-      : arabic
-        ? applicationReceived ? "راجع WhatsApp لكود خصمك الشخصي 10%." : "لو عندك كود خصم شخصي 10%، راجع WhatsApp."
-        : applicationReceived ? "Check WhatsApp for your personal 10% code." : "If you have a personal 10% code, check WhatsApp.";
 
-  const fullPrice = matchingOffer &&
-    matchingOffer.currency === "EGP" &&
-    Number.isFinite(matchingOffer.priceValue) && matchingOffer.priceValue > 0
-      ? matchingOffer.priceValue : null;
   const money = (value: number) => `EGP ${new Intl.NumberFormat("en-GB", {
     maximumFractionDigits: 2,
   }).format(value)}`;
-  const price = fullPrice === null ? "" : activeDiscount
-    ? arabic
-      ? `السعر بالكود: ${money(fullPrice * (1 - percent! / 100))}؛ السعر الكامل: ${money(fullPrice)}.`
-      : `With your code: ${money(fullPrice * (1 - percent! / 100))}; full tuition: ${money(fullPrice)}.`
-    : arabic ? `السعر الكامل: ${money(fullPrice)}.` : `Full tuition: ${money(fullPrice)}.`;
+  const fullPrice = money(offer.priceValue);
+  const format = offer.id === "online" ? "Online" : "Offline";
+  const details = (price: string) => [
+    `Meska AI Diploma | ${format} · ${offer.wave}`,
+    [
+      `First session: ${offer.advisorWelcome.firstSession}`,
+      `Duration: ${offer.advisorWelcome.duration}`,
+      `Price: ${price}`,
+      offer.advisorWelcome.sessions,
+      offer.advisorWelcome.place,
+    ].map((line) => `👉🏽${line}`).join("\n"),
+  ].join("\n\n");
 
-  const closing = format
-    ? arabic
-      ? `تحب أبعتلك لينك الدفع للـ${format}؟ أو اسألني أي سؤال عنه.`
-      : `Want your ${format} payment link? Or ask me anything about it.`
-    : arabic
-      ? "لو عندك أي استفسار تاني، اسألني هنا."
-      : "If you have any other questions, ask me here.";
+  if (activeDiscount) {
+    const paymentLink = new URL(offer.checkoutUrl);
+    paymentLink.searchParams.set("discount", code!);
+    return [
+      [
+        `${hi}, **You've earned ${percent}% OFF on the Meska AI Diploma** 🎉`,
+        hoursLeft,
+        details(`${money(offer.priceValue * (1 - percent! / 100))} instead of ${fullPrice}`),
+        [
+          `**Your discount:** ${percent}% OFF`,
+          `**Your code:** ${code}`,
+          `**Offer expires:** ${expiry} (Cairo time)`,
+        ].join("\n"),
+        `Here is your payment link: ${paymentLink.toString()}`,
+      ].join("\n\n"),
+    ];
+  }
 
   return [
-    `${greeting}\n\n${recap}`,
-    [discount, price, closing].filter(Boolean).join("\n\n"),
+    [
+      expired
+        ? `${hi}, your personal discount window has ended — you can still enroll at the full price.`
+        : `${hi}, we've received your application 🎉`,
+      details(fullPrice),
+      expired
+        ? undefined
+        : applicationReceived
+          ? "Check WhatsApp for your personal 10% code."
+          : "If you have a personal 10% code, check WhatsApp.",
+      `Here is your payment link: ${offer.checkoutUrl}`,
+    ].filter(Boolean).join("\n\n"),
   ];
 }
 

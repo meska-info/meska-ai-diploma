@@ -265,8 +265,6 @@ export function DiplomaAdvisor() {
       diplomaSlug,
       currentOffer: diplomaSlug ? siteContent.diplomas[diplomaSlug] : undefined,
       applicationReceived: Boolean(browserContext),
-      // Applicants chat in Egyptian Arabic, matching the agent's own welcome.
-      language: "ar",
     });
   }, [browserContext, identity, verifiedContext]);
 

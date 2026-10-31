@@ -163,7 +163,9 @@ export function configureAdvisorWelcome(
   initialMessages: string[],
 ) {
   if (configuredWelcomes.get(chatbase)?.has(leadId)) return;
-  chatbase.setOptions({ initialMessages, suggestedMessages: [] });
+  // Only the welcome is replaced: the suggested-message buttons configured in
+  // the Chatbase dashboard stay visible.
+  chatbase.setOptions({ initialMessages });
   const configuredLeads = configuredWelcomes.get(chatbase) ?? new Set<string | null>();
   configuredLeads.add(leadId);
   configuredWelcomes.set(chatbase, configuredLeads);

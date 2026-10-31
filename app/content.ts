@@ -18,6 +18,13 @@ export type Diploma = {
   leadDestinationStatus: "pending";
   formSubmitLabel: string;
   installmentNote: string;
+  /** Format-specific lines of the thank-you Chatbase welcome. */
+  advisorWelcome: {
+    firstSession: string;
+    duration: string;
+    sessions: string;
+    place: string;
+  };
   included: string[];
 };
 
@@ -78,6 +85,12 @@ export const siteContent = {
       leadDestinationStatus: "pending",
       formSubmitLabel: "Submit Enquiry",
       installmentNote: "5 interest-free payments via Sympl.",
+      advisorWelcome: {
+        firstSession: "Saturday, 7th November 2026",
+        duration: "8 weeks",
+        sessions: "Sessions are every Saturday, 5 PM–10 PM",
+        place: "Venue: Creativa Innovation Hub, Giza",
+      },
       included: [
         "8 offline + 3 online intensive sessions",
         "Hands-on practice with AI tools",
@@ -108,6 +121,12 @@ export const siteContent = {
       leadDestinationStatus: "pending",
       formSubmitLabel: "Submit Enquiry",
       installmentNote: "5 interest-free payments via Sympl.",
+      advisorWelcome: {
+        firstSession: "Sunday, 8th November 2026",
+        duration: "8 weeks",
+        sessions: "Sessions are every Sunday, 7 PM–11 PM",
+        place: "Live online, via ZOOM",
+      },
       included: [
         "8 live + 3 recap intensive sessions",
         "Hands-on practice with AI tools",

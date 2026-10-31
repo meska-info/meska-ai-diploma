@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { siteContent } from "../app/content.ts";
 import {
   ADVISOR_AUTO_OPEN_DELAY_MS,
   buildVerifiedAdvisorMessages,
@@ -357,7 +358,10 @@ test("offer expiry reaches the visitor as readable Cairo time, never raw ISO", (
     "offline",
     Date.UTC(2026, 8, 8, 12),
   );
-  const messages = buildVerifiedAdvisorMessages(ready).join(" ");
+  const messages = buildVerifiedAdvisorMessages(ready, {
+    currentOffer: siteContent.diplomas.offline,
+    now: Date.UTC(2026, 8, 8, 12),
+  }).join(" ");
   assert.match(messages, /10%/);
   assert.match(messages, /MESKA-TEST/);
   assert.doesNotMatch(messages, /2026-09-09T18:33/);
@@ -378,7 +382,7 @@ test("a pending offer keeps polling without asserting code validity", () => {
   );
   assert.equal(isPendingOfferState(pending), true);
   assert.match(buildVerifiedAdvisorMessages(pending).join(" "), /Check WhatsApp for your personal 10% code/);
-  assert.doesNotMatch(buildVerifiedAdvisorMessages(pending).join(" "), /With your code|It expires/);
+  assert.doesNotMatch(buildVerifiedAdvisorMessages(pending).join(" "), /instead of|Expires in|Your code/);
 
   // Terminal and unverified states must stop the poll loop.
   assert.equal(isPendingOfferState(null), false);
