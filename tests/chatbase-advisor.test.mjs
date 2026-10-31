@@ -234,7 +234,8 @@ test("welcome configuration is once per widget and existing lead identity", () =
   const widget = Object.assign(() => {}, { setOptions: (options) => calls.push(options) });
   configureAdvisorWelcome(widget, "lead-one", ["First recap"]);
   for (let i = 0; i < 5; i++) configureAdvisorWelcome(widget, "lead-one", ["Updated price or render"]);
-  assert.deepEqual(calls, [{ initialMessages: ["First recap"], suggestedMessages: [] }]);
+  // The dashboard's suggested-message buttons are never overridden.
+  assert.deepEqual(calls, [{ initialMessages: ["First recap"] }]);
   configureAdvisorWelcome(widget, "lead-two", ["Another application"]);
   assert.equal(calls.length, 2);
   const refreshedWidget = Object.assign(() => {}, { setOptions: (options) => calls.push(options) });
