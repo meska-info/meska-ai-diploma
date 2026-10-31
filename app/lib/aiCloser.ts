@@ -10,6 +10,8 @@ export const AI_CLOSER_EVENT_ENDPOINT =
 export const AI_CLOSER_POLL_INTERVAL_MS = 3_000;
 export const AI_CLOSER_POLL_MAX_MS = 90_000;
 export const ADVISOR_AUTO_OPEN_DEADLINE_MS = 12_000;
+// The popup opens on its own only after the visitor has had time on the page.
+export const ADVISOR_AUTO_OPEN_DELAY_MS = 40_000;
 
 export const AI_CLOSER_EVENT_TYPES = [
   "chat_started",

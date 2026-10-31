@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { siteContent } from "../content";
 import {
   ADVISOR_AUTO_OPEN_DEADLINE_MS,
+  ADVISOR_AUTO_OPEN_DELAY_MS,
   AI_CLOSER_POLL_INTERVAL_MS,
   AI_CLOSER_POLL_MAX_MS,
   buildVerifiedAdvisorMessages,
@@ -77,6 +78,7 @@ export function DiplomaAdvisor() {
   // know it will never arrive. The auto-open must never wait on it forever.
   const [personalizationSettled, setPersonalizationSettled] = useState(false);
   const [autoOpenDeadlineReached, setAutoOpenDeadlineReached] = useState(false);
+  const [autoOpenDelayReached, setAutoOpenDelayReached] = useState(false);
   const openedThisMount = useRef(false);
   const identifiedToken = useRef<string | null>(null);
   const userMessageStarted = useRef(false);
@@ -111,6 +113,14 @@ export function DiplomaAdvisor() {
     const timer = window.setTimeout(
       () => setAutoOpenDeadlineReached(true),
       ADVISOR_AUTO_OPEN_DEADLINE_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => setAutoOpenDelayReached(true),
+      ADVISOR_AUTO_OPEN_DELAY_MS,
     );
     return () => window.clearTimeout(timer);
   }, []);
@@ -367,7 +377,7 @@ export function DiplomaAdvisor() {
     (contextResolved && !browserContext);
 
   useEffect(() => {
-    if (!contextResolved) return;
+    if (!contextResolved || !autoOpenDelayReached) return;
     if (
       !shouldAutoOpenAdvisor({
         status,
@@ -392,6 +402,7 @@ export function DiplomaAdvisor() {
     }
   }, [
     autoOpenDeadlineReached,
+    autoOpenDelayReached,
     browserContext,
     contextResolved,
     personalizationResolved,
