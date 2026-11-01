@@ -342,6 +342,9 @@ test("offer expiry reaches the visitor as readable Cairo time, never raw ISO", (
   const formatted = formatOfferExpiry(expiresAt);
   assert.ok(formatted);
   assert.doesNotMatch(formatted, /T\d{2}:\d{2}|Z$/);
+  // Same Intl options as the WhatsApp message built in n8n: two-digit day,
+  // 24-hour Cairo time.
+  assert.equal(formatOfferExpiry("2026-11-02T03:45:00.000Z"), "02 Nov 2026, 05:45");
   assert.equal(formatOfferExpiry(undefined), undefined);
   assert.equal(formatOfferExpiry("not-a-date"), undefined);
 
