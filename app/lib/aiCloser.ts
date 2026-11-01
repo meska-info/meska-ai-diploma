@@ -104,6 +104,7 @@ export function redactSalesText(value: unknown, maxLength = 200) {
   return redacted || undefined;
 }
 
+// "01 Nov 2026, 05:45" in Cairo time, the same format as the WhatsApp message.
 export function formatOfferExpiry(expiresAt: string | undefined) {
   if (!expiresAt) return undefined;
   const expiryTime = new Date(expiresAt).getTime();
@@ -111,8 +112,12 @@ export function formatOfferExpiry(expiresAt: string | undefined) {
   try {
     return new Intl.DateTimeFormat("en-GB", {
       timeZone: "Africa/Cairo",
-      dateStyle: "medium",
-      timeStyle: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
     }).format(new Date(expiryTime));
   } catch {
     return undefined;
@@ -328,9 +333,9 @@ export function buildVerifiedAdvisorMessages(
         [
           `**Your discount:** ${percent}% OFF`,
           `**Your code:** ${code}`,
-          `**Offer expires:** ${expiry} (Cairo time)`,
+          `**Offer expires:** ${expiry}`,
         ].join("\n"),
-        `Here is your payment link: ${paymentLink.toString()}`,
+        `Here is your payment link:\n${paymentLink.toString()}`,
       ].join("\n\n"),
     ];
   }
@@ -346,7 +351,7 @@ export function buildVerifiedAdvisorMessages(
         : applicationReceived
           ? "Check WhatsApp for your personal 10% code."
           : "If you have a personal 10% code, check WhatsApp.",
-      `Here is your payment link: ${offer.checkoutUrl}`,
+      `Here is your payment link:\n${offer.checkoutUrl}`,
     ].filter(Boolean).join("\n\n"),
   ];
 }

@@ -138,9 +138,9 @@ test("a ready offer renders the approved welcome for the applied format", () => 
     [
       "**Your discount:** 10% OFF",
       "**Your code:** MESKA-PERSONAL-10",
-      "**Offer expires:** 1 Nov 2026, 00:00 (Cairo time)",
+      "**Offer expires:** 01 Nov 2026, 00:00",
     ].join("\n"),
-    "Here is your payment link: https://aionline.meska.ai/cart/41309075341358:1?discount=MESKA-PERSONAL-10",
+    "Here is your payment link:\nhttps://aionline.meska.ai/cart/41309075341358:1?discount=MESKA-PERSONAL-10",
   ].join("\n\n"));
 
   const offline = buildVerifiedAdvisorMessages(
@@ -180,7 +180,7 @@ test("without a ready offer the welcome keeps the format but never invents a cod
     assert.match(copy, /Meska AI Diploma \| Online · Wave 12/);
     assert.match(copy, /👉🏽Price: EGP 20,000\n/);
     assert.doesNotMatch(copy, /18,000|MESKA-PERSONAL-10|discount=|Expires in/);
-    assert.ok(copy.endsWith(`Here is your payment link: ${siteContent.diplomas.online.checkoutUrl}`));
+    assert.ok(copy.endsWith(`Here is your payment link:\n${siteContent.diplomas.online.checkoutUrl}`));
     if (offerState === "expired") assert.match(copy, /discount window has ended/);
     else assert.match(copy, /Check WhatsApp for your personal 10% code/);
   }
