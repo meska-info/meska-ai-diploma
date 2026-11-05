@@ -70,8 +70,8 @@ export const siteContent = {
       id: "offline",
       label: "Offline Diploma",
       wave: "Wave 16",
-      startDate: "1 December 2026",
-      schedule: "Every Tuesday from 5 PM to 10 PM",
+      startDate: "30 November 2026",
+      schedule: "Every Monday from 5 PM to 10 PM",
       time: "5 PM to 10 PM",
       duration: "11 sessions + graduation project",
       format: "8 offline + 3 online live sessions",
@@ -86,9 +86,9 @@ export const siteContent = {
       formSubmitLabel: "Submit Enquiry",
       installmentNote: "5 interest-free payments via Sympl.",
       advisorWelcome: {
-        firstSession: "Tuesday, 1st December 2026",
+        firstSession: "Monday, 30th November 2026",
         duration: "8 weeks",
-        sessions: "Sessions are every Tuesday, 5 PM–10 PM",
+        sessions: "Sessions are every Monday, 5 PM–10 PM",
         place: "Venue: Kamelizer Spaces, District5 - Marakez",
       },
       included: [
@@ -106,8 +106,8 @@ export const siteContent = {
       id: "online",
       label: "Online Diploma",
       wave: "Wave 12",
-      startDate: "30 November 2026",
-      schedule: "Every Monday from 7 PM to 11 PM",
+      startDate: "1 December 2026",
+      schedule: "Every Tuesday from 7 PM to 11 PM",
       time: "7 PM to 11 PM",
       duration: "11 sessions + graduation project",
       format: "8 live + 3 online recap sessions",
@@ -122,9 +122,9 @@ export const siteContent = {
       formSubmitLabel: "Submit Enquiry",
       installmentNote: "5 interest-free payments via Sympl.",
       advisorWelcome: {
-        firstSession: "Monday, 30th November 2026",
+        firstSession: "Tuesday, 1st December 2026",
         duration: "8 weeks",
-        sessions: "Sessions are every Monday, 7 PM–11 PM",
+        sessions: "Sessions are every Tuesday, 7 PM–11 PM",
         place: "Live online, via ZOOM",
       },
       included: [
@@ -765,7 +765,7 @@ export const siteContent = {
     {
       question: "How long is the diploma?",
       answer:
-        "The diploma runs for eight weeks. Offline sessions take place every Tuesday, while Online sessions take place every Monday.",
+        "The diploma runs for eight weeks. Offline sessions take place every Monday, while Online sessions take place every Tuesday.",
     },
     {
       question: "What can I do to prepare?",
