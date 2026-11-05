@@ -129,10 +129,10 @@ test("a ready offer renders the approved welcome for the applied format", () => 
     "Expires in 12 hours",
     "Meska AI Diploma | Online · Wave 12",
     [
-      "👉🏽First session: Sunday, 8th November 2026",
+      "👉🏽First session: Monday, 30th November 2026",
       "👉🏽Duration: 8 weeks",
       "👉🏽Price: EGP 18,000 instead of EGP 20,000",
-      "👉🏽Sessions are every Sunday, 7 PM–11 PM",
+      "👉🏽Sessions are every Monday, 7 PM–11 PM",
       "👉🏽Live online, via ZOOM",
     ].join("\n"),
     [
@@ -148,13 +148,13 @@ test("a ready offer renders the approved welcome for the applied format", () => 
     { currentOffer: siteContent.diplomas.offline, now: NOW },
   )[0];
   assert.match(offline, /Meska AI Diploma \| Offline · Wave 16/);
-  assert.match(offline, /👉🏽First session: Saturday, 7th November 2026/);
+  assert.match(offline, /👉🏽First session: Tuesday, 1st December 2026/);
   assert.match(offline, /👉🏽Price: EGP 22,500 instead of EGP 25,000/);
-  assert.match(offline, /👉🏽Sessions are every Saturday, 5 PM–10 PM/);
-  assert.match(offline, /👉🏽Venue: Creativa Innovation Hub, Giza/);
+  assert.match(offline, /👉🏽Sessions are every Tuesday, 5 PM–10 PM/);
+  assert.match(offline, /👉🏽Venue: Kamelizer Spaces, District5 - Marakez/);
   assert.ok(offline.endsWith(`${siteContent.diplomas.offline.checkoutUrl}?discount=MESKA-PERSONAL-10`));
-  assert.doesNotMatch(offline, /Online|ZOOM|Sunday/);
-  assert.doesNotMatch(online.join(" "), /Offline|Creativa|Saturday/);
+  assert.doesNotMatch(offline, /Online|ZOOM|Monday/);
+  assert.doesNotMatch(online.join(" "), /Offline|Kamelizer|Tuesday/);
 });
 
 test("the expiry line counts down from the real offer expiry", () => {
