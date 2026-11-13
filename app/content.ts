@@ -69,7 +69,7 @@ export const siteContent = {
     offline: {
       id: "offline",
       label: "Offline Diploma",
-      wave: "Wave 16",
+      wave: "Wave 17",
       startDate: "30 November 2026",
       schedule: "Every Monday from 5 PM to 10 PM",
       time: "5 PM to 10 PM",
@@ -105,7 +105,7 @@ export const siteContent = {
     online: {
       id: "online",
       label: "Online Diploma",
-      wave: "Wave 12",
+      wave: "Wave 13",
       startDate: "1 December 2026",
       schedule: "Every Tuesday from 7 PM to 11 PM",
       time: "7 PM to 11 PM",
