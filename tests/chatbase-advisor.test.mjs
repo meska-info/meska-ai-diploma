@@ -127,7 +127,7 @@ test("a ready offer renders the approved welcome for the applied format", () => 
   assert.equal(online[0], [
     "Hi Mariam, **You've earned 10% OFF on the Meska AI Diploma** 🎉",
     "Expires in 12 hours",
-    "Meska AI Diploma | Online · Wave 12",
+    "Meska AI Diploma | Online · Wave 13",
     [
       "👉🏽First session: Tuesday, 1st December 2026",
       "👉🏽Duration: 8 weeks",
@@ -147,7 +147,7 @@ test("a ready offer renders the approved welcome for the applied format", () => 
     { ...readyContext, diplomaSlug: "offline" },
     { currentOffer: siteContent.diplomas.offline, now: NOW },
   )[0];
-  assert.match(offline, /Meska AI Diploma \| Offline · Wave 16/);
+  assert.match(offline, /Meska AI Diploma \| Offline · Wave 17/);
   assert.match(offline, /👉🏽First session: Monday, 30th November 2026/);
   assert.match(offline, /👉🏽Price: EGP 22,500 instead of EGP 25,000/);
   assert.match(offline, /👉🏽Sessions are every Monday, 5 PM–10 PM/);
@@ -177,7 +177,7 @@ test("without a ready offer the welcome keeps the format but never invents a cod
       { ...readyContext, offerState },
       { currentOffer: siteContent.diplomas.online, now: NOW },
     ).join(" ");
-    assert.match(copy, /Meska AI Diploma \| Online · Wave 12/);
+    assert.match(copy, /Meska AI Diploma \| Online · Wave 13/);
     assert.match(copy, /👉🏽Price: EGP 20,000\n/);
     assert.doesNotMatch(copy, /18,000|MESKA-PERSONAL-10|discount=|Expires in/);
     assert.ok(copy.endsWith(`Here is your payment link:\n${siteContent.diplomas.online.checkoutUrl}`));
@@ -190,7 +190,7 @@ test("without a ready offer the welcome keeps the format but never invents a cod
     currentOffer: siteContent.diplomas.offline,
   }).join(" ");
   assert.match(fromBrowserOnly, /^Hi Mariam, we've received your application/);
-  assert.match(fromBrowserOnly, /Offline · Wave 16/);
+  assert.match(fromBrowserOnly, /Offline · Wave 17/);
   assert.doesNotMatch(fromBrowserOnly, /confirm/i);
 });
 
