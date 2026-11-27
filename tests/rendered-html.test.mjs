@@ -52,9 +52,9 @@ test("server-renders the diploma landing page", async () => {
   assert.match(html, /name="yearsExperience"/i);
   assert.match(html, /name="paymentPreference"/i);
   assert.match(html, /name="startTiming"/i);
-  assert.match(html, /Wave 17/i);
-  assert.match(html, /30 November 2026/i);
-  assert.match(html, /Every Monday from 5 PM to 10 PM/i);
+  assert.match(html, /Wave 18/i);
+  assert.match(html, /26 December 2026/i);
+  assert.match(html, /Every Saturday from 11 AM to 4 PM/i);
   assert.doesNotMatch(html, /name="job"|name="company"|name="website"/i);
   assert.match(html, /5 interest-free payments via Sympl\./i);
   assert.doesNotMatch(html, /class="price-benefits"|>Included</i);
@@ -104,9 +104,9 @@ test("server-renders the thank-you comparison page", async () => {
   assert.match(html, /Offline Diploma/i);
   assert.match(html, /<button[^>]+role="tab"[^>]*>Online<\/button>/i);
   assert.match(html, /role="tablist" aria-label="Diploma format"/i);
-  assert.match(html, /Wave 17/i);
-  assert.match(html, /30 November 2026/i);
-  assert.match(html, /Every Monday from 5 PM to 10 PM/i);
+  assert.match(html, /Wave 18/i);
+  assert.match(html, /26 December 2026/i);
+  assert.match(html, /Every Saturday from 11 AM to 4 PM/i);
   assert.equal((html.match(/class="checkout-card checkout-card-unified"/g) ?? []).length, 1);
   assert.match(html, /Continue with the [\s\S]{0,30}Offline Diploma/i);
   assert.match(html, /Step inside the diploma and see for yourself\./i);
@@ -179,12 +179,12 @@ test("keeps reduced-motion, checkout, and video contracts centralized", () => {
   assert.equal((content.match(/inside_diploma_video_\d{2}/g) ?? []).length, 9);
   assert.equal((content.match(/leadDestination: null,/g) ?? []).length, 2);
   assert.equal((content.match(/Submit Enquiry/g) ?? []).length, 2);
-  assert.match(content, /Wave 17/);
-  assert.match(content, /30 November 2026/);
-  assert.match(content, /Every Monday from 5 PM to 10 PM/);
-  assert.match(content, /Wave 13/);
-  assert.match(content, /1 December 2026/);
-  assert.match(content, /Every Tuesday from 7 PM to 11 PM/);
+  assert.match(content, /Wave 18/);
+  assert.match(content, /26 December 2026/);
+  assert.match(content, /Every Saturday from 11 AM to 4 PM/);
+  assert.match(content, /Wave 14/);
+  assert.match(content, /27 December 2026/);
+  assert.match(content, /Every Sunday from 7 PM to 11 PM/);
   // Programme facts come from app/content.ts only (see lead-route-content test).
   assert.match(apiRoute, /resolveProgrammeContext\(\s*siteContent\.diplomas/);
   assert.doesNotMatch(apiRoute, /Wave 1\d|November 2026/);

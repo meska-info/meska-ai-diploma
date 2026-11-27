@@ -32,11 +32,11 @@ for (const slug of ["offline", "online"]) {
 
 test("a wave change in content.ts alone keeps leads flowing (single source)", () => {
   const changed = structuredClone(siteContent.diplomas);
-  changed.offline.wave = "Wave 17";
+  changed.offline.wave = "Wave 19";
   changed.offline.startDate = "1 January 2027";
   const fromNewPage = {
     ...posted("offline"),
-    currentWave: "Wave 17",
+    currentWave: "Wave 19",
     currentWaveStartDate: "1 January 2027",
   };
   const result = resolveProgrammeContext(changed, "offline", fromNewPage, leadMagnets);

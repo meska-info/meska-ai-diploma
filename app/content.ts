@@ -69,13 +69,13 @@ export const siteContent = {
     offline: {
       id: "offline",
       label: "Offline Diploma",
-      wave: "Wave 17",
-      startDate: "30 November 2026",
-      schedule: "Every Monday from 5 PM to 10 PM",
-      time: "5 PM to 10 PM",
+      wave: "Wave 18",
+      startDate: "26 December 2026",
+      schedule: "Every Saturday from 11 AM to 4 PM",
+      time: "11 AM to 4 PM",
       duration: "11 sessions + graduation project",
       format: "8 offline + 3 online live sessions",
-      location: "Kamelizer Spaces · District5 - Marakez",
+      location: "Creativa Innovation Hub - Giza",
       price: "EGP 25,000",
       priceValue: 25000,
       currency: "EGP",
@@ -86,10 +86,10 @@ export const siteContent = {
       formSubmitLabel: "Submit Enquiry",
       installmentNote: "5 interest-free payments via Sympl.",
       advisorWelcome: {
-        firstSession: "Monday, 30th November 2026",
+        firstSession: "Saturday, 26th December 2026",
         duration: "8 weeks",
-        sessions: "Sessions are every Monday, 5 PM–10 PM",
-        place: "Venue: Kamelizer Spaces, District5 - Marakez",
+        sessions: "Sessions are every Saturday, 11 AM–4 PM",
+        place: "Venue: Creativa Innovation Hub, Giza",
       },
       included: [
         "8 offline + 3 online intensive sessions",
@@ -105,9 +105,9 @@ export const siteContent = {
     online: {
       id: "online",
       label: "Online Diploma",
-      wave: "Wave 13",
-      startDate: "1 December 2026",
-      schedule: "Every Tuesday from 7 PM to 11 PM",
+      wave: "Wave 14",
+      startDate: "27 December 2026",
+      schedule: "Every Sunday from 7 PM to 11 PM",
       time: "7 PM to 11 PM",
       duration: "11 sessions + graduation project",
       format: "8 live + 3 online recap sessions",
@@ -122,9 +122,9 @@ export const siteContent = {
       formSubmitLabel: "Submit Enquiry",
       installmentNote: "5 interest-free payments via Sympl.",
       advisorWelcome: {
-        firstSession: "Tuesday, 1st December 2026",
+        firstSession: "Sunday, 27th December 2026",
         duration: "8 weeks",
-        sessions: "Sessions are every Tuesday, 7 PM–11 PM",
+        sessions: "Sessions are every Sunday, 7 PM–11 PM",
         place: "Live online, via ZOOM",
       },
       included: [
@@ -735,7 +735,7 @@ export const siteContent = {
     {
       question: "What is the difference between Online and Offline?",
       answer:
-        "Offline combines 8 in-person sessions at Kamelizer Spaces, District5 - Marakez, with 3 online live sessions. Online is delivered virtually through 8 live sessions and 3 online recap sessions. Both formats centre on guided practice, real work, recordings, and hands-on support; the main difference is where and how you prefer to participate.",
+        "Offline combines 8 in-person sessions at Creativa Innovation Hub in Giza with 3 online live sessions. Online is delivered virtually through 8 live sessions and 3 online recap sessions. Both formats centre on guided practice, real work, recordings, and hands-on support; the main difference is where and how you prefer to participate.",
     },
     {
       question: "Are installment plans available?",
@@ -765,7 +765,7 @@ export const siteContent = {
     {
       question: "How long is the diploma?",
       answer:
-        "The diploma runs for eight weeks. Offline sessions take place every Monday, while Online sessions take place every Tuesday.",
+        "The diploma runs for eight weeks. Offline sessions take place every Saturday, while Online sessions take place every Sunday.",
     },
     {
       question: "What can I do to prepare?",
