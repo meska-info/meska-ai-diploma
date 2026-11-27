@@ -127,12 +127,12 @@ test("a ready offer renders the approved welcome for the applied format", () => 
   assert.equal(online[0], [
     "Hi Mariam, **You've earned 10% OFF on the Meska AI Diploma** 🎉",
     "Expires in 12 hours",
-    "Meska AI Diploma | Online · Wave 13",
+    "Meska AI Diploma | Online · Wave 14",
     [
-      "👉🏽First session: Tuesday, 1st December 2026",
+      "👉🏽First session: Sunday, 27th December 2026",
       "👉🏽Duration: 8 weeks",
       "👉🏽Price: EGP 18,000 instead of EGP 20,000",
-      "👉🏽Sessions are every Tuesday, 7 PM–11 PM",
+      "👉🏽Sessions are every Sunday, 7 PM–11 PM",
       "👉🏽Live online, via ZOOM",
     ].join("\n"),
     [
@@ -147,14 +147,14 @@ test("a ready offer renders the approved welcome for the applied format", () => 
     { ...readyContext, diplomaSlug: "offline" },
     { currentOffer: siteContent.diplomas.offline, now: NOW },
   )[0];
-  assert.match(offline, /Meska AI Diploma \| Offline · Wave 17/);
-  assert.match(offline, /👉🏽First session: Monday, 30th November 2026/);
+  assert.match(offline, /Meska AI Diploma \| Offline · Wave 18/);
+  assert.match(offline, /👉🏽First session: Saturday, 26th December 2026/);
   assert.match(offline, /👉🏽Price: EGP 22,500 instead of EGP 25,000/);
-  assert.match(offline, /👉🏽Sessions are every Monday, 5 PM–10 PM/);
-  assert.match(offline, /👉🏽Venue: Kamelizer Spaces, District5 - Marakez/);
+  assert.match(offline, /👉🏽Sessions are every Saturday, 11 AM–4 PM/);
+  assert.match(offline, /👉🏽Venue: Creativa Innovation Hub, Giza/);
   assert.ok(offline.endsWith(`${siteContent.diplomas.offline.checkoutUrl}?discount=MESKA-PERSONAL-10`));
-  assert.doesNotMatch(offline, /Online|ZOOM|Tuesday/);
-  assert.doesNotMatch(online.join(" "), /Offline|Kamelizer|Monday/);
+  assert.doesNotMatch(offline, /Online|ZOOM|Sunday/);
+  assert.doesNotMatch(online.join(" "), /Offline|Creativa|Saturday/);
 });
 
 test("the expiry line counts down from the real offer expiry", () => {
@@ -177,7 +177,7 @@ test("without a ready offer the welcome keeps the format but never invents a cod
       { ...readyContext, offerState },
       { currentOffer: siteContent.diplomas.online, now: NOW },
     ).join(" ");
-    assert.match(copy, /Meska AI Diploma \| Online · Wave 13/);
+    assert.match(copy, /Meska AI Diploma \| Online · Wave 14/);
     assert.match(copy, /👉🏽Price: EGP 20,000\n/);
     assert.doesNotMatch(copy, /18,000|MESKA-PERSONAL-10|discount=|Expires in/);
     assert.ok(copy.endsWith(`Here is your payment link:\n${siteContent.diplomas.online.checkoutUrl}`));
@@ -190,7 +190,7 @@ test("without a ready offer the welcome keeps the format but never invents a cod
     currentOffer: siteContent.diplomas.offline,
   }).join(" ");
   assert.match(fromBrowserOnly, /^Hi Mariam, we've received your application/);
-  assert.match(fromBrowserOnly, /Offline · Wave 17/);
+  assert.match(fromBrowserOnly, /Offline · Wave 18/);
   assert.doesNotMatch(fromBrowserOnly, /confirm/i);
 });
 
